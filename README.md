@@ -7,6 +7,9 @@ story points are written back to Jira.
 One lightweight container, one process. Votes and session counters live in memory; room
 definitions live in one SQLite file. Production runs at <https://poker.nijalabs.com>.
 
+How to use it: the [user guide](docs/user-guide.md). How to run it: the
+[admin guide](docs/admin-guide.md).
+
 ## Quick start (local development)
 
 Requires Python 3.12 or newer and Node 22.
@@ -158,6 +161,8 @@ Open this folder in Claude Code. `CLAUDE.md` gives it the constraints, commands 
 
 ## Documents
 
+- [docs/user-guide.md](docs/user-guide.md): for players, facilitators and room owners
+- [docs/admin-guide.md](docs/admin-guide.md): sign-in and Jira apps, settings, operations, troubleshooting
 - [docs/design.md](docs/design.md): architecture and behaviour
 - [docs/test-plan.md](docs/test-plan.md): test cases with IDs
 - [docs/build-plan.md](docs/build-plan.md): the six build steps

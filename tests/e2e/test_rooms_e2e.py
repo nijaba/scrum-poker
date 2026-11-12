@@ -149,7 +149,7 @@ def test_open_page_learns_its_room_is_gone_when_it_reconnects(table):
     context.close()
 
 
-def test_every_page_links_the_source_code_in_a_new_tab(table):
+def test_every_page_links_help_and_the_source_code_in_a_new_tab(table):
     ana = table.join("Ana")
     pages = {"room": ana.page}
     home = table.new_context().new_page()
@@ -163,3 +163,8 @@ def test_every_page_links_the_source_code_in_a_new_tab(table):
         assert "noopener" in link.get_attribute("rel"), name
         box = link.bounding_box()
         assert box["height"] >= 44, (name, box)  # the minimum hit target
+        help_link = page.get_by_role("contentinfo").get_by_role("link", name="Help")
+        expect(help_link).to_have_attribute(
+            "href", "https://github.com/nijaba/scrum-poker/blob/main/docs/user-guide.md"
+        )
+        expect(help_link).to_have_attribute("target", "_blank")

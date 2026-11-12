@@ -1,8 +1,11 @@
 <script lang="ts">
   const SOURCE = "https://github.com/nijaba/scrum-poker";
+  const HELP = `${SOURCE}/blob/main/docs/user-guide.md`;
 </script>
 
 <footer>
+  <a href={HELP} target="_blank" rel="noopener noreferrer">Help</a>
+  <span aria-hidden="true">·</span>
   <span>Scrum poker is open source.</span>
   <a href={SOURCE} target="_blank" rel="noopener noreferrer">Source on GitHub</a>
 </footer>
