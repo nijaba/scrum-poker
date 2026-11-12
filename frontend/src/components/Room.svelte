@@ -244,7 +244,7 @@
     padding: 48px 24px;
   }
   .room {
-    min-height: 100vh;
+    flex: 1;
     display: flex;
     flex-direction: column;
   }

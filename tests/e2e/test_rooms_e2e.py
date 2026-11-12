@@ -147,3 +147,19 @@ def test_open_page_learns_its_room_is_gone_when_it_reconnects(table):
     page.wait_for_timeout(2_500)
     assert len(sockets) == count  # no more retries
     context.close()
+
+
+def test_every_page_links_the_source_code_in_a_new_tab(table):
+    ana = table.join("Ana")
+    pages = {"room": ana.page}
+    home = table.new_context().new_page()
+    home.goto(f"{table.base}/")
+    pages["home"] = home
+
+    for name, page in pages.items():
+        link = page.get_by_role("contentinfo").get_by_role("link", name="Source on GitHub")
+        expect(link).to_have_attribute("href", "https://github.com/nijaba/scrum-poker")
+        expect(link).to_have_attribute("target", "_blank")
+        assert "noopener" in link.get_attribute("rel"), name
+        box = link.bounding_box()
+        assert box["height"] >= 44, (name, box)  # the minimum hit target
