@@ -209,7 +209,17 @@ class JiraService:
         _check(response, missing="jira_board_missing")
         field = (((response.json().get("estimation") or {}).get("field")) or {}).get("fieldId")
 
-        fields = ["summary", "issuetype", "priority", "labels", "description", "epic", "parent"]
+        fields = [
+            "summary",
+            "issuetype",
+            "status",
+            "sprint",
+            "priority",
+            "labels",
+            "description",
+            "epic",
+            "parent",
+        ]
         if field:
             fields.append(field)
         tickets: list[dict[str, Any]] = []
@@ -230,7 +240,7 @@ class JiraService:
             data = response.json()
             issues = data.get("issues", [])
             for issue in issues:
-                if _is_epic(issue):
+                if not _estimable(issue):
                     continue
                 tickets.append(_ticket(issue, field, jira.site_url, len(tickets) + 1))
             start += len(issues)
@@ -299,17 +309,32 @@ def _jira_message(response: httpx2.Response) -> str:
     return " ".join(parts) or f"Jira refused the request ({response.status_code})."
 
 
-def _is_epic(issue: dict[str, Any]) -> bool:
-    """Epics, and any type above them, group work rather than being estimated themselves.
+def _estimable(issue: dict[str, Any]) -> bool:
+    """Whether the backlog issue is a ticket for the queue: a standard work type, not started,
+    and in no open sprint.
 
-    Jira Cloud gives every issue type a hierarchy level: -1 sub-task, 0 standard, 1 epic.
-    The name is a fallback for a response without the level; it can be renamed or translated.
+    Epics, and any type above them, group tickets; sub-tasks split one. Jira Cloud gives every
+    issue type a hierarchy level (-1 sub-task, 0 standard, 1 epic) and a subtask flag, which
+    hold when the type is renamed or translated; the names are a fallback for a response
+    without them. "Not started" is Jira's To Do status category (key "new"), whatever the
+    status is called. The backlog endpoint already leaves out tickets in active and future
+    sprints; the sprint check keeps that true whatever the endpoint returns.
     """
-    kind = (issue.get("fields") or {}).get("issuetype") or {}
+    fields = issue.get("fields") or {}
+    kind = fields.get("issuetype") or {}
+    if kind.get("subtask") is True:
+        return False
     level = kind.get("hierarchyLevel")
     if isinstance(level, int):
-        return level >= 1
-    return kind.get("name") == "Epic"
+        if level != 0:
+            return False
+    elif kind.get("name") in ("Epic", "Sub-task", "Subtask"):
+        return False
+    category = ((fields.get("status") or {}).get("statusCategory") or {}).get("key")
+    if category != "new":
+        return False
+    sprint = fields.get("sprint") or {}
+    return sprint.get("state") not in ("active", "future")
 
 
 def _ticket(

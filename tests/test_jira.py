@@ -133,6 +133,77 @@ def test_jc15_epics_stay_out_of_the_queue_and_the_counters(jclient, japp, atlass
     assert [t["rank"] for t in tickets] == list(range(1, 13))
 
 
+def test_jc16_sub_tasks_stay_out_of_the_queue_and_the_counters(jclient, japp, atlassian):
+    issues = atlassian.boards[1]["issues"]
+    issues.insert(
+        1, _issue({"key": "SHOP-210", "summary": "Write the copy", "type": "Sub-task"}, 90)
+    )
+    # A renamed sub-task type is still one: Jira marks it by its level and its subtask flag.
+    issues.insert(3, _issue({"key": "SHOP-211", "type": "Tâche"}, 91))
+    issues[3]["fields"]["issuetype"].update({"hierarchyLevel": -1, "subtask": True})
+    issues.insert(5, _issue({"key": "SHOP-212", "type": "Bug"}, 92))
+    issues[5]["fields"]["issuetype"] = {"name": "Bug", "subtask": True}  # no level sent
+    # A sub-task with points of its own does not count either.
+    issues.append(_issue({"key": "SHOP-213", "type": "Subtask", "story_points": 3}, 93))
+    connect(japp, atlassian)
+
+    with facilitator(jclient) as ws:
+        snap = ready(ws)
+    tickets = jclient.portal.call(japp.state.jira.backlog, "team-a")
+
+    assert snap["queue"]["length"] == 8
+    assert snap["counters"]["backlog"] == {"estimated": 4, "total": 12, "points": 16}
+    keys = {t["key"] for t in tickets}
+    assert not {"SHOP-210", "SHOP-211", "SHOP-212", "SHOP-213"} & keys
+    assert [t["rank"] for t in tickets] == list(range(1, 13))
+
+
+def test_jc17_only_not_started_tickets_enter_the_queue(jclient, japp, atlassian):
+    issues = atlassian.boards[1]["issues"]
+    # Any status in Jira's To Do category counts, whatever it is called.
+    issues[1]["fields"]["status"] = {"name": "Backlog", "statusCategory": {"key": "new"}}
+    issues[2]["fields"]["status"] = {"name": "Por hacer", "statusCategory": {"key": "new"}}
+    started = [
+        ("SHOP-220", "In Progress"),
+        ("SHOP-221", "Done"),
+        ("SHOP-222", "In Review"),
+    ]
+    for offset, (key, status) in enumerate(started):
+        issues.insert(1 + 2 * offset, _issue({"key": key, "status": status}, 90 + offset))
+    issues.append(_issue({"key": "SHOP-223", "status": "Done", "story_points": 5}, 93))
+    connect(japp, atlassian)
+
+    with facilitator(jclient) as ws:
+        snap = ready(ws)
+    tickets = jclient.portal.call(japp.state.jira.backlog, "team-a")
+
+    assert snap["queue"]["length"] == 8
+    assert snap["counters"]["backlog"] == {"estimated": 4, "total": 12, "points": 16}
+    keys = {t["key"] for t in tickets}
+    assert not {"SHOP-220", "SHOP-221", "SHOP-222", "SHOP-223"} & keys
+    assert [t["rank"] for t in tickets] == list(range(1, 13))
+
+
+def test_jc18_tickets_in_a_sprint_stay_out_of_the_queue(jclient, japp, atlassian):
+    issues = atlassian.boards[1]["issues"]
+    for offset, state in enumerate(["active", "future"]):
+        sprint = {"id": 7 + offset, "name": f"Sprint {7 + offset}", "state": state}
+        issues.insert(1 + offset, _issue({"key": f"SHOP-23{offset}", "sprint": sprint}, 90))
+    # A sprint that has closed no longer holds the ticket.
+    closed = {"id": 6, "name": "Sprint 6", "state": "closed"}
+    issues.insert(3, _issue({"key": "SHOP-232", "summary": "Left over", "sprint": closed}, 92))
+    connect(japp, atlassian)
+
+    with facilitator(jclient) as ws:
+        snap = ready(ws)
+    tickets = jclient.portal.call(japp.state.jira.backlog, "team-a")
+
+    keys = [t["key"] for t in tickets]
+    assert "SHOP-230" not in keys and "SHOP-231" not in keys
+    assert keys[1] == "SHOP-232"
+    assert snap["queue"]["length"] == 9
+
+
 def test_jc04_a_backlog_of_120_tickets_loads_whole_in_rank_order(jclient, japp, atlassian):
     connect(japp, atlassian, board_id=2)
 

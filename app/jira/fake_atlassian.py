@@ -39,10 +39,21 @@ def _issue(ticket: dict[str, Any], index: int) -> dict[str, Any]:
             "labels": list(ticket.get("labels") or []),
             "description": description,
             "epic": {"name": epic} if epic else None,
+            "status": _status(ticket.get("status") or "To Do"),
+            "sprint": ticket.get("sprint"),
             ESTIMATE_FIELD: ticket.get("story_points"),
         },
         "renderedFields": {"description": f"<p>{html.escape(description)}</p>"},
     }
+
+
+def _status(name: str) -> dict[str, Any]:
+    """A status as Jira Cloud sends it, with its category: new (To Do), indeterminate, done."""
+    key = {"In Progress": "indeterminate", "In Review": "indeterminate", "Done": "done"}.get(
+        name, "new"
+    )
+    label = {"new": "To Do", "indeterminate": "In Progress", "done": "Done"}[key]
+    return {"name": name, "statusCategory": {"key": key, "name": label}}
 
 
 def _issue_type(name: str) -> dict[str, Any]:
