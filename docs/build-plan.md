@@ -61,12 +61,12 @@ Design: "Jira Cloud".
 - [x] Atlassian OAuth with the seven scopes, one connection per room set up by the owner; refresh tokens stored encrypted and rotated
 - [x] Pick site and board in room settings
 - [x] Load the board backlog with paging; build the queue and backlog counters
-- [x] Leave epics and sub-tasks out of the queue and the counters
+- [x] Leave epics out of the queue and the counters
 - [x] Write points through the board's estimation endpoint; advance only on success
 - [x] Use the room's Jira connection; tell facilitators the owner must connect or reconnect when it is missing
 - [x] Fake Jira for tests
 
-Cases: JC-03, JC-04, JC-15, JC-16, JC-07 to JC-10, JC-12, JC-13, HS-05 (Atlassian). Sandbox: JC-01, JC-02, JC-05, JC-06, JC-11.
+Cases: JC-03, JC-04, JC-15, JC-07 to JC-10, JC-12, JC-13, HS-05 (Atlassian). Sandbox: JC-01, JC-02, JC-05, JC-06, JC-11.
 
 ## Step 5: mini window
 
