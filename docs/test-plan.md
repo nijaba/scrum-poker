@@ -159,6 +159,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | JC-16 | Backlog holds sub-tasks, with and without an estimate | Sub-tasks are left out of the queue and the backlog counters; a type at Jira's sub-task level, or flagged as a sub-task, counts as one whatever its name | Integration |
 | JC-17 | Backlog holds tickets in progress, in review and done, and To Do tickets whose status has another name | Only tickets in Jira's To Do status category enter the queue and the backlog counters | Integration |
 | JC-18 | Backlog response holds tickets in the active sprint, a future sprint and a closed sprint | The active- and future-sprint tickets are left out; the closed-sprint ticket enters the queue | Integration |
+| JC-19 | Backlog holds resolved tickets, one in a To Do status | Resolved tickets are left out of the queue and the backlog counters, whatever their status | Integration |
 
 ## Auth, rooms and delegates
 

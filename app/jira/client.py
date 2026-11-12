@@ -213,6 +213,7 @@ class JiraService:
             "summary",
             "issuetype",
             "status",
+            "resolution",
             "sprint",
             "priority",
             "labels",
@@ -317,7 +318,8 @@ def _estimable(issue: dict[str, Any]) -> bool:
     issue type a hierarchy level (-1 sub-task, 0 standard, 1 epic) and a subtask flag, which
     hold when the type is renamed or translated; the names are a fallback for a response
     without them. "Not started" is Jira's To Do status category (key "new"), whatever the
-    status is called. The backlog endpoint already leaves out tickets in active and future
+    status is called, and no resolution: a workflow can leave a resolved ticket (Done, Won't
+    Do) in a To Do status. The backlog endpoint already leaves out tickets in active and future
     sprints; the sprint check keeps that true whatever the endpoint returns.
     """
     fields = issue.get("fields") or {}
@@ -331,7 +333,7 @@ def _estimable(issue: dict[str, Any]) -> bool:
     elif kind.get("name") in ("Epic", "Sub-task", "Subtask"):
         return False
     category = ((fields.get("status") or {}).get("statusCategory") or {}).get("key")
-    if category != "new":
+    if category != "new" or fields.get("resolution"):
         return False
     sprint = fields.get("sprint") or {}
     return sprint.get("state") not in ("active", "future")

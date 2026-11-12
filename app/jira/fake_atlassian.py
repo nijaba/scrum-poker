@@ -41,6 +41,7 @@ def _issue(ticket: dict[str, Any], index: int) -> dict[str, Any]:
             "epic": {"name": epic} if epic else None,
             "status": _status(ticket.get("status") or "To Do"),
             "sprint": ticket.get("sprint"),
+            "resolution": {"name": ticket["resolution"]} if ticket.get("resolution") else None,
             ESTIMATE_FIELD: ticket.get("story_points"),
         },
         "renderedFields": {"description": f"<p>{html.escape(description)}</p>"},

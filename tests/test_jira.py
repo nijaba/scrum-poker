@@ -204,6 +204,25 @@ def test_jc18_tickets_in_a_sprint_stay_out_of_the_queue(jclient, japp, atlassian
     assert snap["queue"]["length"] == 9
 
 
+def test_jc19_resolved_tickets_stay_out_even_in_a_to_do_status(jclient, japp, atlassian):
+    issues = atlassian.boards[1]["issues"]
+    # A workflow can leave a resolved ticket in a status of the To Do category.
+    issues.insert(
+        1, _issue({"key": "SHOP-240", "status": "Need to post", "resolution": "Done"}, 90)
+    )
+    issues.insert(2, _issue({"key": "SHOP-241", "resolution": "Won't Do"}, 91))
+    issues.append(_issue({"key": "SHOP-242", "resolution": "Done", "story_points": 3}, 92))
+    connect(japp, atlassian)
+
+    with facilitator(jclient) as ws:
+        snap = ready(ws)
+    tickets = jclient.portal.call(japp.state.jira.backlog, "team-a")
+
+    assert snap["queue"]["length"] == 8
+    assert snap["counters"]["backlog"] == {"estimated": 4, "total": 12, "points": 16}
+    assert not {"SHOP-240", "SHOP-241", "SHOP-242"} & {t["key"] for t in tickets}
+
+
 def test_jc04_a_backlog_of_120_tickets_loads_whole_in_rank_order(jclient, japp, atlassian):
     connect(japp, atlassian, board_id=2)
 
