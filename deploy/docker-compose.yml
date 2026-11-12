@@ -1,7 +1,8 @@
 # Scrum poker behind Caddy. See README.md, "Deploying". Run from this folder:
-#   docker compose up -d --build
-# The app reads ../.env (or the file named by ENV_FILE). DNS for SITE_HOST must
-# point at this machine, with ports 80 and 443 open.
+#   docker compose --env-file ../.env up -d --build
+# The app reads ../.env (or the file named by ENV_FILE). --env-file lets the same
+# file set SITE_HOST, HTTP_PORT and HTTPS_PORT here. DNS for SITE_HOST must point
+# at this machine, with the HTTP and HTTPS ports open (80 and 443 by default).
 
 name: scrum-poker
 
@@ -31,10 +32,14 @@ services:
       - app
     environment:
       SITE_HOST: ${SITE_HOST:-poker.nijalabs.com}
+      HTTP_PORT: ${HTTP_PORT:-80}
+      HTTPS_PORT: ${HTTPS_PORT:-443}
+    # Caddy listens inside the container on the same ports it is published on, so its
+    # HTTP-to-HTTPS redirect names the right port.
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "${HTTP_PORT:-80}:${HTTP_PORT:-80}"
+      - "${HTTPS_PORT:-443}:${HTTPS_PORT:-443}"
+      - "${HTTPS_PORT:-443}:${HTTPS_PORT:-443}/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

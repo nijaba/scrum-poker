@@ -37,7 +37,8 @@ by itself.
 
 ### What you need
 
-- A machine with Docker and Docker Compose, reachable on ports 80 and 443
+- A machine with Docker and Docker Compose, reachable on ports 80 and 443 (other ports
+  are possible, below)
 - A DNS record for `poker.nijalabs.com` pointing at that machine
 - Three OAuth apps, below
 
@@ -85,17 +86,30 @@ out; changing the second disconnects every room from Jira until its owner reconn
 
 ```bash
 cd deploy
-docker compose up -d --build
+docker compose --env-file ../.env up -d --build
 docker compose logs -f app
 ```
 
 Open <https://poker.nijalabs.com>. Caddy fetches the certificate on the first request,
-which can take a few seconds. `SITE_HOST=other.example.com docker compose up -d` serves a
-different hostname; change `APP_BASE_URL` and the OAuth callbacks to match.
+which can take a few seconds. `--env-file ../.env` lets `.env` also set these, read by the
+compose file and Caddy:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SITE_HOST` | `poker.nijalabs.com` | The hostname Caddy serves. Change `APP_BASE_URL` and the OAuth callbacks to match. |
+| `HTTP_PORT` | `80` | The port Caddy answers plain HTTP on, redirecting to HTTPS. |
+| `HTTPS_PORT` | `443` | The port Caddy serves HTTPS on. |
+
+With an HTTPS port other than 443, put it in `APP_BASE_URL` and the OAuth callbacks, for
+example `https://poker.nijalabs.com:8443`. Let's Encrypt checks the domain on public port
+80 or 443 only, so keep `HTTP_PORT=80` or `HTTPS_PORT=443` reachable from the internet;
+otherwise Caddy needs a DNS challenge, which takes a Caddy build with your DNS provider's
+plugin.
 
 ### How HTTPS works
 
-- Caddy ends TLS, redirects port 80 to 443, and passes `X-Forwarded-Proto` to the app.
+- Caddy ends TLS, redirects `HTTP_PORT` to `HTTPS_PORT`, and passes `X-Forwarded-Proto` to
+  the app.
 - The app believes that header only from the addresses in `FORWARDED_ALLOW_IPS`. In the
   compose file that is `*`, which is safe only because the app's port is not published: only
   Caddy can reach it. Behind another proxy or load balancer, set it to the proxy's address.
@@ -131,7 +145,7 @@ Upgrade between sessions:
 
 ```bash
 cd deploy
-docker compose up -d --build
+docker compose --env-file ../.env up -d --build
 ```
 
 ### Backups

@@ -1,5 +1,11 @@
 # Caddy ends TLS for the app, fetches and renews the certificate, and redirects
 # plain HTTP to HTTPS. It sets X-Forwarded-Proto and X-Forwarded-For itself.
+# HTTP_PORT and HTTPS_PORT come from the compose file (defaults 80 and 443).
+{
+	http_port {$HTTP_PORT:80}
+	https_port {$HTTPS_PORT:443}
+}
+
 {$SITE_HOST:poker.nijalabs.com} {
 	encode zstd gzip
 	reverse_proxy app:8000

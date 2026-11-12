@@ -32,7 +32,7 @@ SCRUM_POKER_FAKE_BACKLOG=tests/fixtures/fake_backlog.json SCRUM_POKER_FAKE_SSO=1
 (cd frontend && npm run check)               # svelte-check type check
 pytest tests/e2e                             # Playwright E2E tests; they skip if frontend/dist is missing
 docker build -t scrum-poker .                # the production image; pytest's image tests skip without Docker
-(cd deploy && docker compose up -d --build)  # production: Caddy in front, see README "Deploying"
+(cd deploy && docker compose --env-file ../.env up -d --build)  # production: Caddy in front, see README "Deploying"
 ```
 
 With the fakes, open `/`, sign in as Olive Owner, create a room, then in its settings Connect Jira, accept, and pick SHOP board.

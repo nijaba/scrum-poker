@@ -96,6 +96,11 @@ The app reads its settings from environment variables. With Docker Compose, put 
 | `DATABASE_PATH` | No | The SQLite file. The image and compose file use `/data/scrum-poker.sqlite3`. |
 | `FORWARDED_ALLOW_IPS` | No | Proxies whose `X-Forwarded-Proto` the app believes, comma-separated, or `*`. Default `127.0.0.1`. The compose file sets `*`. |
 | `PORT` | No | The port the container listens on. Default 8000. |
+| `SITE_HOST` | No | Compose only: the hostname Caddy serves. Default `poker.nijalabs.com`. |
+| `HTTP_PORT`, `HTTPS_PORT` | No | Compose only: the ports Caddy listens on. Defaults 80 and 443. Another HTTPS port also goes in `APP_BASE_URL` and the OAuth callbacks. |
+
+Compose reads `SITE_HOST`, `HTTP_PORT` and `HTTPS_PORT` from `.env` only when started with
+`docker compose --env-file ../.env up -d` from `deploy/`.
 
 Generate the two secrets with:
 
@@ -136,7 +141,7 @@ keeps the right to create rooms until they sign out or their 30-day sign-in expi
 Restart the app after changing any setting:
 
 ```bash
-cd deploy && docker compose up -d
+cd deploy && docker compose --env-file ../.env up -d
 ```
 
 ## Operations
@@ -169,7 +174,7 @@ git pull
 ```
 
 ```bash
-cd deploy && docker compose up -d --build
+cd deploy && docker compose --env-file ../.env up -d --build
 ```
 
 Rooms, settings, delegates and Jira connections are kept. People in a room at the time see
@@ -233,5 +238,5 @@ paths and status codes), including room names in the paths.
 | Confirming points fails on one board | The owner's Jira account can't edit that board's estimates, or the board's estimation field isn't set. Check the board's settings in Jira. |
 | Pages keep redirecting, or everything shows "Reconnecting…" | The proxy isn't sending `X-Forwarded-Proto`, or `FORWARDED_ALLOW_IPS` doesn't include the proxy. Behind Caddy with the provided compose file both are set. |
 | Players in the same room can't see each other | More than one copy of the app is running. Run one. |
-| Caddy can't get a certificate | DNS for `poker.nijalabs.com` must point at the server, and ports 80 and 443 must be open to the internet. `docker compose logs caddy` says what failed. |
+| Caddy can't get a certificate | DNS for `poker.nijalabs.com` must point at the server, and ports 80 and 443 must be open to the internet (or, with other ports set, public port 80 or 443 must still reach Caddy). `docker compose logs caddy` says what failed. |
 | Mini mode opens an ordinary window instead of floating | Expected in Safari. In other browsers the floating window needs HTTPS. |
