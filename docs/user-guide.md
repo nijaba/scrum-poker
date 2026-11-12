@@ -56,6 +56,10 @@ When the facilitator reveals, every card turns face up on every screen, with thr
 Cards without a number, such as **?**, are left out of all three. T-shirt sizes count by the
 points they stand for.
 
+Under the figures, bars show how many people chose each card. When the numbers differ, the
+players who chose the highest and lowest cards are marked **Highest** and **Lowest**: hearing
+from them first is usually the quickest way to agree.
+
 Voting stays closed until the facilitator restarts the vote or moves to the next ticket.
 
 ### The countdown
@@ -66,6 +70,12 @@ can still vote until the facilitator reveals.
 
 If the room has sound on, you hear soft ticks for the last five seconds and a chime at zero.
 Choose **Mute** in the header to silence it on your screen only.
+
+### Sitting out
+
+If you're there to listen rather than estimate, choose **Sit out** under your cards. You leave
+the table, your card is dropped, and the voted count stops waiting for you, but you still see
+everything. The table lists you under "Watching". Choose **Join the table** to vote again.
 
 ### Mini mode
 
@@ -85,6 +95,7 @@ the room tab. Sound plays from the room tab.
 | Connecting… / Connection lost. Reconnecting… | Your connection dropped. The page reconnects by itself and you keep your seat. |
 | The room was reset. Checking in… | A facilitator cleared out people who left. Wait a few seconds and you're seated again. |
 | You are not seated in this round. | You didn't check in after a reset in time. Choose **Join again**. |
+| A facilitator removed you from the table. | A facilitator tidied the table. If that was a mistake, choose **Join again**. |
 | The owner deleted this room. | The room no longer exists. Ask your facilitator for a new link. |
 | There is no room called … | The link is wrong, or the room was renamed or deleted. |
 
@@ -117,12 +128,17 @@ session began, and **Backlog**, the same for the whole backlog.
 | **Skip** | Moves to the next ticket without writing anything. |
 | **Rewind** | Goes back to the previous ticket, to look at it again or re-estimate it. |
 | **Reset room** | Clears out people who left. See below. |
+| **Auto-reveal when everyone has voted** | Turns the cards over by themselves once everyone at the table who is connected has voted. For this session; the owner sets the default. |
+| **×** on a player's card | Removes that player from the table, for a duplicate or someone who left. They can join again. |
+| **Up next** | The next five tickets. Choose one to go straight to it. |
+| **Copy summary** / **Download CSV** | This session's tickets, points and vote counts. See below. |
 
 A typical round: start the countdown, wait for the votes, choose **Reveal cards**, talk about
 the highest and lowest cards, then **Confirm** the agreed points, or **Restart vote** for
 another go.
 
-**Up next** lists the next tickets in the queue.
+Facilitators can **Sit out** too: you keep the facilitator panel but the round stops waiting
+for your card.
 
 ### Confirming points
 
@@ -141,6 +157,26 @@ replaces the earlier points, and the session counter counts it only once.
 
 When every ticket is done, the room says "All tickets in the queue are done." You can still
 rewind.
+
+Choosing a ticket in **Up next** goes straight to it. The ticket you leave keeps its result and
+isn't marked skipped, and **Rewind** still steps back one ticket in queue order.
+
+### Auto-reveal
+
+With auto-reveal on, the cards turn over by themselves once everyone at the table who is
+connected has voted. Players shown as **Away**, and anyone sitting out, don't hold it up. The
+countdown still never reveals: it only says **Time's up**.
+
+### Session summary
+
+**Session summary** in the facilitator panel lists every ticket estimated or skipped this
+session, with its points, the average and how many chose each card. It never lists who chose
+what.
+
+- **Copy summary** copies it as text, ready to paste into your sprint notes or chat.
+- **Download CSV** saves it as a spreadsheet file.
+
+The summary is never stored: it's gone when the session ends, so copy it before you leave.
 
 ### Resetting the room
 
@@ -215,7 +251,7 @@ The settings page, **Settings** in the room header, is only for the owner. Choos
 | **Room link** | The room's **Short name**. Renaming keeps the old link working: it redirects to the new one, and no other room can take the old name. |
 | **Jira Cloud** | The connection, site and board. See above. |
 | **Scale** | The cards players vote with: **Fibonacci** (1, 2, 3, 5, 8, 13, 21, ?), **T-shirt** (XS to XXL, with the points each size confirms as, XS=1 to XXL=13) or a **Custom list** of your own cards, separated by commas. |
-| **Countdown and sound** | **Default seconds** for the countdown, and whether the countdown sound plays. Facilitators can change both for a running session; these are the defaults. |
+| **Countdown, sound and reveal** | **Default seconds** for the countdown, whether the countdown sound plays, and whether cards reveal by themselves once everyone has voted. Facilitators can change these for a running session; these are the defaults. |
 | **Delegates** | People who can run sessions in this room. |
 | **Delete room** | Removes the room for good. Everyone in it sees that it was deleted. |
 

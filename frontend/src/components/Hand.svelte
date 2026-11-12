@@ -1,17 +1,33 @@
 <script lang="ts">
   import type { Snapshot } from "../lib/types";
 
-  let { snap, onvote }: { snap: Snapshot; onvote: (card: string) => void } = $props();
+  let {
+    snap,
+    onvote,
+    onsit,
+  }: {
+    snap: Snapshot;
+    onvote: (card: string) => void;
+    /** Sit out (false) or join the table again (true). */
+    onsit: (atTable: boolean) => void;
+  } = $props();
 
   const kinds = { fibonacci: "Fibonacci", tshirt: "T-shirt sizes", custom: "Custom cards" };
   const voting = $derived(snap.round.state === "voting");
 </script>
 
 <section class="panel hand" aria-label="Your card">
-  {#if voting}
+  {#if snap.you.sitting_out}
+    <div class="head">
+      <span class="panel-title">You are watching</span>
+      <button class="btn" type="button" onclick={() => onsit(true)}>Join the table</button>
+    </div>
+    <span class="note">You are not at the table, so the voted count doesn't wait for you.</span>
+  {:else if voting}
     <div class="head">
       <span class="panel-title">Your card</span>
       <span class="note">{kinds[snap.scale.kind]} · hidden from others until reveal</span>
+      <button class="btn sit" type="button" onclick={() => onsit(false)}>Sit out</button>
     </div>
     <div class="cards">
       {#each snap.scale.cards as card (card.label)}
@@ -29,6 +45,7 @@
       {snap.you.vote ? `You voted ${snap.you.vote}` : "You did not vote"}
     </span>
     <span class="note">Voting is closed until the facilitator restarts or moves on.</span>
+    <button class="btn sit" type="button" onclick={() => onsit(false)}>Sit out</button>
   {/if}
 </section>
 
@@ -42,6 +59,14 @@
     align-items: baseline;
     justify-content: space-between;
     gap: 8px;
+  }
+  .sit {
+    margin-left: auto;
+    font-size: 14px;
+  }
+  .hand > .sit {
+    align-self: flex-start;
+    margin-left: 0;
   }
   .cards {
     display: flex;

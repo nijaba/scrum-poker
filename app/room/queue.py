@@ -63,6 +63,10 @@ class Ticket:
 class TicketResult:
     status: str = PENDING
     points: float | None = None
+    # How the vote went, for the session summary: the average on reveal and how many
+    # chose each card. Never who chose what.
+    average: float | None = None
+    votes: tuple[tuple[str, int], ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {"status": self.status, "points": number(self.points)}
@@ -105,15 +109,20 @@ class Queue:
         ticket = self.current
         return None if ticket is None else self.results[ticket.key]
 
-    def estimate(self, points: float) -> None:
+    def estimate(
+        self,
+        points: float,
+        average: float | None = None,
+        votes: tuple[tuple[str, int], ...] = (),
+    ) -> None:
         ticket = self._require_current()
-        self.results[ticket.key] = TicketResult(ESTIMATED, points)
+        self.results[ticket.key] = TicketResult(ESTIMATED, points, average, votes)
         self.cursor += 1
 
-    def skip(self) -> None:
+    def skip(self, average: float | None = None, votes: tuple[tuple[str, int], ...] = ()) -> None:
         ticket = self._require_current()
         if self.results[ticket.key].status == PENDING:
-            self.results[ticket.key] = TicketResult(SKIPPED)
+            self.results[ticket.key] = TicketResult(SKIPPED, None, average, votes)
         self.cursor += 1
 
     def rewind(self) -> bool:
@@ -122,6 +131,32 @@ class Queue:
             return False
         self.cursor -= 1
         return True
+
+    def jump(self, key: str) -> None:
+        """Move straight to a ticket in the queue. Tickets passed over keep their results."""
+        index = next((i for i, t in enumerate(self.tickets) if t.key == key), None)
+        if index is None:
+            raise CommandError("unknown_ticket", "That ticket is not in the queue.")
+        self.cursor = index
+
+    def summary(self) -> list[dict[str, Any]]:
+        """Every ticket estimated or skipped this session, in queue order."""
+        entries = []
+        for ticket in self.tickets:
+            result = self.results[ticket.key]
+            if result.status == PENDING:
+                continue
+            entries.append(
+                {
+                    "key": ticket.key,
+                    "summary": ticket.summary,
+                    "status": result.status,
+                    "points": number(result.points),
+                    "average": result.average,
+                    "votes": [{"label": label, "count": count} for label, count in result.votes],
+                }
+            )
+        return entries
 
     def session(self) -> Counters:
         estimated = [r for r in self.results.values() if r.status == ESTIMATED]

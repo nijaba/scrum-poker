@@ -1,5 +1,5 @@
 """Room definitions in one SQLite file: slug, owner, delegates, scale, timer default, sound,
-and the room's Jira connection (refresh token encrypted by the caller, site and board).
+auto-reveal, and the room's Jira connection (refresh token encrypted by the caller, site and board).
 
 The file never holds votes, results or session counters. Calls are short and
 synchronous; async callers run them with `asyncio.to_thread`.
@@ -20,7 +20,7 @@ from app.auth.identity import Identity
 from app.room.room import DEFAULT_TIMER
 from app.room.scales import Card, Scale, fibonacci, validated
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 SCHEMA = """
 CREATE TABLE rooms (
@@ -56,6 +56,9 @@ ALTER TABLE rooms ADD COLUMN jira_site_url TEXT;
 ALTER TABLE rooms ADD COLUMN jira_site_name TEXT;
 ALTER TABLE rooms ADD COLUMN jira_board_id INTEGER;
 ALTER TABLE rooms ADD COLUMN jira_board_name TEXT;
+""",
+    3: """
+ALTER TABLE rooms ADD COLUMN auto_reveal INTEGER NOT NULL DEFAULT 0;
 """,
 }
 
@@ -112,6 +115,7 @@ class RoomRecord:
     scale: Scale = field(default_factory=fibonacci)
     timer_seconds: float = DEFAULT_TIMER
     sound: bool = False
+    auto_reveal: bool = False
     delegates: tuple[Delegate, ...] = ()
     jira: JiraLink = field(default_factory=JiraLink)
 
@@ -188,7 +192,8 @@ class RoomStore:
                 raise SlugTaken(record.slug)
             self._db.execute(
                 "INSERT INTO rooms (slug, owner_provider, owner_subject, owner_label, scale,"
-                " timer_seconds, sound, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                " timer_seconds, sound, auto_reveal, created_at)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     record.slug,
                     *record.owner,
@@ -196,6 +201,7 @@ class RoomStore:
                     _scale_json(record.scale),
                     record.timer_seconds,
                     int(record.sound),
+                    int(record.auto_reveal),
                     datetime.now(UTC).isoformat(timespec="seconds"),
                 ),
             )
@@ -209,6 +215,7 @@ class RoomStore:
         scale: Scale | None = None,
         timer_seconds: float | None = None,
         sound: bool | None = None,
+        auto_reveal: bool | None = None,
         delegates: Iterable[Delegate] | None = None,
     ) -> RoomRecord:
         with self._lock, self._transaction():
@@ -220,10 +227,18 @@ class RoomStore:
                 scale=current.scale if scale is None else scale,
                 timer_seconds=current.timer_seconds if timer_seconds is None else timer_seconds,
                 sound=current.sound if sound is None else sound,
+                auto_reveal=current.auto_reveal if auto_reveal is None else auto_reveal,
             )
             self._db.execute(
-                "UPDATE rooms SET scale = ?, timer_seconds = ?, sound = ? WHERE slug = ?",
-                (_scale_json(new.scale), new.timer_seconds, int(new.sound), slug),
+                "UPDATE rooms SET scale = ?, timer_seconds = ?, sound = ?, auto_reveal = ?"
+                " WHERE slug = ?",
+                (
+                    _scale_json(new.scale),
+                    new.timer_seconds,
+                    int(new.sound),
+                    int(new.auto_reveal),
+                    slug,
+                ),
             )
             if delegates is not None:
                 self._db.execute("DELETE FROM delegates WHERE room = ?", (slug,))
@@ -329,6 +344,7 @@ class RoomStore:
         row = self._db.execute(
             "SELECT slug, owner_provider, owner_subject, owner_label, scale, timer_seconds, sound, "
             + ", ".join(JIRA_COLUMNS)
+            + ", auto_reveal"
             + " FROM rooms WHERE slug = ?",
             (slug,),
         ).fetchone()
@@ -347,7 +363,8 @@ class RoomStore:
             timer_seconds=row[5],
             sound=bool(row[6]),
             delegates=tuple(Delegate(p, i) for p, i in delegates),
-            jira=JiraLink(*row[7:]),
+            jira=JiraLink(*row[7:14]),
+            auto_reveal=bool(row[14]),
         )
 
 

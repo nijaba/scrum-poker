@@ -21,7 +21,7 @@ MAX_TIMER = 3600
 CHECK_IN_SECONDS = 5.0
 MAX_NAME = 40
 MAX_PLAYER_ID = 64
-UP_NEXT = 2
+UP_NEXT = 5
 
 
 @dataclass
@@ -29,6 +29,7 @@ class Seat:
     player_id: str
     name: str
     connected: bool = True
+    sitting_out: bool = False  # in the room and watching, but not at the table
 
 
 class Room:
@@ -40,6 +41,7 @@ class Room:
         scale: Scale | None = None,
         timer_seconds: float = DEFAULT_TIMER,
         sound: bool = False,
+        auto_reveal: bool = False,
         check_in_seconds: float = CHECK_IN_SECONDS,
     ) -> None:
         self.clock = clock
@@ -48,8 +50,13 @@ class Room:
         self.next_scale: Scale | None = None
         self.timer_seconds = _seconds(timer_seconds)
         self.sound = sound
+        self.auto_reveal = auto_reveal
         self.check_in_seconds = check_in_seconds
         self.seats: dict[str, Seat] = {}
+        # Players who chose to sit out. Kept apart from the seats so a reset keeps it.
+        self.sitting_out: set[str] = set()
+        # Players a facilitator removed, until they join again: their screen says so.
+        self.removed: set[str] = set()
         self.round = Round(self.scale)
         self.countdown_duration: float | None = None
         self.countdown_deadline: float | None = None
@@ -71,12 +78,39 @@ class Room:
             seat = self.seats[player_id] = Seat(player_id, name)
         seat.name = name
         seat.connected = True
+        seat.sitting_out = player_id in self.sitting_out
+        self.removed.discard(player_id)
         return seat
 
     def set_connected(self, player_id: str, connected: bool) -> None:
         seat = self.seats.get(player_id)
         if seat is not None:
             seat.connected = connected
+            if not connected:
+                self._auto_reveal()
+
+    def sit_out(self, player_id: str) -> None:
+        """Leave the table but stay in the room. The vote, if any, is dropped."""
+        seat = self._require_seat(player_id)
+        seat.sitting_out = True
+        self.sitting_out.add(player_id)
+        self.round.drop(player_id)
+        self._auto_reveal()
+
+    def sit_in(self, player_id: str) -> None:
+        seat = self._require_seat(player_id)
+        seat.sitting_out = False
+        self.sitting_out.discard(player_id)
+
+    def remove(self, player_id: Any) -> None:
+        """A facilitator takes a player off the table. They can join again."""
+        if not isinstance(player_id, str) or player_id not in self.seats:
+            raise CommandError("not_seated", "That player is not in the room.")
+        del self.seats[player_id]
+        self.sitting_out.discard(player_id)
+        self.removed.add(player_id)
+        self.round.drop(player_id)
+        self._auto_reveal()
 
     def is_seated(self, player_id: str | None) -> bool:
         return player_id is not None and player_id in self.seats
@@ -84,9 +118,12 @@ class Room:
     # Round
 
     def vote(self, player_id: str, card: str) -> None:
-        self._require_seat(player_id)
+        seat = self._require_seat(player_id)
+        if seat.sitting_out:
+            raise CommandError("sitting_out", "Join the table to vote.")
         self._require_ticket()
         self.round.vote(player_id, card)
+        self._auto_reveal()
 
     def withdraw(self, player_id: str) -> None:
         self._require_seat(player_id)
@@ -122,7 +159,7 @@ class Room:
     def record_estimate(self, points: float) -> None:
         """Mark the round confirmed and move on. Call only once Jira has accepted the write."""
         self.round.confirm()
-        self.queue.estimate(points)
+        self.queue.estimate(points, *self._how_it_went())
         self._new_round()
 
     def confirm(self, value: Any) -> float:
@@ -132,7 +169,14 @@ class Room:
         return points
 
     def skip(self) -> None:
-        self.queue.skip()
+        self.queue.skip(*self._how_it_went())
+        self._new_round()
+
+    def jump(self, key: Any) -> None:
+        """Move straight to a ticket in the queue, leaving the current one as it is."""
+        if not isinstance(key, str):
+            raise CommandError("unknown_ticket", "That ticket is not in the queue.")
+        self.queue.jump(key)
         self._new_round()
 
     def rewind(self) -> None:
@@ -157,6 +201,12 @@ class Room:
         if not isinstance(on, bool):
             raise CommandError("invalid_value", "Sound is on or off.")
         self.sound = on
+
+    def set_auto_reveal(self, on: Any) -> None:
+        if not isinstance(on, bool):
+            raise CommandError("invalid_value", "Auto-reveal is on or off.")
+        self.auto_reveal = on
+        self._auto_reveal()
 
     # Countdown
 
@@ -206,13 +256,23 @@ class Room:
             raise CommandError("check_in_closed", "Check-in has closed. Join the room again.")
         return self.join(player_id, name)
 
+    def summary(self) -> list[dict[str, Any]]:
+        """This session's estimated and skipped tickets, for facilitators. No names."""
+        return self.queue.summary()
+
     # Snapshot
 
     def snapshot_for(self, player_id: str | None) -> dict[str, Any]:
         """The state one client may see. Before reveal it holds no other player's card."""
         revealed = self.round.state != VOTING
         players = []
+        watchers = []
         for seat in self.seats.values():
+            if seat.sitting_out:
+                watchers.append(
+                    {"id": seat.player_id, "name": seat.name, "connected": seat.connected}
+                )
+                continue
             entry: dict[str, Any] = {
                 "id": seat.player_id,
                 "name": seat.name,
@@ -231,18 +291,22 @@ class Room:
 
         ticket = self.queue.current
         session = self.queue.session()
+        seated = self.is_seated(player_id)
         return {
             "type": "state",
             "you": {
                 "player_id": player_id,
-                "seated": self.is_seated(player_id),
-                "name": self.seats[player_id].name if self.is_seated(player_id) else None,
+                "seated": seated,
+                "name": self.seats[player_id].name if seated else None,
                 "vote": None if own is None else own.label,
+                "sitting_out": seated and self.seats[player_id].sitting_out,
+                "removed": not seated and player_id in self.removed,
             },
             "scale": self.round.scale.to_dict(),
             "next_scale": None if self.next_scale is None else self.next_scale.to_dict(),
             "round": round_,
             "players": players,
+            "watchers": watchers,
             "ticket": None
             if ticket is None
             else {**ticket.to_dict(), "result": self.queue.current_result().to_dict()},
@@ -259,6 +323,7 @@ class Room:
             "countdown": self._countdown(),
             "timer_seconds": number(self.timer_seconds),
             "sound": self.sound,
+            "auto_reveal": self.auto_reveal,
             "check_in_open": self.check_in_open,
         }
 
@@ -288,9 +353,25 @@ class Room:
         self.countdown_deadline = None
         self.time_up = False
 
-    def _require_seat(self, player_id: str) -> None:
+    def _auto_reveal(self) -> None:
+        """With auto-reveal on, reveal once every connected player at the table has voted."""
+        if not self.auto_reveal or self.round.state != VOTING or self.queue.current is None:
+            return
+        at_table = [s for s in self.seats.values() if s.connected and not s.sitting_out]
+        if at_table and all(s.player_id in self.round.votes for s in at_table):
+            self.reveal()
+
+    def _how_it_went(self) -> tuple[float | None, tuple[tuple[str, int], ...]]:
+        """The revealed round's average and spread, for the summary; nothing if unrevealed."""
+        results = self.round.results
+        if results is None:
+            return None, ()
+        return results.average, results.spread
+
+    def _require_seat(self, player_id: str) -> Seat:
         if not self.is_seated(player_id):
             raise CommandError("not_seated", "Join the room before voting.")
+        return self.seats[player_id]
 
     def _require_ticket(self) -> None:
         if self.queue.current is None:

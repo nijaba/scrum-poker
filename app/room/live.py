@@ -35,7 +35,7 @@ IDLE_SECONDS = 15 * 60
 # the one who confirmed, because only the owner can fix them.
 CONNECTION_CODES = {"jira_not_connected", "jira_reconnect", "jira_no_board", "jira_board_missing"}
 
-PLAYER_COMMANDS = {"join", "vote", "withdraw", "check_in"}
+PLAYER_COMMANDS = {"join", "vote", "withdraw", "check_in", "sit_out", "sit_in"}
 # Session controls, for the owner and delegates. Room settings (scale, saved timer
 # and sound, delegates) change only through the owner's settings API.
 FACILITATOR_COMMANDS = {
@@ -49,6 +49,9 @@ FACILITATOR_COMMANDS = {
     "stop_countdown",
     "set_timer",  # this session only
     "set_sound",  # this session only
+    "set_auto_reveal",  # this session only
+    "remove_player",
+    "jump",
     "reload_backlog",  # after a failed load, once the owner has fixed the connection
 }
 
@@ -270,6 +273,8 @@ class LiveRoom:
             self._room.set_timer(new.timer_seconds)
         if new.sound != old.sound:
             self._room.set_sound(new.sound)
+        if new.auto_reveal != old.auto_reveal:
+            self._room.set_auto_reveal(new.auto_reveal)
         if command.moved_from is not None:
             for conn in self._conns:
                 conn.send({"type": "moved", "slug": new.slug})
@@ -298,6 +303,10 @@ class LiveRoom:
             room.vote(conn.player_id, data.get("card"))
         elif kind == "withdraw":
             room.withdraw(conn.player_id)
+        elif kind == "sit_out":
+            room.sit_out(conn.player_id)
+        elif kind == "sit_in":
+            room.sit_in(conn.player_id)
         elif kind == "reveal":
             room.reveal()
         elif kind == "restart":
@@ -308,6 +317,10 @@ class LiveRoom:
             room.skip()
         elif kind == "rewind":
             room.rewind()
+        elif kind == "jump":
+            room.jump(data.get("key"))
+        elif kind == "remove_player":
+            room.remove(data.get("player_id"))
         elif kind == "reset":
             room.reset()
             for c in self._conns:
@@ -320,6 +333,8 @@ class LiveRoom:
             room.set_timer(data.get("seconds"))
         elif kind == "set_sound":
             room.set_sound(data.get("on"))
+        elif kind == "set_auto_reveal":
+            room.set_auto_reveal(data.get("on"))
         elif kind == "reload_backlog":
             if self._backlog_state["state"] == "ready":
                 raise CommandError("backlog_loaded", "The backlog is already loaded.")
@@ -378,6 +393,8 @@ class LiveRoom:
         snapshot["you"]["account_name"] = conn.account.name if conn.account else None
         snapshot["room"] = {"slug": self._record.slug}
         snapshot["backlog"] = dict(self._backlog_state)
+        if role == FACILITATOR:  # the session summary is for facilitators only
+            snapshot["summary"] = self._room.summary()
         return snapshot
 
     def _close_all(self) -> None:
@@ -431,6 +448,7 @@ class RoomRegistry:
                     scale=record.scale,
                     timer_seconds=record.timer_seconds,
                     sound=record.sound,
+                    auto_reveal=record.auto_reveal,
                 )
                 live = LiveRoom(record, room, self._writer, self._clock, self._backlog)
                 live._on_idle = self._end

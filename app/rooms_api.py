@@ -26,7 +26,7 @@ SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,39}$")
 EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 GITHUB_LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
 MAX_DELEGATES = 100
-SETTINGS_FIELDS = {"slug", "scale", "timer_seconds", "sound", "delegates"}
+SETTINGS_FIELDS = {"slug", "scale", "timer_seconds", "sound", "auto_reveal", "delegates"}
 
 router = APIRouter()
 
@@ -128,6 +128,10 @@ async def update_room(slug: str, request: Request) -> dict[str, Any]:
         if not isinstance(body["sound"], bool):
             raise HTTPException(422, "Sound is true or false.")
         changes["sound"] = body["sound"]
+    if "auto_reveal" in body:
+        if not isinstance(body["auto_reveal"], bool):
+            raise HTTPException(422, "Auto-reveal is true or false.")
+        changes["auto_reveal"] = body["auto_reveal"]
     if "delegates" in body:
         changes["delegates"] = _delegates(body["delegates"])
     new_slug = _slug(body["slug"]) if "slug" in body else record.slug
@@ -169,6 +173,7 @@ def view(request: Request, record: RoomRecord, access: str | None) -> dict[str, 
             "scale": record.scale.to_dict(),
             "timer_seconds": number(record.timer_seconds),
             "sound": record.sound,
+            "auto_reveal": record.auto_reveal,
             "delegates": [d.to_dict() for d in record.delegates],
             "jira": {
                 "available": request.app.state.settings.atlassian is not None,

@@ -70,8 +70,14 @@
 
     {#if !snap.you.seated}
       <p class="status">
-        {snap.check_in_open ? "The room was reset. Checking in…" : "You are not seated in this round."}
+        {snap.check_in_open
+          ? "The room was reset. Checking in…"
+          : snap.you.removed
+            ? "A facilitator removed you from the table."
+            : "You are not seated in this round."}
       </p>
+    {:else if snap.you.sitting_out}
+      <p class="status">You are watching. Join the table from the room tab to vote.</p>
     {:else if voting}
       <div class="cards" role="group" aria-label="Cards">
         {#each snap.scale.cards as card (card.label)}

@@ -352,9 +352,15 @@ def test_reveal_stops_a_running_countdown(room):
     assert room.next_deadline() is None
 
 
-def test_snapshot_lists_the_next_two_tickets(room):
+def test_snapshot_lists_the_next_five_tickets(room):
     up_next = room.snapshot_for("p1")["up_next"]
-    assert [t["key"] for t in up_next] == ["SHOP-138", "SHOP-139"]
+    assert [t["key"] for t in up_next] == [
+        "SHOP-138",
+        "SHOP-139",
+        "SHOP-142",
+        "SHOP-143",
+        "SHOP-147",
+    ]
     assert up_next[0]["summary"] == "Address autocomplete at checkout"
 
     for _ in range(7):

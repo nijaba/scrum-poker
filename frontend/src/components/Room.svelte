@@ -186,7 +186,9 @@
         {#if snap.check_in_open}
           The room was reset. Checking in…
         {:else}
-          You are not seated in this round.
+          {snap.you.removed
+            ? "A facilitator removed you from the table."
+            : "You are not seated in this round."}
           <button class="btn" type="button" onclick={() => room?.send({ type: "join" })}
             >Join again</button
           >
@@ -226,9 +228,20 @@
               <p class="note">The facilitator can rewind to revisit one.</p>
             </section>
           {/if}
-          <Table {snap} {remaining} showCountdown={!isFacilitator} />
+          <Table
+            {snap}
+            {remaining}
+            showCountdown={!isFacilitator}
+            onremove={isFacilitator
+              ? (id) => room?.send({ type: "remove_player", player_id: id })
+              : undefined}
+          />
           {#if snap.ticket && snap.you.seated}
-            <Hand {snap} onvote={(card) => room?.send({ type: "vote", card })} />
+            <Hand
+              {snap}
+              onvote={(card) => room?.send({ type: "vote", card })}
+              onsit={(atTable) => room?.send({ type: atTable ? "sit_in" : "sit_out" })}
+            />
           {/if}
         </div>
         {#if isFacilitator}

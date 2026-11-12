@@ -1,5 +1,6 @@
 <script lang="ts">
   import { clock, points } from "../lib/format";
+  import { downloadCsv, summaryText } from "../lib/summary";
   import type { Card, Snapshot } from "../lib/types";
 
   let {
@@ -67,6 +68,21 @@
   function setTimer() {
     if (Number.isFinite(seconds) && seconds >= 1 && seconds <= 3600) {
       send({ type: "set_timer", seconds });
+    }
+  }
+
+  const summary = $derived(snap.summary ?? []);
+  const estimatedCount = $derived(summary.filter((e) => e.status === "estimated").length);
+  const skippedCount = $derived(summary.length - estimatedCount);
+  let copied = $state(false);
+
+  async function copySummary() {
+    try {
+      await navigator.clipboard.writeText(summaryText(snap.room.slug, summary));
+      copied = true;
+      setTimeout(() => (copied = false), 2000);
+    } catch {
+      copied = false;
     }
   }
 
@@ -182,6 +198,15 @@
       >
       <button class="btn" type="button" onclick={() => send({ type: "reset" })}>Reset room</button>
     </div>
+    <button
+      class="btn toggle"
+      type="button"
+      aria-pressed={snap.auto_reveal}
+      onclick={() => send({ type: "set_auto_reveal", on: !snap.auto_reveal })}
+    >
+      <span class="switch" aria-hidden="true"></span>
+      <span>Auto-reveal when everyone has voted</span>
+    </button>
     {#if voting}
       <button class="btn" type="button" disabled>Confirm points</button>
       <span class="note">Confirm becomes available after reveal.</span>
@@ -193,11 +218,42 @@
       <span class="panel-title">Up next</span>
       <ul class="next">
         {#each snap.up_next as t (t.key)}
-          <li><span class="next-key">{t.key}</span><span>{t.summary}</span></li>
+          <li>
+            <button
+              class="next-item"
+              type="button"
+              aria-label="Go to {t.key}"
+              title="Go to this ticket"
+              onclick={() => send({ type: "jump", key: t.key })}
+            >
+              <span class="next-key">{t.key}</span><span class="next-summary">{t.summary}</span>
+            </button>
+          </li>
         {/each}
       </ul>
     </section>
   {/if}
+
+  <section class="panel" aria-label="Session summary">
+    <div class="head">
+      <span class="panel-title">Session summary</span>
+      <span class="note">
+        {summary.length ? `${estimatedCount} estimated · ${skippedCount} skipped` : "Nothing yet"}
+      </span>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" disabled={!summary.length} onclick={copySummary}
+        >{copied ? "Copied" : "Copy summary"}</button
+      >
+      <button
+        class="btn"
+        type="button"
+        disabled={!summary.length}
+        onclick={() => downloadCsv(snap.room.slug, summary)}>Download CSV</button
+      >
+    </div>
+    <span class="note">Tickets, points and vote counts from this session. Not stored.</span>
+  </section>
 </aside>
 
 <style>
@@ -210,9 +266,10 @@
   }
   .head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
+    gap: 2px 8px;
   }
   .time {
     font-family: var(--font-display);
@@ -294,6 +351,15 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .actions .btn {
+    flex: 1 1 auto;
+    white-space: nowrap;
+  }
   .grid .btn {
     font-weight: 500;
   }
@@ -303,18 +369,73 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 0;
     font-size: 14px;
   }
-  .next li {
+  .next-item {
     display: flex;
     gap: 10px;
+    width: calc(100% + 16px);
+    min-height: 44px;
+    padding: 4px 8px;
+    margin: 0 -8px;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    text-align: left;
+    align-items: center;
+  }
+  .next-item:hover {
+    background: var(--chip);
   }
   .next-key {
     font-weight: 600;
     white-space: nowrap;
   }
-  .next li span:last-child {
+  .next-summary {
     color: var(--text-2);
+  }
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    font-weight: 500;
+    text-align: left;
+    line-height: 1.3;
+  }
+  .toggle[aria-pressed="true"] {
+    background: var(--surface);
+  }
+  .switch {
+    flex: none;
+    position: relative;
+    width: 32px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--border-strong);
+  }
+  .switch::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    transition: left 0.12s ease;
+  }
+  .toggle[aria-pressed="true"] .switch {
+    background: var(--accent);
+  }
+  .toggle[aria-pressed="true"] .switch::after {
+    left: 16px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .switch::after {
+      transition: none;
+    }
   }
 </style>

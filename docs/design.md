@@ -58,6 +58,10 @@ Every screen shows two counters: tickets estimated and points assigned in this s
 | Skip | Moves to the next ticket without writing |
 | Rewind | Returns to the previous ticket |
 | Reset room | Clears the player list and the current cards, then seats only players who still respond |
+| Auto-reveal | Reveals the cards by itself once every connected player at the table has voted. On or off for this session |
+| Remove player | Takes one player off the table and drops their card. They can join again |
+| Jump to a ticket | Moves straight to a ticket in Up next, which lists the next five. The ticket left behind keeps its result and is not marked skipped |
+| Session summary | Copies or downloads this session's tickets with status, points, average and vote counts |
 
 ### Results on reveal
 
@@ -68,6 +72,22 @@ On reveal, every screen shows three figures next to the cards:
 - Consensus: whether everyone chose the same card; if not, the most-chosen card and how many chose it
 
 T-shirt cards count by their mapped values. Confirming a T-shirt card writes its mapped value.
+
+The reveal also shows the spread: how many chose each card, in scale order, "?" included. When the numeric cards differ, the highest and lowest are marked, and so are the players who chose them, because the discussion usually starts with them.
+
+### Auto-reveal
+
+Auto-reveal turns the cards over once every player at the table who is connected has voted. Away players and players sitting out do not hold it up, and it needs at least one vote. It is a room setting, off by default, that the owner saves; facilitators can switch it for the running session only, like the countdown sound. Switching it on when everyone has already voted reveals at once. It never fires on countdown expiry, which still only signals time's up.
+
+### Sitting out and removing players
+
+Anyone can sit out: they leave the table, their card is dropped, and the voted count stops waiting for them, but they still see the room and a facilitator keeps the facilitator panel. Choosing to join the table again seats them. Sitting out survives a room reset.
+
+A facilitator can remove one player from the table, for a duplicate seat or someone who left. Their seat and card go. If their browser is still open it says a facilitator removed them and offers to join again; reloading the page joins again too.
+
+### Session summary
+
+Facilitators get a summary of the session: every ticket estimated or skipped so far, in queue order, with its points, the average on reveal, and how many chose each card. It lists no names. It is built from the session's memory and never stored, so it ends with the session. The browser turns it into text to copy or a CSV file to download.
 
 ### Room reset
 
@@ -159,7 +179,7 @@ The rooms page at `/` offers sign-in when signed out. Signed in, it lists the ro
 
 The owner can rename a room. The old short name keeps redirecting to the new one, also for room sockets, and no other room can take it. Deleting a room frees all its names and ends its live session on every screen.
 
-Saved settings reach a live room through its command queue: a new scale from the next round, the timer default and sound at once. In the facilitator panel, the Seconds field and the Sound toggle change the running session only, and never the saved defaults.
+Saved settings reach a live room through its command queue: a new scale from the next round, the timer default, sound and auto-reveal at once. In the facilitator panel, the Seconds field and the Sound and Auto-reveal toggles change the running session only, and never the saved defaults.
 
 Writes to the JSON API refuse a foreign `Origin` and any body that is not JSON.
 
@@ -173,7 +193,7 @@ Room definitions persist, so the link `/r/<slug>` survives restarts. Nothing abo
 
 | Data | Lives in | Survives a restart |
 | --- | --- | --- |
-| Room slug, owner, delegates, Jira site and board, scale, timer default, sound setting | SQLite file | Yes |
+| Room slug, owner, delegates, Jira site and board, scale, timer default, sound and auto-reveal settings | SQLite file | Yes |
 | Each room's Jira connection: refresh token (encrypted), account email, site and board | SQLite file | Yes |
 | Confirmed story points | Jira | Yes |
 | Player name and ID | The player's cookie | Yes |

@@ -25,6 +25,18 @@ export interface Results {
   median: number | null;
   consensus: boolean;
   top: { label: string; count: number } | null;
+  spread: { label: string; count: number }[]; // in scale order
+  high: string | null; // the highest numeric card, when the numbers differ
+  low: string | null;
+}
+
+export interface SummaryEntry {
+  key: string;
+  summary: string;
+  status: "estimated" | "skipped";
+  points: number | null;
+  average: number | null;
+  votes: { label: string; count: number }[];
 }
 
 export interface TicketView {
@@ -53,6 +65,8 @@ export interface Snapshot {
     name: string | null;
     seated: boolean;
     vote: string | null;
+    sitting_out: boolean;
+    removed: boolean;
     role: "player" | "facilitator";
     access: "owner" | "delegate" | null;
     account_name: string | null;
@@ -62,7 +76,8 @@ export interface Snapshot {
   scale: Scale;
   next_scale: Scale | null;
   round: { state: "voting" | "revealed" | "confirmed"; results?: Results };
-  players: PlayerView[];
+  players: PlayerView[]; // at the table
+  watchers: { id: string; name: string; connected: boolean }[]; // sitting out
   ticket: TicketView | null;
   up_next: { key: string; summary: string }[];
   queue: { position: number; length: number; finished: boolean };
@@ -73,7 +88,9 @@ export interface Snapshot {
   countdown: Countdown;
   timer_seconds: number;
   sound: boolean;
+  auto_reveal: boolean;
   check_in_open: boolean;
+  summary?: SummaryEntry[]; // facilitators only
 }
 
 export interface ServerError {
@@ -134,6 +151,7 @@ export interface RoomSettings {
   scale: Scale;
   timer_seconds: number;
   sound: boolean;
+  auto_reveal: boolean;
   delegates: Delegate[];
   jira: JiraSettings;
 }

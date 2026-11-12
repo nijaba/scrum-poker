@@ -37,6 +37,7 @@
   let customText = $state("");
   let timer = $state(30);
   let sound = $state(false);
+  let autoReveal = $state(false);
   let delegates = $state<Delegate[]>([]);
   let newDelegate = $state("");
   let newProvider = $state<Delegate["provider"]>("google");
@@ -84,6 +85,7 @@
     if (kind === "custom") customText = s.scale.cards.map((c) => c.label).join(", ");
     timer = s.timer_seconds;
     sound = s.sound;
+    autoReveal = s.auto_reveal;
     delegates = s.delegates;
   }
 
@@ -175,6 +177,7 @@
         scale: scaleBody(),
         timer_seconds: Number(timer),
         sound,
+        auto_reveal: autoReveal,
         delegates,
       };
     } catch (err) {
@@ -363,8 +366,8 @@
       {/if}
     </section>
 
-    <section class="section" aria-label="Countdown and sound">
-      <h2>Countdown and sound</h2>
+    <section class="section" aria-label="Countdown, sound and reveal">
+      <h2>Countdown, sound and reveal</h2>
       <div class="row wide">
         <div class="field">
           <label for="default-secs">Default seconds</label>
@@ -374,8 +377,12 @@
           <input type="checkbox" bind:checked={sound} />
           <span>Play countdown sound: ticks for the last five seconds, a chime at zero</span>
         </label>
+        <label class="check">
+          <input type="checkbox" bind:checked={autoReveal} />
+          <span>Reveal the cards by themselves once everyone at the table has voted</span>
+        </label>
       </div>
-      <span class="text-2">Facilitators can change both for a running session; these are the defaults.</span>
+      <span class="text-2">Facilitators can change these for a running session; these are the defaults.</span>
     </section>
 
     <section class="section" aria-label="Delegates">

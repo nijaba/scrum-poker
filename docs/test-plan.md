@@ -53,6 +53,9 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | RR-04 | T-shirt votes S, M, M with S=2 and M=3 | Average 2.7, median 3, most chosen M (2 of 3) | Unit |
 | RR-05 | Every player votes "?" | No average or median is shown | Unit |
 | RR-06 | Reveal with three players | All three figures show on every screen | E2E |
+| RR-07 | Votes 3, 5, 5, 8 and "?" | The spread lists 3 (1), 5 (2), 8 (1), ? (1) in scale order; highest card 8, lowest 3 | Unit |
+| RR-08 | Votes 5, 5, 5 | No highest or lowest card is marked | Unit |
+| RR-09 | Reveal 3, 5 and 8 in the browser | Every screen shows the spread bars and marks the players who chose 8 and 3 as highest and lowest | E2E |
 
 ### Queue and counters
 
@@ -65,6 +68,10 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | RQ-05 | Rewind, then confirm 8 instead of 5 | Session counter shows 1 ticket, 8 points; backlog shows 5 of 12, 24 points | Unit |
 | RQ-06 | Rewind on the first ticket | Nothing changes | Unit |
 | RQ-07 | Full session in the browser: vote, reveal, confirm, skip, rewind | Every screen follows the facilitator and shows the same counters | E2E |
+| RQ-08 | Facilitator jumps to the third ticket after the current one | It loads; the tickets passed over stay pending; the counters do not change | Unit |
+| RQ-09 | Rewind after a jump | The ticket just before it in the queue loads | Unit |
+| RQ-10 | Jump to a key that is not in the queue | Rejected; nothing changes | Unit |
+| RQ-11 | Facilitator chooses a ticket in Up next, in the browser | Every screen moves to that ticket | E2E |
 
 ### Countdown and sound
 
@@ -95,6 +102,40 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | RX-02 | A departed player returns after the reset | Seated as a new player, with the name from the cookie | E2E |
 | RX-03 | Reset after two confirmed tickets | Queue position and session counters stay the same | Unit |
 | RX-04 | Reset during a vote | Cards clear and voting reopens | Unit |
+
+### Auto-reveal
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| RV-01 | Auto-reveal on; the last of three connected players votes | The cards reveal on every screen | Integration |
+| RV-02 | Auto-reveal on; one seated player is away | The cards reveal once the connected players have voted | Unit |
+| RV-03 | Auto-reveal off; everyone votes | The cards stay face down | Unit |
+| RV-04 | Owner saves auto-reveal on in the room settings | A live session switches on; new sessions start with it on | Integration |
+| RV-05 | Facilitator switches auto-reveal for the session | The session follows; the saved setting does not change | Integration |
+| RV-06 | Auto-reveal switched on after everyone has voted | The cards reveal at once | Unit |
+| RV-07 | Auto-reveal on; a player sends auto-reveal commands | Rejected | Integration |
+
+### Sitting out and removing players
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| SO-01 | A player sits out | They leave the table, their vote is dropped and the voted count stops counting them; they still see the room | Unit |
+| SO-02 | A player who sits out votes | Rejected | Unit |
+| SO-03 | A player sits out, then joins the table | Seated again and can vote | Unit |
+| SO-04 | Reset while a player sits out | They still sit out after checking in | Unit |
+| SO-05 | The facilitator sits out in the browser | The table lists them as watching; the facilitator panel still works | E2E |
+| RP-01 | Facilitator removes a player | The seat and its vote disappear on every screen | Integration |
+| RP-02 | The removed player, in the browser | Sees that a facilitator removed them, and can join again | E2E |
+| RP-03 | A player sends a remove command | Rejected | Integration |
+
+### Session summary
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| SM-01 | Confirm two tickets and skip one | Facilitators' snapshots list the three in queue order, with status, points, average and vote counts per card, and no names | Integration |
+| SM-02 | A player's snapshot | Holds no summary | Integration |
+| SM-03 | Rewind and re-estimate a ticket | The summary lists it once, with the new points and votes | Unit |
+| SM-04 | Facilitator copies the summary and downloads the CSV, in the browser | The text and the CSV list the same tickets and points | E2E |
 
 ## Jira Cloud
 

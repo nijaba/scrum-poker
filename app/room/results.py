@@ -1,4 +1,4 @@
-"""Figures shown on reveal: average, median and consensus."""
+"""Figures shown on reveal: average, median, consensus, and the spread of cards."""
 
 from __future__ import annotations
 
@@ -20,6 +20,9 @@ class Results:
     consensus: bool  # everyone chose the same card
     top_label: str | None  # the most-chosen card
     top_count: int
+    spread: tuple[tuple[str, int], ...] = ()  # (card, how many chose it), in scale order
+    high: str | None = None  # the highest numeric card, when the numeric cards differ
+    low: str | None = None  # the lowest
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -30,6 +33,9 @@ class Results:
             "top": None
             if self.top_label is None
             else {"label": self.top_label, "count": self.top_count},
+            "spread": [{"label": label, "count": count} for label, count in self.spread],
+            "high": self.high,
+            "low": self.low,
         }
 
 
@@ -50,11 +56,19 @@ def compute_results(votes: Iterable[Card], order: Sequence[Card] = ()) -> Result
         median = float(statistics.median(values))
 
     counts = Counter(c.label for c in votes)
+    rank = {c.label: i for i, c in enumerate(order)}
     top_label = None
     top_count = 0
     if counts:
-        rank = {c.label: i for i, c in enumerate(order)}
         top_label, top_count = min(counts.items(), key=lambda kv: (-kv[1], rank.get(kv[0], 0)))
+    spread = tuple(sorted(counts.items(), key=lambda kv: rank.get(kv[0], len(rank))))
+
+    # The ends of the range, which is where the discussion usually starts.
+    high = low = None
+    numeric = [c for c in votes if c.value is not None]
+    if len({c.value for c in numeric}) > 1:
+        high = max(numeric, key=lambda c: c.value).label
+        low = min(numeric, key=lambda c: c.value).label
 
     return Results(
         votes=len(votes),
@@ -63,4 +77,7 @@ def compute_results(votes: Iterable[Card], order: Sequence[Card] = ()) -> Result
         consensus=len(counts) == 1,
         top_label=top_label,
         top_count=top_count,
+        spread=spread,
+        high=high,
+        low=low,
     )

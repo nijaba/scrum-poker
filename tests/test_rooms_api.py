@@ -394,6 +394,7 @@ def test_pk05_the_file_holds_no_votes_results_or_counters(client, settings):
         "jira_site_name",
         "jira_board_id",
         "jira_board_name",
+        "auto_reveal",
     }
     dump = "\n".join(db.iterdump())
     db.close()
