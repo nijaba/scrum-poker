@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.config import FAKE_JIRA_PATH, Settings, atlassian_config
-from app.jira.fake_atlassian import ACCOUNT, CLOUD_ID, SITE, FakeAtlassian
+from app.jira.fake_atlassian import ACCOUNT, CLOUD_ID, SITE, FakeAtlassian, _issue
 from app.jira.html import clean
 from app.main import create_app
 from app.store.rooms import RoomRecord
@@ -110,6 +110,27 @@ def test_jc03_only_unestimated_tickets_enter_the_queue(jclient, japp, atlassian)
     assert snap["ticket"]["url"] == "https://shop.atlassian.net/browse/SHOP-134"
     assert snap["ticket"]["epic"] == "Checkout revamp"
     assert snap["ticket"]["description"].startswith("<p>As a shopper")
+
+
+def test_jc15_epics_stay_out_of_the_queue_and_the_counters(jclient, japp, atlassian):
+    issues = atlassian.boards[1]["issues"]
+    issues.insert(1, _issue({"key": "SHOP-200", "summary": "Checkout revamp", "type": "Epic"}, 90))
+    # A level-1 type renamed or translated is still an epic; Jira marks it by its level.
+    issues.insert(3, _issue({"key": "SHOP-201", "summary": "Payments", "type": "Épopée"}, 91))
+    issues[3]["fields"]["issuetype"]["hierarchyLevel"] = 1
+    # An epic with points of its own does not count either.
+    issues.append(_issue({"key": "SHOP-202", "type": "Epic", "story_points": 40}, 92))
+    connect(japp, atlassian)
+
+    with facilitator(jclient) as ws:
+        snap = ready(ws)
+    tickets = jclient.portal.call(japp.state.jira.backlog, "team-a")
+
+    assert snap["queue"]["length"] == 8
+    assert snap["counters"]["backlog"] == {"estimated": 4, "total": 12, "points": 16}
+    keys = [t["key"] for t in tickets]
+    assert not {"SHOP-200", "SHOP-201", "SHOP-202"} & set(keys)
+    assert [t["rank"] for t in tickets] == list(range(1, 13))
 
 
 def test_jc04_a_backlog_of_120_tickets_loads_whole_in_rank_order(jclient, japp, atlassian):

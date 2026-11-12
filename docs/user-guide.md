@@ -109,6 +109,7 @@ your role, **Owner** or **Delegate**, under your name.
 ### Starting a session
 
 1. Open the room. The first ticket without an estimate is already loaded, in backlog order.
+   Epics are left out; the tickets inside them still come up like any other.
 2. Choose **Copy link** in the header and share it with the team.
 3. Wait for everyone to appear on the table.
 

@@ -155,6 +155,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | JC-12 | The room's Jira connection is missing or lapsed when a facilitator confirms | Facilitators see that the owner must connect Jira; the room stays on the ticket | Integration |
 | JC-13 | Inspect the SQLite file | Refresh tokens are stored encrypted | Integration |
 | JC-14 | Ticket card | Shows key and link, type, priority, epic, labels and description; a long description is collapsed | E2E |
+| JC-15 | Backlog holds epics, with and without an estimate | Epics are left out of the queue and the backlog counters; a type at Jira's epic level counts as an epic whatever its name | Integration |
 
 ## Auth, rooms and delegates
 

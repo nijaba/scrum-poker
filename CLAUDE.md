@@ -32,7 +32,8 @@ SCRUM_POKER_FAKE_BACKLOG=tests/fixtures/fake_backlog.json SCRUM_POKER_FAKE_SSO=1
 (cd frontend && npm run check)               # svelte-check type check
 pytest tests/e2e                             # Playwright E2E tests; they skip if frontend/dist is missing
 docker build -t scrum-poker .                # the production image; pytest's image tests skip without Docker
-(cd deploy && docker compose --env-file ../.env up -d --build)  # production: Caddy in front, see README "Deploying"
+(cd deploy && docker compose --env-file ../.env up -d --build)  # dedicated host: Caddy in front, see README "Deploying"
+(cd deploy/nginx && docker compose --env-file ../../.env up -d --build)  # production: behind the host's nginx
 ```
 
 With the fakes, open `/`, sign in as Olive Owner, create a room, then in its settings Connect Jira, accept, and pick SHOP board.
@@ -55,7 +56,7 @@ app/            Python package; app/main.py holds create_app()
 tests/          pytest tests; tests/fixtures/fake_backlog.json is the shared fake backlog
 frontend/       single-page app (created in step 2)
 docs/           design.md, test-plan.md, build-plan.md, mockups/
-deploy/         docker-compose.yml and Caddyfile for production
+deploy/         docker-compose.yml and Caddyfile; deploy/nginx/ for a host with its own nginx (production)
 Dockerfile      multi-stage: Node builds frontend/, slim Python serves it
 .claude/        settings, path-scoped rules, the /next-step skill
 ```
@@ -86,7 +87,7 @@ Room engine
 
 Jira
 
-- The queue is the board backlog's tickets with no estimate, in Jira's rank order.
+- The queue is the board backlog's tickets with no estimate, in Jira's rank order. Epics never enter it or the counters.
 - Write points through the board's estimation endpoint. The room advances only after Jira accepts the write.
 - Each room has one Jira connection, set up by its owner. The backlog loads and every write goes through it.
 - Refresh tokens rotate: store the new one after every refresh, encrypted.
@@ -105,7 +106,7 @@ Runtime
 
 ## Decided
 
-- Hostname: `poker.nijalabs.com`, behind Caddy (`deploy/`). The mock-ups show `[YOUR DOMAIN]`.
+- Hostname: `poker.nijalabs.com`, behind the host's existing nginx (`deploy/nginx/`, app on `127.0.0.1:8100`). `deploy/` with Caddy stays for a dedicated host. The mock-ups show `[YOUR DOMAIN]`.
 
 ## Assumptions already in the design
 

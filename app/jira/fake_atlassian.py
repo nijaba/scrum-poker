@@ -34,7 +34,7 @@ def _issue(ticket: dict[str, Any], index: int) -> dict[str, Any]:
         "key": ticket["key"],
         "fields": {
             "summary": ticket.get("summary", ""),
-            "issuetype": {"name": ticket.get("type") or "Story"},
+            "issuetype": _issue_type(ticket.get("type") or "Story"),
             "priority": {"name": ticket.get("priority") or "Medium"},
             "labels": list(ticket.get("labels") or []),
             "description": description,
@@ -43,6 +43,12 @@ def _issue(ticket: dict[str, Any], index: int) -> dict[str, Any]:
         },
         "renderedFields": {"description": f"<p>{html.escape(description)}</p>"},
     }
+
+
+def _issue_type(name: str) -> dict[str, Any]:
+    """An issue type as Jira Cloud sends it: epics sit at level 1, sub-tasks at -1."""
+    level = {"Epic": 1, "Sub-task": -1, "Subtask": -1}.get(name, 0)
+    return {"name": name, "hierarchyLevel": level, "subtask": level < 0}
 
 
 def big_backlog(count: int = 120) -> list[dict[str, Any]]:

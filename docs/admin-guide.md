@@ -148,6 +148,11 @@ cd deploy && docker compose --env-file ../.env up -d
 
 ### Starting, stopping and logs
 
+The commands in this guide run from `deploy/`, with `--env-file ../.env`. On a server set up
+behind its own nginx ([README](../README.md#behind-an-existing-nginx)), run them from
+`deploy/nginx/` with `--env-file ../../.env` instead; from `deploy/`, compose would also
+start Caddy.
+
 From `deploy/`:
 
 ```bash

@@ -129,7 +129,7 @@ Refresh tokens rotate and expire after 90 days without use, so each room's lates
 
 ### Loading the backlog
 
-On session start the adapter reads the board configuration for the estimate field, then calls `GET /rest/agile/1.0/board/{boardId}/backlog` page by page, which returns issues ordered by rank ([source](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board)). One pass yields the queue (tickets with no estimate, in rank order) and the backlog counters. A room with no board chosen, or whose backlog cannot load, says why, and facilitators can retry once the owner has fixed it.
+On session start the adapter reads the board configuration for the estimate field, then calls `GET /rest/agile/1.0/board/{boardId}/backlog` page by page, which returns issues ordered by rank ([source](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board)). One pass yields the queue (tickets with no estimate, in rank order) and the backlog counters. Epics are left out of both: they group tickets rather than being estimated. An epic is an issue whose type sits at Jira's epic hierarchy level (1) or above, so a renamed or translated epic type is still recognised; without a level, the type name `Epic` decides. A room with no board chosen, or whose backlog cannot load, says why, and facilitators can retry once the owner has fixed it.
 
 A session ends when nobody has been connected to the room for 15 minutes. The next visit starts a new session: the backlog loads again and the session counters start at zero. A short drop-out or a page reload keeps the session.
 
@@ -215,7 +215,7 @@ The app is served over HTTPS only, and room connections use secure WebSockets. L
 - The session cookie and the player cookie are marked Secure
 - Google, GitHub and Atlassian sign-in return to `https://` callback addresses
 
-Production runs at `https://poker.nijalabs.com`, with [Caddy](https://caddyserver.com) in front of the container to end TLS and renew the certificate (`deploy/`).
+Production runs at `https://poker.nijalabs.com`, behind the nginx that already serves other sites on that host; nginx ends TLS with a certbot certificate and reaches the app on `127.0.0.1:8100` (`deploy/nginx/`). For a host of its own, `deploy/` puts [Caddy](https://caddyserver.com) in front of the container to end TLS and renew the certificate.
 
 Mini mode depends on this too: the Document Picture-in-Picture API is only available on pages served over HTTPS ([source](https://developer.mozilla.org/docs/Web/API/Document_Picture-in-Picture_API)).
 

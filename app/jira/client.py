@@ -230,6 +230,8 @@ class JiraService:
             data = response.json()
             issues = data.get("issues", [])
             for issue in issues:
+                if _is_epic(issue):
+                    continue
                 tickets.append(_ticket(issue, field, jira.site_url, len(tickets) + 1))
             start += len(issues)
             if not issues or start >= data.get("total", start):
@@ -295,6 +297,19 @@ def _jira_message(response: httpx2.Response) -> str:
         str(v) for v in (data.get("errors") or {}).values()
     ]
     return " ".join(parts) or f"Jira refused the request ({response.status_code})."
+
+
+def _is_epic(issue: dict[str, Any]) -> bool:
+    """Epics, and any type above them, group work rather than being estimated themselves.
+
+    Jira Cloud gives every issue type a hierarchy level: -1 sub-task, 0 standard, 1 epic.
+    The name is a fallback for a response without the level; it can be renamed or translated.
+    """
+    kind = (issue.get("fields") or {}).get("issuetype") or {}
+    level = kind.get("hierarchyLevel")
+    if isinstance(level, int):
+        return level >= 1
+    return kind.get("name") == "Epic"
 
 
 def _ticket(
