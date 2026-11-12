@@ -6,7 +6,7 @@
 	https_port {$HTTPS_PORT:443}
 }
 
-{$SITE_HOST:poker.nijalabs.com} {
+{$SITE_HOST:poker.example.com} {
 	encode zstd gzip
 	reverse_proxy app:8000
 }

@@ -3,7 +3,7 @@
 # Run from this folder:
 #   docker compose --env-file ../../.env up -d --build
 # Starts the app only (no Caddy), published on loopback so only the host's nginx reaches it.
-# APP_PORT in .env picks the host port (default 8100); poker.nijalabs.com.conf must match.
+# APP_PORT in .env picks the host port (default 8100); poker.example.com.conf must match.
 
 # Same project name as ../docker-compose.yml, so both use the same rooms volume.
 name: scrum-poker

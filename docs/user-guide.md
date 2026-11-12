@@ -26,7 +26,7 @@ facilitators at once.
 
 ### Joining
 
-1. Open the room link your facilitator shared, such as `https://poker.nijalabs.com/r/team-a`.
+1. Open the room link your facilitator shared, such as `https://poker.example.com/r/team-a`.
 2. Type your name (up to 40 characters) and choose **Join room**.
 
 There is no account and no password. Your browser remembers your name for a year, so next

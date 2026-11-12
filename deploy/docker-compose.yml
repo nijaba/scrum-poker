@@ -31,7 +31,7 @@ services:
     depends_on:
       - app
     environment:
-      SITE_HOST: ${SITE_HOST:-poker.nijalabs.com}
+      SITE_HOST: ${SITE_HOST:-poker.example.com}
       HTTP_PORT: ${HTTP_PORT:-80}
       HTTPS_PORT: ${HTTPS_PORT:-443}
     # Caddy listens inside the container on the same ports it is published on, so its

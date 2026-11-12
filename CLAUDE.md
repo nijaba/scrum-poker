@@ -2,7 +2,7 @@
 
 A multiplayer scrum poker web app that walks a team through the unestimated tickets of a Jira Cloud backlog, in rank order, and writes the agreed story points back to Jira.
 
-The app is built in the six steps of `docs/build-plan.md`; all six are done. Production runs at `https://poker.nijalabs.com`.
+The app is built in the six steps of `docs/build-plan.md`; all six are done. Production runs at `https://poker.example.com`.
 
 ## Firm constraints
 
@@ -106,7 +106,7 @@ Runtime
 
 ## Decided
 
-- Hostname: `poker.nijalabs.com`, behind the host's existing nginx (`deploy/nginx/`, app on `127.0.0.1:8100`). `deploy/` with Caddy stays for a dedicated host. The mock-ups show `[YOUR DOMAIN]`.
+- Hostname: `poker.example.com`, behind the host's existing nginx (`deploy/nginx/`, app on `127.0.0.1:8100`). `deploy/` with Caddy stays for a dedicated host. The mock-ups show `[YOUR DOMAIN]`.
 
 ## Assumptions already in the design
 

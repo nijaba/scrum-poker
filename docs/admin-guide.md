@@ -36,7 +36,7 @@ refused outside `localhost`.
      the test users you list can sign in. The app asks only for `openid email profile`, which
      don't need Google's verification.
 2. Create an OAuth client ID of type **Web application** with this authorised redirect URI:
-   `https://poker.nijalabs.com/auth/google/callback`
+   `https://poker.example.com/auth/google/callback`
 3. Put its ID and secret in `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 
 Google must report the email as verified, or sign-in is refused.
@@ -44,8 +44,8 @@ Google must report the email as verified, or sign-in is refused.
 ### GitHub
 
 1. In [GitHub, Developer settings, OAuth Apps](https://github.com/settings/developers), create
-   an app. Homepage `https://poker.nijalabs.com`, callback
-   `https://poker.nijalabs.com/auth/github/callback`. Create it under your organisation if
+   an app. Homepage `https://poker.example.com`, callback
+   `https://poker.example.com/auth/github/callback`. Create it under your organisation if
    you'd rather the org owned it.
 2. Generate a client secret, and put the ID and secret in `GITHUB_CLIENT_ID` and
    `GITHUB_CLIENT_SECRET`.
@@ -70,7 +70,7 @@ You can enable Google, GitHub or both. With neither, nobody can sign in.
 
    The app also requests `offline_access` itself, for refresh tokens.
 3. Under **Authorization**, set the callback URL to
-   `https://poker.nijalabs.com/auth/atlassian/callback`.
+   `https://poker.example.com/auth/atlassian/callback`.
 4. Under **Distribution**, enable sharing if room owners other than the app's creator will
    connect Jira. A private app works only for the account that created it.
 5. Put the client ID and secret in `ATLASSIAN_CLIENT_ID` and `ATLASSIAN_CLIENT_SECRET`, and set
@@ -86,7 +86,7 @@ The app reads its settings from environment variables. With Docker Compose, put 
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `APP_BASE_URL` | Yes | The public address, `https://poker.nijalabs.com`. Used for callbacks and redirects. Must be `https://` outside localhost. |
+| `APP_BASE_URL` | Yes | The public address, `https://poker.example.com`. Used for callbacks and redirects. Must be `https://` outside localhost. |
 | `SESSION_SECRET` | Yes | Signs the sign-in cookie. At least 32 characters. |
 | `TOKEN_ENCRYPTION_KEY` | With Jira | Encrypts the stored Jira refresh tokens. A Fernet key. |
 | `ROOM_CREATOR_ALLOWLIST` | Yes, in practice | Who may create rooms. See below. Empty means nobody. |
@@ -96,7 +96,7 @@ The app reads its settings from environment variables. With Docker Compose, put 
 | `DATABASE_PATH` | No | The SQLite file. The image and compose file use `/data/scrum-poker.sqlite3`. |
 | `FORWARDED_ALLOW_IPS` | No | Proxies whose `X-Forwarded-Proto` the app believes, comma-separated, or `*`. Default `127.0.0.1`. The compose file sets `*`. |
 | `PORT` | No | The port the container listens on. Default 8000. |
-| `SITE_HOST` | No | Compose only: the hostname Caddy serves. Default `poker.nijalabs.com`. |
+| `SITE_HOST` | No | Compose only: the hostname Caddy serves. Default `poker.example.com`. |
 | `HTTP_PORT`, `HTTPS_PORT` | No | Compose only: the ports Caddy listens on. Defaults 80 and 443. Another HTTPS port also goes in `APP_BASE_URL` and the OAuth callbacks. |
 
 Compose reads `SITE_HOST`, `HTTP_PORT` and `HTTPS_PORT` from `.env` only when started with
@@ -127,10 +127,10 @@ The app refuses them outside localhost; never set them in production.
 | `*` | Anyone who signs in with Google or GitHub |
 | `ana@example.com` | That Google account, by verified email |
 | `github:ana-dev` | That GitHub user |
-| `google-domain:nijalabs.com` | Anyone in that Google Workspace (by the account's Workspace, not the email address) |
+| `google-domain:example.com` | Anyone in that Google Workspace (by the account's Workspace, not the email address) |
 | `github-org:acme` | Active members of that GitHub organisation |
 
-For example: `ROOM_CREATOR_ALLOWLIST=google-domain:nijalabs.com,github:ana-dev`
+For example: `ROOM_CREATOR_ALLOWLIST=google-domain:example.com,github:ana-dev`
 
 The allowlist only controls creating rooms. Anyone can join a room as a player with its link,
 and an owner can make anyone a delegate of their room.
@@ -233,7 +233,7 @@ paths and status codes), including room names in the paths.
 | Symptom | Likely cause and fix |
 | --- | --- |
 | The container exits right after starting | A setting is missing or wrong. `docker compose logs app` shows which one. |
-| Sign-in fails with a "redirect URI mismatch" error from Google or GitHub | The callback in the provider's app must be exactly `https://poker.nijalabs.com/auth/<provider>/callback`, and `APP_BASE_URL` must be `https://poker.nijalabs.com`. |
+| Sign-in fails with a "redirect URI mismatch" error from Google or GitHub | The callback in the provider's app must be exactly `https://poker.example.com/auth/<provider>/callback`, and `APP_BASE_URL` must be `https://poker.example.com`. |
 | Google sign-in works for you but not for colleagues | The consent screen is External and still in testing. Publish it, or add them as test users. |
 | A signed-in person "cannot create rooms" | They're not on `ROOM_CREATOR_ALLOWLIST`. Add them and restart. For `github-org:`, check the organisation has approved the app. |
 | The home page says "No sign-in provider is configured." | Neither Google nor GitHub is set up. |
@@ -243,5 +243,5 @@ paths and status codes), including room names in the paths.
 | Confirming points fails on one board | The owner's Jira account can't edit that board's estimates, or the board's estimation field isn't set. Check the board's settings in Jira. |
 | Pages keep redirecting, or everything shows "Reconnecting…" | The proxy isn't sending `X-Forwarded-Proto`, or `FORWARDED_ALLOW_IPS` doesn't include the proxy. Behind Caddy with the provided compose file both are set. |
 | Players in the same room can't see each other | More than one copy of the app is running. Run one. |
-| Caddy can't get a certificate | DNS for `poker.nijalabs.com` must point at the server, and ports 80 and 443 must be open to the internet (or, with other ports set, public port 80 or 443 must still reach Caddy). `docker compose logs caddy` says what failed. |
+| Caddy can't get a certificate | DNS for `poker.example.com` must point at the server, and ports 80 and 443 must be open to the internet (or, with other ports set, public port 80 or 443 must still reach Caddy). `docker compose logs caddy` says what failed. |
 | Mini mode opens an ordinary window instead of floating | Expected in Safari. In other browsers the floating window needs HTTPS. |

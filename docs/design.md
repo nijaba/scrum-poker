@@ -215,7 +215,7 @@ The app is served over HTTPS only, and room connections use secure WebSockets. L
 - The session cookie and the player cookie are marked Secure
 - Google, GitHub and Atlassian sign-in return to `https://` callback addresses
 
-Production runs at `https://poker.nijalabs.com`, behind the nginx that already serves other sites on that host; nginx ends TLS with a certbot certificate and reaches the app on `127.0.0.1:8100` (`deploy/nginx/`). For a host of its own, `deploy/` puts [Caddy](https://caddyserver.com) in front of the container to end TLS and renew the certificate.
+Production runs at `https://poker.example.com`, behind the nginx that already serves other sites on that host; nginx ends TLS with a certbot certificate and reaches the app on `127.0.0.1:8100` (`deploy/nginx/`). For a host of its own, `deploy/` puts [Caddy](https://caddyserver.com) in front of the container to end TLS and renew the certificate.
 
 Mini mode depends on this too: the Document Picture-in-Picture API is only available on pages served over HTTPS ([source](https://developer.mozilla.org/docs/Web/API/Document_Picture-in-Picture_API)).
 

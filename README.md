@@ -5,7 +5,7 @@ unestimated tickets of a backlog in rank order; everyone votes with hidden cards
 story points are written back to Jira.
 
 One lightweight container, one process. Votes and session counters live in memory; room
-definitions live in one SQLite file. Production runs at <https://poker.nijalabs.com>.
+definitions live in one SQLite file. Production runs at <https://poker.example.com>.
 
 How to use it: the [user guide](docs/user-guide.md). How to run it: the
 [admin guide](docs/admin-guide.md).
@@ -39,7 +39,7 @@ by itself.
 
 - A machine with Docker and Docker Compose, reachable on ports 80 and 443 (other ports
   are possible, below)
-- A DNS record for `poker.nijalabs.com` pointing at that machine
+- A DNS record for `poker.example.com` pointing at that machine
 - Three OAuth apps, below
 
 ### 1. Register the OAuth apps
@@ -48,9 +48,9 @@ Each needs a callback address on the public hostname. Plain `http://` callbacks 
 
 | Provider | Where | Callback address |
 | --- | --- | --- |
-| Google | [Google Cloud console](https://console.cloud.google.com/apis/credentials), OAuth client ID, type "Web application" | `https://poker.nijalabs.com/auth/google/callback` |
-| GitHub | [GitHub, Developer settings, OAuth Apps](https://github.com/settings/developers) | `https://poker.nijalabs.com/auth/github/callback` |
-| Atlassian | [Atlassian developer console](https://developer.atlassian.com/console/myapps/), OAuth 2.0 (3LO) integration | `https://poker.nijalabs.com/auth/atlassian/callback` |
+| Google | [Google Cloud console](https://console.cloud.google.com/apis/credentials), OAuth client ID, type "Web application" | `https://poker.example.com/auth/google/callback` |
+| GitHub | [GitHub, Developer settings, OAuth Apps](https://github.com/settings/developers) | `https://poker.example.com/auth/github/callback` |
+| Atlassian | [Atlassian developer console](https://developer.atlassian.com/console/myapps/), OAuth 2.0 (3LO) integration | `https://poker.example.com/auth/atlassian/callback` |
 
 Google and GitHub are for owners and delegates; you can enable just one. Players never sign
 in. In the Atlassian app, add the Jira API permissions listed in `.env.example` (seven
@@ -68,10 +68,10 @@ python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 
 | Variable | Value |
 | --- | --- |
-| `APP_BASE_URL` | `https://poker.nijalabs.com` |
+| `APP_BASE_URL` | `https://poker.example.com` |
 | `SESSION_SECRET` | the first value above; at least 32 characters |
 | `TOKEN_ENCRYPTION_KEY` | the second value above; encrypts stored Jira refresh tokens |
-| `ROOM_CREATOR_ALLOWLIST` | who may create rooms, for example `google-domain:nijalabs.com` (formats in `.env.example`) |
+| `ROOM_CREATOR_ALLOWLIST` | who may create rooms, for example `google-domain:example.com` (formats in `.env.example`) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | from the Google client |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | from the GitHub app |
 | `ATLASSIAN_CLIENT_ID`, `ATLASSIAN_CLIENT_SECRET` | from the Atlassian app |
@@ -90,18 +90,18 @@ docker compose --env-file ../.env up -d --build
 docker compose logs -f app
 ```
 
-Open <https://poker.nijalabs.com>. Caddy fetches the certificate on the first request,
+Open <https://poker.example.com>. Caddy fetches the certificate on the first request,
 which can take a few seconds. `--env-file ../.env` lets `.env` also set these, read by the
 compose file and Caddy:
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `SITE_HOST` | `poker.nijalabs.com` | The hostname Caddy serves. Change `APP_BASE_URL` and the OAuth callbacks to match. |
+| `SITE_HOST` | `poker.example.com` | The hostname Caddy serves. Change `APP_BASE_URL` and the OAuth callbacks to match. |
 | `HTTP_PORT` | `80` | The port Caddy answers plain HTTP on, redirecting to HTTPS. |
 | `HTTPS_PORT` | `443` | The port Caddy serves HTTPS on. |
 
 With an HTTPS port other than 443, put it in `APP_BASE_URL` and the OAuth callbacks, for
-example `https://poker.nijalabs.com:8443`. Let's Encrypt checks the domain on public port
+example `https://poker.example.com:8443`. Let's Encrypt checks the domain on public port
 80 or 443 only, so keep `HTTP_PORT=80` or `HTTPS_PORT=443` reachable from the internet;
 otherwise Caddy needs a DNS challenge, which takes a Caddy build with your DNS provider's
 plugin.
@@ -133,10 +133,10 @@ docker compose --env-file ../../.env up -d --build
 ```
 
 ```bash
-sudo cp poker.nijalabs.com.conf /etc/nginx/sites-available/poker
+sudo cp poker.example.com.conf /etc/nginx/sites-available/poker
 sudo ln -s /etc/nginx/sites-available/poker /etc/nginx/sites-enabled/poker
 sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d poker.nijalabs.com
+sudo certbot --nginx -d poker.example.com
 ```
 
 certbot adds the TLS block and the HTTP-to-HTTPS redirect to the site, and renews the
