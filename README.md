@@ -152,6 +152,10 @@ Open this folder in Claude Code. `CLAUDE.md` gives it the constraints, commands 
 - `.claude/settings.json` lets it run `pytest` and `ruff` without asking each time.
 - `.claude/rules/` holds extra rules that load when it works on the room engine or the front end.
 
+## Licence
+
+[Apache License 2.0](LICENSE).
+
 ## Documents
 
 - [docs/design.md](docs/design.md): architecture and behaviour
