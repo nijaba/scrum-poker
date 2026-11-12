@@ -133,6 +133,31 @@ def test_jc15_epics_stay_out_of_the_queue_and_the_counters(jclient, japp, atlass
     assert [t["rank"] for t in tickets] == list(range(1, 13))
 
 
+def test_jc16_sub_tasks_stay_out_of_the_queue_and_the_counters(jclient, japp, atlassian):
+    issues = atlassian.boards[1]["issues"]
+    issues.insert(
+        1, _issue({"key": "SHOP-210", "summary": "Write the copy", "type": "Sub-task"}, 90)
+    )
+    # A renamed sub-task type is still one: Jira marks it by its level and its subtask flag.
+    issues.insert(3, _issue({"key": "SHOP-211", "type": "Tâche"}, 91))
+    issues[3]["fields"]["issuetype"].update({"hierarchyLevel": -1, "subtask": True})
+    issues.insert(5, _issue({"key": "SHOP-212", "type": "Bug"}, 92))
+    issues[5]["fields"]["issuetype"] = {"name": "Bug", "subtask": True}  # no level sent
+    # A sub-task with points of its own does not count either.
+    issues.append(_issue({"key": "SHOP-213", "type": "Subtask", "story_points": 3}, 93))
+    connect(japp, atlassian)
+
+    with facilitator(jclient) as ws:
+        snap = ready(ws)
+    tickets = jclient.portal.call(japp.state.jira.backlog, "team-a")
+
+    assert snap["queue"]["length"] == 8
+    assert snap["counters"]["backlog"] == {"estimated": 4, "total": 12, "points": 16}
+    keys = {t["key"] for t in tickets}
+    assert not {"SHOP-210", "SHOP-211", "SHOP-212", "SHOP-213"} & keys
+    assert [t["rank"] for t in tickets] == list(range(1, 13))
+
+
 def test_jc04_a_backlog_of_120_tickets_loads_whole_in_rank_order(jclient, japp, atlassian):
     connect(japp, atlassian, board_id=2)
 

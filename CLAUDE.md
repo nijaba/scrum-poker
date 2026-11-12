@@ -87,7 +87,7 @@ Room engine
 
 Jira
 
-- The queue is the board backlog's tickets with no estimate, in Jira's rank order. Epics never enter it or the counters.
+- The queue is the board backlog's tickets with no estimate, in Jira's rank order. Epics and sub-tasks never enter it or the counters.
 - Write points through the board's estimation endpoint. The room advances only after Jira accepts the write.
 - Each room has one Jira connection, set up by its owner. The backlog loads and every write goes through it.
 - Refresh tokens rotate: store the new one after every refresh, encrypted.
