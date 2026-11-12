@@ -121,6 +121,37 @@ plugin.
 Using a different proxy: send all paths, including WebSocket upgrades on `/ws/`, to the
 container's port 8000 (or `PORT`), and set `X-Forwarded-Proto`. Run exactly one replica.
 
+### Behind an existing nginx
+
+Production runs this way: the server already has nginx on ports 80 and 443 for other sites,
+so Caddy can't run there. `deploy/nginx/` starts the app alone, published on
+`127.0.0.1:8100`, and holds an nginx site for it. Register the OAuth apps and write `.env`
+as in steps 1 and 2, then from `deploy/nginx/`:
+
+```bash
+docker compose --env-file ../../.env up -d --build
+```
+
+```bash
+sudo cp poker.nijalabs.com.conf /etc/nginx/sites-available/poker
+sudo ln -s /etc/nginx/sites-available/poker /etc/nginx/sites-enabled/poker
+sudo nginx -t && sudo systemctl reload nginx
+sudo certbot --nginx -d poker.nijalabs.com
+```
+
+certbot adds the TLS block and the HTTP-to-HTTPS redirect to the site, and renews the
+certificate by itself. If port 8100 is taken, set `APP_PORT` in `.env` and change
+`proxy_pass` in the site to match.
+
+- Always start compose from `deploy/nginx/`. From `deploy/` it would also start Caddy, which
+  can't bind ports 80 and 443 while nginx holds them.
+- The app's port is published on loopback only, so the internet reaches it only through
+  nginx. `FORWARDED_ALLOW_IPS` stays `*`: the container sees every host connection, nginx's
+  included, from Docker's gateway address, so anything running on the server itself could
+  also reach the app and set `X-Forwarded-Proto`.
+- Both compose files use the same project name and `rooms` volume, so moving from one setup
+  to the other keeps the rooms.
+
 ### Running the image yourself
 
 ```bash
