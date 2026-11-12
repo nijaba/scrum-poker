@@ -1,0 +1,160 @@
+[
+  {
+    "rank": 1,
+    "key": "SHOP-131",
+    "summary": "Guest checkout button on the cart page",
+    "type": "Story",
+    "priority": "Medium",
+    "epic": "Checkout revamp",
+    "labels": [
+      "checkout"
+    ],
+    "description": "Sample description for SHOP-131.",
+    "story_points": 3
+  },
+  {
+    "rank": 2,
+    "key": "SHOP-134",
+    "summary": "Order confirmation page redesign",
+    "type": "Story",
+    "priority": "Medium",
+    "epic": "Checkout revamp",
+    "labels": [
+      "checkout"
+    ],
+    "description": "As a shopper who has just paid, I want a clear confirmation page so that I know the order went through and what happens next. Show the order number, the items, the delivery address and the expected delivery window. Offer a link to track the order and a button to continue shopping. The page must work on small screens, read well with a screen reader, and load in under a second on a mid-range phone. Payment failures keep the shopper on the checkout page with the error, so they never land here by mistake. Analytics fire one purchase event per order, even when the page is reloaded.",
+    "story_points": null
+  },
+  {
+    "rank": 3,
+    "key": "SHOP-136",
+    "summary": "Promo code field validation",
+    "type": "Bug",
+    "priority": "High",
+    "epic": "Checkout revamp",
+    "labels": [
+      "checkout"
+    ],
+    "description": "Sample description for SHOP-136.",
+    "story_points": 5
+  },
+  {
+    "rank": 4,
+    "key": "SHOP-138",
+    "summary": "Address autocomplete at checkout",
+    "type": "Story",
+    "priority": "Medium",
+    "epic": "Checkout revamp",
+    "labels": [
+      "checkout",
+      "mobile"
+    ],
+    "description": "Sample description for SHOP-138.",
+    "story_points": null
+  },
+  {
+    "rank": 5,
+    "key": "SHOP-139",
+    "summary": "Show a delivery estimate on the product page",
+    "type": "Story",
+    "priority": "Low",
+    "epic": null,
+    "labels": [
+      "catalog"
+    ],
+    "description": "Sample description for SHOP-139.",
+    "story_points": null
+  },
+  {
+    "rank": 6,
+    "key": "SHOP-140",
+    "summary": "Fix rounding in cart totals",
+    "type": "Bug",
+    "priority": "High",
+    "epic": null,
+    "labels": [
+      "checkout"
+    ],
+    "description": "Sample description for SHOP-140.",
+    "story_points": 3
+  },
+  {
+    "rank": 7,
+    "key": "SHOP-142",
+    "summary": "Save card details for faster checkout",
+    "type": "Story",
+    "priority": "High",
+    "epic": "Checkout revamp",
+    "labels": [
+      "payments",
+      "mobile"
+    ],
+    "description": "As a returning shopper, I want my card saved after the first purchase so that I can pay in one tap. Covers tokenising the card with the payment provider, a consent checkbox at checkout, and a way to remove a saved card from the account page.",
+    "story_points": null
+  },
+  {
+    "rank": 8,
+    "key": "SHOP-143",
+    "summary": "Apple Pay on the product page",
+    "type": "Story",
+    "priority": "Medium",
+    "epic": "Checkout revamp",
+    "labels": [
+      "payments"
+    ],
+    "description": "Sample description for SHOP-143.",
+    "story_points": null
+  },
+  {
+    "rank": 9,
+    "key": "SHOP-145",
+    "summary": "Retry failed payment webhooks",
+    "type": "Task",
+    "priority": "High",
+    "epic": null,
+    "labels": [
+      "payments"
+    ],
+    "description": "Sample description for SHOP-145.",
+    "story_points": 5
+  },
+  {
+    "rank": 10,
+    "key": "SHOP-147",
+    "summary": "Refund status emails",
+    "type": "Story",
+    "priority": "Medium",
+    "epic": null,
+    "labels": [
+      "notifications"
+    ],
+    "description": "Sample description for SHOP-147.",
+    "story_points": null
+  },
+  {
+    "rank": 11,
+    "key": "SHOP-149",
+    "summary": "Wishlist sharing link",
+    "type": "Story",
+    "priority": "Low",
+    "epic": null,
+    "labels": [
+      "catalog"
+    ],
+    "description": "Sample description for SHOP-149.",
+    "story_points": null
+  },
+  {
+    "rank": 12,
+    "key": "SHOP-150",
+    "summary": "Sort search results by price",
+    "type": "Story",
+    "priority": "Low",
+    "epic": null,
+    "labels": [
+      "catalog"
+    ],
+    "description": "Sample description for SHOP-150.",
+    "story_points": null
+  }
+]

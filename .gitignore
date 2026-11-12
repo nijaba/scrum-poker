@@ -1,0 +1,24 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Local configuration and data
+.env
+.env.local
+data/
+*.sqlite3
+
+# Front end
+node_modules/
+frontend/dist/
+
+# Claude Code personal files
+.claude/settings.local.json
+CLAUDE.local.md
+
+# macOS
+.DS_Store

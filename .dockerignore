@@ -1,0 +1,17 @@
+# Only what the image build needs: app/, pyproject.toml, README.md and frontend/ sources.
+.git
+.venv
+.env
+.env.*
+.claude
+.DS_Store
+**/__pycache__
+*.egg-info
+.pytest_cache
+.ruff_cache
+data
+deploy
+docs
+tests
+frontend/node_modules
+frontend/dist

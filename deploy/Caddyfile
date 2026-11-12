@@ -1,0 +1,6 @@
+# Caddy ends TLS for the app, fetches and renews the certificate, and redirects
+# plain HTTP to HTTPS. It sets X-Forwarded-Proto and X-Forwarded-For itself.
+{$SITE_HOST:poker.nijalabs.com} {
+	encode zstd gzip
+	reverse_proxy app:8000
+}

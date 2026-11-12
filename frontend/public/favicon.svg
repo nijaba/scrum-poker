@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Two cards on the table green: one face down, one face up with the accent pip. -->
+  <rect width="64" height="64" rx="14" fill="#123B2E"/>
+  <rect x="11" y="15" width="25" height="35" rx="4" fill="#C9DDD3" transform="rotate(-14 23.5 32.5)"/>
+  <g transform="rotate(10 38.5 31.5)">
+    <rect x="26" y="14" width="25" height="35" rx="4" fill="#F4F8F6" stroke="#123B2E" stroke-width="2.5"/>
+    <path d="M38.5 22.5 L45 31.5 L38.5 40.5 L32 31.5 Z" fill="#A84B0A"/>
+  </g>
+</svg>

@@ -1,0 +1,46 @@
+# Scrum poker behind Caddy. See README.md, "Deploying". Run from this folder:
+#   docker compose up -d --build
+# The app reads ../.env (or the file named by ENV_FILE). DNS for SITE_HOST must
+# point at this machine, with ports 80 and 443 open.
+
+name: scrum-poker
+
+services:
+  app:
+    build: ..
+    image: scrum-poker
+    restart: unless-stopped
+    env_file: ${ENV_FILE:-../.env}
+    environment:
+      # The SQLite file lives on the volume, whatever .env says.
+      DATABASE_PATH: /data/scrum-poker.sqlite3
+      # Only Caddy can reach the app (its port is not published), so trust its headers.
+      FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - rooms:/data
+    expose:
+      - "8000"
+    # Exactly one replica: live rooms sit in the process's memory.
+    deploy:
+      replicas: 1
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      SITE_HOST: ${SITE_HOST:-poker.nijalabs.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  rooms:
+  caddy_data:
+  caddy_config:

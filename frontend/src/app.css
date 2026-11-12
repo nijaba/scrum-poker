@@ -1,0 +1,210 @@
+/* Tokens from docs/mockups/README.md */
+:root {
+  --ground: #f2f4f3;
+  --surface: #ffffff;
+  --ink: #111614;
+  --text-2: #2b3430;
+  --text-3: #3b4641;
+  --border: #d9dfdc;
+  --border-strong: #b8c2bd;
+  --chip: #e6eae8;
+  --table: #123b2e;
+  --table-line: #2f6350;
+  --on-table: #e9f2ee;
+  --on-table-2: #a9c4b8;
+  --empty-slot: #6f9484;
+  --card-back: #c9ddd3;
+  --card-face: #f4f8f6;
+  --accent: #a84b0a;
+  --link: #0f5c45;
+  --link-hover: #0a3f30;
+  --danger: #8e1b1b;
+  --disabled-text: #4a5550;
+
+  --font-text: "Inter", system-ui, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+
+  font-family: var(--font-text);
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--ground);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--ground);
+}
+
+a {
+  color: var(--link);
+}
+a:hover {
+  color: var(--link-hover);
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel-title {
+  font-weight: 600;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--text-3);
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  font-weight: 500;
+}
+.btn[aria-pressed="true"] {
+  background: var(--chip);
+}
+.btn:disabled {
+  border-color: var(--border);
+  background: var(--chip);
+  color: var(--disabled-text);
+}
+
+.btn-primary {
+  min-height: 52px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 16px;
+}
+.btn-primary:disabled {
+  background: var(--chip);
+  color: var(--disabled-text);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Forms and page chrome shared by the rooms and settings pages */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.page-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+}
+.page-main {
+  width: 100%;
+  max-width: 920px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.section h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field > label,
+.label {
+  font-size: 13px;
+  color: var(--text-3);
+}
+.input {
+  height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.text-2 {
+  font-size: 14px;
+  color: var(--text-2);
+}
+.form-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 14px;
+}
+.who {
+  display: flex;
+  flex-direction: column;
+  padding: 0 4px;
+}
+.who-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.who-role {
+  font-size: 12px;
+  color: var(--text-3);
+}
+@media (max-width: 480px) {
+  .page-header,
+  .page-main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
