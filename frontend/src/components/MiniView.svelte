@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { suitOf } from "../lib/cards";
   import { clock, remainingAt } from "../lib/format";
   import type { RoomConnection } from "../lib/room.svelte";
+  import CardFace from "./CardFace.svelte";
 
   // Rendered inside the Picture-in-Picture window or the popup, but runs in the
   // main tab: it reads the main tab's room connection and votes through it.
@@ -81,12 +83,15 @@
     {:else if voting}
       <div class="cards" role="group" aria-label="Cards">
         {#each snap.scale.cards as card (card.label)}
+          {@const suit = suitOf(snap.scale.cards, card.label)}
           <button
             type="button"
-            class="card"
+            class="card deck-card"
+            class:red={suit?.red}
             aria-pressed={snap.you.vote === card.label}
-            aria-label={card.label === "?" ? "Not sure" : undefined}
-            onclick={() => room.send({ type: "vote", card: card.label })}>{card.label}</button
+            aria-label={card.label === "?" ? "Not sure" : card.label}
+            onclick={() => room.send({ type: "vote", card: card.label })}
+            ><CardFace label={card.label} {suit} compact /></button
           >
         {/each}
       </div>
@@ -169,26 +174,23 @@
     background: var(--on-table);
   }
   .cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-    gap: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 6px;
+    padding: 2px;
     overflow-y: auto;
     min-height: 0;
   }
   .card {
-    height: 48px;
+    min-width: 40px;
+    height: 56px;
     padding: 0 4px;
-    border: 2px solid var(--card-face);
-    border-radius: 8px;
-    background: var(--card-face);
-    color: var(--ink);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 20px;
+    border-radius: 5px;
   }
   .card[aria-pressed="true"] {
-    background: var(--accent);
-    color: #ffffff;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 2px var(--on-table);
   }
   .card:focus-visible {
     outline-color: var(--on-table);

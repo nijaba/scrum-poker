@@ -56,6 +56,8 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | RR-07 | Votes 3, 5, 5, 8 and "?" | The spread lists 3 (1), 5 (2), 8 (1), ? (1) in scale order; highest card 8, lowest 3 | Unit |
 | RR-08 | Votes 5, 5, 5 | No highest or lowest card is marked | Unit |
 | RR-09 | Reveal 3, 5 and 8 in the browser | Every screen shows the spread bars and marks the players who chose 8 and 3 as highest and lowest | E2E |
+| RR-10 | Four players joined Fay, Ana, Ben, Cid; Fay votes 8, Ana 3, Ben "?", Cid does not vote; reveal, then restart | After reveal every screen seats Ana, Fay, Ben, Cid; after the restart, Fay, Ana, Ben, Cid again | E2E |
+| RR-11 | As RR-10, with reduced motion on in every browser | The cards turn with no transition and the seats are in order at once | E2E |
 
 ### Queue and counters
 
