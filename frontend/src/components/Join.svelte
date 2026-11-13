@@ -5,12 +5,19 @@
   let {
     slug,
     initialName = "",
+    initialError = null,
     onjoined,
-  }: { slug: string; initialName?: string; onjoined: (player: Player) => void } = $props();
+  }: {
+    slug: string;
+    initialName?: string;
+    initialError?: string | null; // why the room sent this browser back here, if it did
+    onjoined: (player: Player) => void;
+  } = $props();
 
   // svelte-ignore state_referenced_locally
   let name = $state(initialName);
-  let error = $state<string | null>(null);
+  // svelte-ignore state_referenced_locally
+  let error = $state<string | null>(initialError);
   let busy = $state(false);
 
   async function submit(event: SubmitEvent) {

@@ -29,6 +29,9 @@ facilitators at once.
 1. Open the room link your facilitator shared, such as `https://poker.example.com/r/team-a`.
 2. Type your name (up to 40 characters) and choose **Join room**.
 
+Each name can be used once per table. If someone there already has your name, in any mix of
+capitals, the room says so: add an initial or pick another name.
+
 There is no account and no password. Your browser remembers your name for a year, so next
 time you go straight in. If you close the tab or lose your connection, you get your seat back
 when you return, with your card still chosen.
@@ -99,6 +102,7 @@ the room tab. Sound plays from the room tab.
 | Connecting… / Connection lost. Reconnecting… | Your connection dropped. The page reconnects by itself and you keep your seat. |
 | The room was reset. Checking in… | A facilitator cleared out people who left. Wait a few seconds and you're seated again. |
 | You are not seated in this round. | You didn't check in after a reset in time. Choose **Join again**. |
+| Someone at the table is already called … | Another person has that name. Type a different one, such as with your last initial. This can also happen when you come back, if someone took your name meanwhile. |
 | A facilitator removed you from the table. | A facilitator tidied the table. If that was a mistake, choose **Join again**. |
 | The owner deleted this room. | The room no longer exists. Ask your facilitator for a new link. |
 | There is no room called … | The link is wrong, or the room was renamed or deleted. |

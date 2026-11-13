@@ -199,3 +199,25 @@ def test_jc14_ticket_card_shows_the_ticket_details(table):
     more.click()
     expect(card.get_by_role("button", name="Show less")).to_be_visible()
     assert description.bounding_box()["height"] > collapsed * 1.5
+
+
+def test_ar19_a_taken_name_is_refused_and_another_one_joins(table):
+    fay = table.join("Fay", facilitator=True)
+    ana = table.join("Ana")
+
+    page = table.open(table.new_context())
+    page.get_by_label("Your name").fill("ana")
+    page.get_by_role("button", name="Join room").click()
+
+    expect(page.get_by_role("alert")).to_contain_text("Someone at the table is already called Ana")
+    expect(page.get_by_label("Your name")).to_have_value("ana")
+    expect(players(fay.page)).to_have_count(2)
+
+    page.get_by_label("Your name").fill("Ana B")
+    page.get_by_role("button", name="Join room").click()
+    expect(page.get_by_role("region", name="Your card")).to_be_visible()
+    expect(players(ana.page)).to_have_count(3)
+
+    # Next time, with "Ana B" saved, this browser goes straight back in.
+    page.reload()
+    expect(page.get_by_role("region", name="Your card")).to_be_visible()

@@ -71,8 +71,18 @@ class Room:
     # Seats
 
     def join(self, player_id: str, name: str) -> Seat:
-        """Seat a player, or update the name and mark them connected if already seated."""
+        """Seat a player, or update the name and mark them connected if already seated.
+
+        A name held by another seat, at the table, watching or away, is refused, ignoring
+        case and extra spaces, so everyone can tell who played what.
+        """
         player_id, name = _identity(player_id, name)
+        for other in self.seats.values():
+            if other.player_id != player_id and _same_name(other.name, name):
+                raise CommandError(
+                    "name_taken",
+                    f"Someone at the table is already called {other.name}. Choose another name.",
+                )
         seat = self.seats.get(player_id)
         if seat is None:
             seat = self.seats[player_id] = Seat(player_id, name)
@@ -394,6 +404,10 @@ def _identity(player_id: Any, name: Any) -> tuple[str, str]:
     if not isinstance(name, str) or not 0 < len(name.strip()) <= MAX_NAME:
         raise CommandError("invalid_name", f"A name is 1 to {MAX_NAME} characters.")
     return player_id, name.strip()
+
+
+def _same_name(a: str, b: str) -> bool:
+    return " ".join(a.split()).casefold() == " ".join(b.split()).casefold()
 
 
 def _seconds(value: Any) -> float:
