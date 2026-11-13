@@ -17,6 +17,8 @@ Tests run at five levels, and each case below names its level. A build step ship
 | Sandbox | Jira calls against a real Jira Cloud test site | pytest, run before each release |
 | Manual | What automation cannot judge: always-on-top behaviour and sound | Checklist, run before each release |
 
+CI on GitHub Actions runs the Unit, Integration and E2E levels on every pull request and every push to `main`: E2E in Chromium, Firefox and WebKit (standing in for Safari; Edge shares Chromium's engine), plus the image cases PK-01 to PK-03, since the runner has Docker. Sandbox and Manual stay outside CI.
+
 ## Test data and environments
 
 The cases below assume these fixtures. The fake backlog gives known counters: 4 of 12 tickets estimated, 16 points.
