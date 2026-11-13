@@ -1,7 +1,7 @@
 """Session tools at Unit level: auto-reveal, sitting out, removing a player, jumping to a
 ticket, the vote spread and the session summary.
 
-Cases RR-07, RR-08, RQ-08 to RQ-10, RV-02, RV-03, RV-06, SO-01 to SO-04, SM-03.
+Cases RR-07, RR-08, RQ-08 to RQ-10, RV-02, RV-03, RV-06, SO-01 to SO-04, SM-03, UM-01.
 """
 
 import pytest
@@ -334,6 +334,43 @@ def test_removing_the_last_holdout_triggers_auto_reveal(room):
 def test_removing_an_unknown_player_is_rejected(room):
     with pytest.raises(CommandError):
         room.remove("nobody")
+
+
+# Leaving the table
+
+
+def test_um01_leaving_drops_the_seat_and_vote_without_the_removed_notice(room):
+    room.vote("p2", "8")
+    room.sit_out("p3")
+
+    room.leave("p2")
+    room.leave("p3")
+
+    assert table(room) == ["Ana"]
+    assert watchers(room) == []
+    assert "p2" not in room.round.votes
+    snap = room.snapshot_for("p2")
+    assert snap["you"]["seated"] is False
+    assert snap["you"]["removed"] is False
+    room.join("p3", "Cy")
+    assert table(room) == ["Ana", "Cy"]  # back at the table, not watching
+
+
+def test_leaving_lets_auto_reveal_go_ahead(room):
+    room.set_auto_reveal(True)
+    room.vote("p1", "5")
+    room.vote("p2", "5")
+
+    room.leave("p3")
+
+    assert room.round.state == REVEALED
+
+
+def test_leaving_without_a_seat_does_nothing(room):
+    room.leave("nobody")
+    room.leave(None)
+
+    assert table(room) == ["Ana", "Ben", "Cy"]
 
 
 # The session summary

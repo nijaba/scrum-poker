@@ -112,6 +112,16 @@ class Room:
         self.round.drop(player_id)
         self._auto_reveal()
 
+    def leave(self, player_id: str | None) -> None:
+        """A player leaves the table on their own, as on logging out. Nothing to undo if
+        they had no seat; unlike a removal, their screen gets no notice."""
+        if player_id is None or player_id not in self.seats:
+            return
+        del self.seats[player_id]
+        self.sitting_out.discard(player_id)
+        self.round.drop(player_id)
+        self._auto_reveal()
+
     def is_seated(self, player_id: str | None) -> bool:
         return player_id is not None and player_id in self.seats
 

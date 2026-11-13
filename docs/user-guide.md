@@ -33,6 +33,10 @@ There is no account and no password. Your browser remembers your name for a year
 time you go straight in. If you close the tab or lose your connection, you get your seat back
 when you return, with your card still chosen.
 
+To leave for good, or to use another name, click your name at the top right and choose
+**Log out**. You leave the table and the browser forgets your name; the room then asks for a
+name again. On a shared computer, log out when you're done.
+
 ### Voting
 
 The top of the room shows the ticket being estimated: its key (a link to Jira), type,
@@ -105,6 +109,10 @@ You're a facilitator if you own the room, or the owner added you as a delegate. 
 open the app's home page, choose **Sign in with Google** or **Sign in with GitHub**, then open
 the room. The header shows
 your role, **Owner** or **Delegate**, under your name.
+
+Click your name for a menu: **Your rooms** goes back to the list of rooms you own or help run,
+**Room settings** (owners only) opens this room's settings, and **Log out** leaves the table,
+signs you out and returns you to the home page.
 
 ### Starting a session
 
@@ -246,7 +254,8 @@ Atlassian accounts.
 
 ### Settings
 
-The settings page, **Settings** in the room header, is only for the owner. Choose
+The settings page is only for the owner: click your name in the room header and choose
+**Room settings**. Choose
 **Save changes** after changing anything.
 
 | Section | Settings |

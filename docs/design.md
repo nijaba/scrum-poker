@@ -159,6 +159,18 @@ Sign-in is the OAuth 2.0 authorization-code flow with PKCE, through Authlib's cl
 
 The owner is matched on the provider's stable account ID. A Google account matches only Google entries, and a GitHub account only GitHub entries.
 
+### The menu behind your name
+
+In the room header, your name and role are a button that opens a small menu:
+
+| Who | Menu |
+| --- | --- |
+| Signed in, owner of the room | Your rooms, Room settings, Log out |
+| Signed in, anyone else (delegate or player) | Your rooms, Log out |
+| Not signed in | Log out |
+
+Room settings is the only way to the settings page from the room header. Your rooms goes to the home page, which lists the rooms you own or help run. Log out first sends the room a `leave` command, which takes the seat and any vote off the table like a removal but without the "removed" notice. Then someone signed in is signed out and taken to the home page; their player name stays in the browser, so opening a room again seats them as a player under that name. A player who is not signed in has their player cookie cleared (`DELETE /api/player`) and sees the name form again; the next name they type is a new player.
+
 ### Who may create rooms
 
 `ROOM_CREATOR_ALLOWLIST` is a comma-separated list. Each entry is one of these:

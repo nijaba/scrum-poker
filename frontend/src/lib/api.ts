@@ -35,6 +35,11 @@ export async function getPlayer(): Promise<Player | null> {
   }
 }
 
+/** Forget this browser's player: the next name is a new player. */
+export function forgetPlayer(): Promise<void> {
+  return call("DELETE", "/api/player");
+}
+
 /** Set the name. The server keeps the random ID and sets the year-long cookie. */
 export function setPlayerName(name: string): Promise<Player> {
   return call("POST", "/api/player", { name });

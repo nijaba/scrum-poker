@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.web import check_write
 
@@ -88,5 +88,16 @@ async def set_player(request: Request) -> JSONResponse:
         httponly=True,
         samesite="lax",
         secure=request.app.state.settings.secure_cookies,
+    )
+    return response
+
+
+@router.delete("/api/player", status_code=204)
+async def forget_player(request: Request) -> Response:
+    """Forget the name and ID, as a player logging out does. The next name is a new player."""
+    check_write(request)
+    response = Response(status_code=204)
+    response.delete_cookie(
+        COOKIE, httponly=True, samesite="lax", secure=request.app.state.settings.secure_cookies
     )
     return response

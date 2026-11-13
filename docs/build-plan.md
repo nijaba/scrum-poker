@@ -51,8 +51,9 @@ Design: "Auth, rooms and delegates", "What is stored where".
 - [x] Delegates per room by Google email or GitHub username
 - [x] Room settings screen (see `docs/mockups/room-settings.html`)
 - [x] Fake SSO provider for tests
+- [x] Menu behind your name in the room header: Your rooms, Room settings (owner), Log out
 
-Cases: AR-01, AR-02, AR-04 to AR-13, PK-03, PK-05, PK-06, HS-04, HS-05 (Google and GitHub). Manual: AR-03.
+Cases: AR-01, AR-02, AR-04 to AR-13, UM-01 to UM-06, PK-03, PK-05, PK-06, HS-04, HS-05 (Google and GitHub). Manual: AR-03.
 
 ## Step 4: Jira Cloud
 

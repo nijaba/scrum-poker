@@ -1,6 +1,6 @@
 """Session tools over the WebSocket and the settings API, at Integration level.
 
-Cases RV-01, RV-04, RV-05, RV-07, RP-01, RP-03, SM-01, SM-02.
+Cases RV-01, RV-04, RV-05, RV-07, RP-01, RP-03, SM-01, SM-02, UM-02.
 The facilitator is the room's owner, signed in.
 """
 
@@ -189,3 +189,20 @@ def test_sm01_sm02_summary_goes_to_facilitators_only(client):
 
         player = until(ana, state(lambda s: s["ticket"]["key"] == "SHOP-142"))
         assert "summary" not in player
+
+
+def test_um02_leaving_over_the_socket_updates_every_screen(client):
+    with (
+        open_ws(client, ROOM, OWNER) as fay,
+        client.websocket_connect(ROOM) as ana,
+    ):
+        join(fay, "f1", "Fay")
+        join(ana, "p1", "Ana")
+        until(fay, seated(2))
+
+        ana.send_json({"type": "leave"})
+
+        snap = until(fay, seated(1))
+        assert [p["name"] for p in snap["players"]] == ["Fay"]
+        mine = until(ana, state(lambda s: not s["you"]["seated"]))
+        assert mine["you"]["removed"] is False

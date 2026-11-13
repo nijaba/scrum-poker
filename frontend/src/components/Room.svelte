@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { getMe, getPlayer, getRoom } from "../lib/api";
+  import { forgetPlayer, getMe, getPlayer, getRoom, signOut } from "../lib/api";
   import { plural, points, remainingAt } from "../lib/format";
   import { RoomConnection } from "../lib/room.svelte";
   import { openMini } from "../lib/mini";
@@ -11,6 +11,7 @@
   import Join from "./Join.svelte";
   import Table from "./Table.svelte";
   import TicketCard from "./TicketCard.svelte";
+  import UserMenu from "./UserMenu.svelte";
 
   let { slug }: { slug: string } = $props();
 
@@ -60,6 +61,24 @@
 
   function connect() {
     room = new RoomConnection(slug);
+  }
+
+  /** Leave the table, then sign out and go home, or forget the player's name. */
+  async function logOut() {
+    room?.send({ type: "leave" });
+    room?.close();
+    room = null;
+    try {
+      if (me?.signed_in) {
+        await signOut();
+        location.assign("/");
+      } else {
+        await forgetPlayer();
+        player = null;
+      }
+    } catch (err) {
+      loadError = err instanceof Error ? err.message : "Could not log out.";
+    }
   }
 
   function joined(p: Player) {
@@ -155,13 +174,13 @@
             <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><rect x="12" y="12" width="7" height="6" rx="1"></rect></svg>
             <span>Mini mode</span>
           </button>
-          <div class="who">
-            <span class="who-name">{snap.you.name ?? player.name}</span>
-            <span class="who-role">{roleLabel}</span>
-          </div>
-          {#if snap.you.access === "owner"}
-            <a class="btn icon-btn settings-link" href="/r/{currentSlug}/settings">Settings</a>
-          {/if}
+          <UserMenu
+            name={snap.you.name ?? player.name}
+            role={roleLabel}
+            signedIn={!!me?.signed_in}
+            settingsHref={snap.you.access === "owner" ? `/r/${currentSlug}/settings` : null}
+            onlogout={logOut}
+          />
         </div>
       {/if}
     </header>

@@ -67,6 +67,27 @@ def test_two_browsers_get_different_ids(client):
     assert a["id"] != b["id"]
 
 
+def test_um03_forgetting_the_player_clears_the_cookie(client):
+    first = client.post("/api/player", json={"name": "Ana"}).json()
+
+    response = client.delete("/api/player")
+
+    assert response.status_code == 204
+    header = response.headers["set-cookie"].lower()
+    assert header.startswith("sp_player=") and "max-age=0" in header
+    assert client.get("/api/player").status_code == 404
+    # Naming again starts a new player, with a new ID.
+    assert client.post("/api/player", json={"name": "Ana"}).json()["id"] != first["id"]
+
+
+def test_forgetting_the_player_refuses_other_sites(client):
+    client.post("/api/player", json={"name": "Ana"})
+    response = client.delete("/api/player", headers={"Origin": "https://evil.example.org"})
+
+    assert response.status_code == 403
+    assert client.get("/api/player").status_code == 200
+
+
 @pytest.mark.parametrize("body", [{"name": ""}, {"name": "   "}, {"name": "x" * 41}, {}, []])
 def test_bad_names_are_rejected(client, body):
     assert client.post("/api/player", json=body).status_code == 422

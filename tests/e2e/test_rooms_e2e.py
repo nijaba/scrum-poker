@@ -44,7 +44,9 @@ def test_owner_creates_and_configures_a_room_and_a_delegate_runs_it(browser, ser
     hand = page.get_by_role("region", name="Your card")
     expect(hand.get_by_role("button", name="XXL", exact=True)).to_be_visible()
     expect(page.get_by_text("Owner", exact=True)).to_be_visible()
-    expect(page.get_by_role("link", name="Settings")).to_be_visible()
+    page.get_by_role("banner").get_by_role("button", name="Olive").click()
+    expect(page.get_by_role("menuitem", name="Room settings")).to_be_visible()
+    expect(page.get_by_role("banner").get_by_role("link", name="Settings")).to_have_count(0)
 
     # The delegate gets the session controls but not the settings.
     delegate = browser.new_context()
@@ -54,7 +56,9 @@ def test_owner_creates_and_configures_a_room_and_a_delegate_runs_it(browser, ser
     dpage.get_by_role("button", name="Join room").click()
     expect(dpage.get_by_text("Facilitator controls")).to_be_visible()
     expect(dpage.get_by_text("Delegate", exact=True)).to_be_visible()
-    expect(dpage.get_by_role("link", name="Settings")).to_have_count(0)
+    dpage.get_by_role("banner").get_by_role("button", name="Dee Delegate").click()
+    expect(dpage.get_by_role("menuitem", name="Your rooms")).to_be_visible()
+    expect(dpage.get_by_role("menuitem", name="Room settings")).to_have_count(0)
     dpage.goto(f"{server}/r/e2e-renamed/settings")
     expect(dpage.get_by_text("Only the room's owner can change its settings.")).to_be_visible()
 
