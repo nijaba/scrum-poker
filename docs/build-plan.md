@@ -22,7 +22,7 @@ Design: "Room engine" in `docs/design.md`.
 - [x] WebSocket endpoint for players and facilitators (facilitator identity is stubbed until step 3)
 - [x] Room reset: re-seat only clients that answer the check-in
 
-Cases: RE-01, RE-03, RE-04, RE-05, RE-06, RR-01 to RR-05, RQ-01 to RQ-06, RC-01, RC-02, RC-03, RS-01 to RS-04, RX-01, RX-03, RX-04.
+Cases: RE-01, RE-03, RE-04, RE-05, RE-06, RR-01 to RR-05, RQ-01 to RQ-06, RC-01, RC-02, RC-03, RS-01 to RS-05, RX-01, RX-03, RX-04.
 
 ## Step 2: room UI
 

@@ -339,7 +339,7 @@
         <label class="choice" class:chosen={kind === "fibonacci"}>
           <input type="radio" name="scale" value="fibonacci" bind:group={kind} />
           <span class="choice-name">Fibonacci</span>
-          <span class="choice-text">1, 2, 3, 5, 8, 13, 21, ?</span>
+          <span class="choice-text">1, 2, 3, 5, 8, 13, 21, 34, 55, ?</span>
         </label>
         <label class="choice" class:chosen={kind === "tshirt"}>
           <input type="radio" name="scale" value="tshirt" bind:group={kind} />

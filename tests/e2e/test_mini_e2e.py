@@ -48,7 +48,7 @@ def test_mm02_mini_view_shows_key_countdown_cards_and_voted_count(table):
     expect(view.get_by_text("SHOP-134", exact=True)).to_be_visible()
     expect(view.get_by_text("Order confirmation page redesign")).to_be_visible()
     expect(view.get_by_label("Countdown")).to_have_text(re.compile(r"\d:\d\d"))
-    for label in ["1", "2", "3", "5", "8", "13", "21", "?"]:
+    for label in ["1", "2", "3", "5", "8", "13", "21", "34", "55", "?"]:
         expect(mini_card(mini, label)).to_be_visible()
     expect(view.get_by_text("0 of 2 voted")).to_be_visible()
 

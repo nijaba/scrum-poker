@@ -105,7 +105,7 @@ Sound is a room setting, off by default: soft ticks for the last five seconds an
 
 ### Scales
 
-The owner picks Fibonacci (1, 2, 3, 5, 8, 13, 21, ?), T-shirt or a custom list per room and can change it between rounds. A change made before anyone has voted applies at once; otherwise it applies from the next round (a restart or the next ticket). Each card has a label and an optional numeric value, because Jira's story points field is a plain numeric field ([source](https://docs.atlassian.com/jira-software/REST/2017-03-08T23:31:28Z/)).
+The owner picks Fibonacci (1, 2, 3, 5, 8, 13, 21, 34, 55, ?), T-shirt or a custom list per room and can change it between rounds. A change made before anyone has voted applies at once; otherwise it applies from the next round (a restart or the next ticket). Each card has a label and an optional numeric value, because Jira's story points field is a plain numeric field ([source](https://docs.atlassian.com/jira-software/REST/2017-03-08T23:31:28Z/)). Fibonacci is not editable, so a room saved with an older Fibonacci list loads with the current one.
 
 T-shirt sizes ship with an editable mapping: XS=1, S=2, M=3, L=5, XL=8, XXL=13. The settings mock-up's example stops at XL; XXL is part of the default. Cards without a value, such as "?", are left out of the statistics.
 

@@ -15,7 +15,7 @@ from app.room.errors import CommandError
 MAX_CARDS = 30
 MAX_LABEL = 10
 
-FIBONACCI = ("1", "2", "3", "5", "8", "13", "21", "?")
+FIBONACCI = ("1", "2", "3", "5", "8", "13", "21", "34", "55", "?")
 TSHIRT_MAPPING: dict[str, float] = {"XS": 1, "S": 2, "M": 3, "L": 5, "XL": 8, "XXL": 13}
 
 

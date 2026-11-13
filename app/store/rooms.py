@@ -385,6 +385,9 @@ def _scale_json(scale: Scale) -> str:
 
 def _scale_from_json(text: str) -> Scale:
     data = json.loads(text)
+    if data["kind"] == "fibonacci":
+        # Owners cannot edit Fibonacci, so rooms always get the current list of cards.
+        return fibonacci()
     cards = [
         Card(c["label"], None if c["value"] is None else float(c["value"])) for c in data["cards"]
     ]
