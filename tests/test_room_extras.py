@@ -1,7 +1,7 @@
 """Session tools at Unit level: auto-reveal, sitting out, removing a player, jumping to a
 ticket, the vote spread and the session summary.
 
-Cases RR-07, RR-08, RQ-08 to RQ-10, RV-02, RV-03, RV-06, SO-01 to SO-04, SM-03, UM-01.
+Cases RR-07, RR-08, RQ-08 to RQ-10, RV-02, RV-03, RV-06, SO-01 to SO-04, SM-03, UM-01, AR-17.
 """
 
 import pytest
@@ -371,6 +371,56 @@ def test_leaving_without_a_seat_does_nothing(room):
     room.leave(None)
 
     assert table(room) == ["Ana", "Ben", "Cy"]
+
+
+# Names at the table
+
+
+@pytest.mark.parametrize("name", ["Ben", "ben", "  BEN  "])
+def test_ar17_a_name_already_at_the_table_is_refused(room, name):
+    with pytest.raises(CommandError) as err:
+        room.join("p9", name)
+
+    assert err.value.code == "name_taken"
+    assert "Ben" in err.value.message
+    assert table(room) == ["Ana", "Ben", "Cy"]
+
+
+def test_ar17_the_same_player_keeps_or_changes_their_own_name(room):
+    room.join("p2", "Ben")  # a reconnect
+    room.join("p2", "BEN")  # a change of case
+    assert table(room) == ["Ana", "BEN", "Cy"]
+
+    with pytest.raises(CommandError):
+        room.join("p2", "Ana")  # renaming onto someone else
+
+
+def test_ar17_watchers_and_away_players_hold_their_names(room):
+    room.sit_out("p2")
+    room.set_connected("p3", False)
+
+    for name in ("Ben", "Cy"):
+        with pytest.raises(CommandError):
+            room.join("p9", name)
+
+
+def test_ar17_a_name_is_free_once_its_player_is_gone(room):
+    room.remove("p2")
+    room.leave("p3")
+
+    room.join("p8", "Ben")
+    room.join("p9", "Cy")
+
+    assert table(room) == ["Ana", "Ben", "Cy"]
+
+
+def test_ar17_check_in_after_a_reset_refuses_a_taken_name(room):
+    room.reset()
+    room.check_in("p1", "Ana")
+
+    with pytest.raises(CommandError) as err:
+        room.check_in("p2", "ana")
+    assert err.value.code == "name_taken"
 
 
 # The session summary

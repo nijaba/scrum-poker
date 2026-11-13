@@ -147,6 +147,8 @@ The card shows key and link, type, priority, epic, labels, and the Jira-rendered
 
 Owners and delegates sign in; players only type a name.
 
+Names at a table are unique, so everyone can tell who played what. The room refuses a name that another seat holds, whether that person is at the table, watching or away, ignoring case and extra spaces: "ana" is refused while "Ana" is seated. The same browser reconnecting keeps its own seat and name. A name is free again once its seat goes, by a removal, a log-out or a reset. A refused browser, including a returning one whose saved name is now taken, is sent back to the name form with the name it tried and the message "Someone at the table is already called Ana. Choose another name."
+
 | Role | Signs in with | Can do |
 | --- | --- | --- |
 | Owner | Google or GitHub | Create, configure and delete rooms; name delegates; run sessions |

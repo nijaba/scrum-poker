@@ -235,8 +235,10 @@ class LiveRoom:
             if conn.player_id is not None:
                 try:
                     room.join(conn.player_id, conn.name)
-                except CommandError:
+                except CommandError as err:
+                    # The saved name is taken (or bad): say why, then show the room unseated.
                     conn.player_id = conn.name = None
+                    conn.send({"type": "error", "code": err.code, "message": err.message})
                 else:
                     return True
             conn.send(self._snapshot(conn))

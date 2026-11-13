@@ -18,6 +18,8 @@ export class RoomConnection {
   error = $state<string | null>(null);
   ended = $state<Ended>(null);
   slug = $state("");
+  /** Set when the room refused this browser's name because someone else holds it. */
+  nameTaken = $state<string | null>(null);
   /** performance.now() when the latest snapshot arrived; the countdown counts from it. */
   receivedAt = $state(0);
 
@@ -94,6 +96,8 @@ export class RoomConnection {
       history.replaceState(null, "", `/r/${message.slug}${location.search}`);
     } else if (message.type === "deleted") {
       this.ended = "deleted";
+    } else if (message.type === "error" && message.code === "name_taken") {
+      this.nameTaken = message.message;
     } else if (message.type === "error") {
       this.#showError(message.message);
     }

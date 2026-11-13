@@ -18,6 +18,8 @@
   let player = $state<Player | null | undefined>(undefined); // undefined while loading
   let me = $state<Me | null>(null);
   let missing = $state(false);
+  let joinName = $state<string | null>(null); // the name the room refused, to edit
+  let joinError = $state<string | null>(null);
   let loadError = $state<string | null>(null);
   let room = $state<RoomConnection | null>(null);
   let copied = $state(false);
@@ -81,7 +83,19 @@
     }
   }
 
+  // The room refused the name: back to the name form, with the name and the reason.
+  $effect(() => {
+    const taken = room?.nameTaken;
+    if (!taken) return;
+    joinName = player?.name ?? null;
+    joinError = taken;
+    room?.close();
+    room = null;
+    player = null;
+  });
+
   function joined(p: Player) {
+    joinName = joinError = null;
     player = p;
     unlockAudio();
     connect();
@@ -136,7 +150,12 @@
 {:else if player === undefined}
   <p class="loading">{loadError ?? "Loading…"}</p>
 {:else if player === null}
-  <Join {slug} initialName={me?.signed_in ? (me.name ?? "") : ""} onjoined={joined} />
+  <Join
+    {slug}
+    initialName={joinName ?? (me?.signed_in ? (me.name ?? "") : "")}
+    initialError={joinError}
+    onjoined={joined}
+  />
 {:else}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="room" onpointerdown={unlockAudio} onkeydown={unlockAudio}>

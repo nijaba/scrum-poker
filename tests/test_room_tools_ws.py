@@ -1,6 +1,6 @@
 """Session tools over the WebSocket and the settings API, at Integration level.
 
-Cases RV-01, RV-04, RV-05, RV-07, RP-01, RP-03, SM-01, SM-02, UM-02.
+Cases RV-01, RV-04, RV-05, RV-07, RP-01, RP-03, SM-01, SM-02, UM-02, AR-18.
 The facilitator is the room's owner, signed in.
 """
 
@@ -206,3 +206,24 @@ def test_um02_leaving_over_the_socket_updates_every_screen(client):
         assert [p["name"] for p in snap["players"]] == ["Fay"]
         mine = until(ana, state(lambda s: not s["you"]["seated"]))
         assert mine["you"]["removed"] is False
+
+
+def test_ar18_a_taken_name_is_refused_over_the_socket(client):
+    with client.websocket_connect(ROOM) as ana:
+        join(ana, "p1", "Ana")
+
+        # A second browser types the same name.
+        with client.websocket_connect(ROOM) as other:
+            until(other, state())
+            other.send_json({"type": "join", "player_id": "p2", "name": "ana"})
+            err = error(other)
+            assert err["code"] == "name_taken"
+            assert "Ana" in err["message"]
+
+        # A returning browser whose saved name is taken is told so when it connects.
+        with open_ws(client, ROOM, player=("p3", "ANA")) as returning:
+            err = until(returning, lambda m: m["type"] == "error")
+            assert err["code"] == "name_taken"
+            snap = until(returning, state())
+            assert snap["you"]["seated"] is False
+            assert [p["name"] for p in snap["players"]] == ["Ana"]

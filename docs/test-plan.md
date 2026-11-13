@@ -185,6 +185,9 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | AR-14 | Player opens the room link | Joins after typing a name, with no sign-in | E2E |
 | AR-15 | Player returns later in the same browser | Joins without the name prompt | E2E |
 | AR-16 | Player's connection drops and comes back | The player gets the same seat back | E2E |
+| AR-17 | A second player takes a name already at the table, in any case or spacing | Refused with `name_taken`, whether the holder is seated, watching or away; the same player reconnecting or changing case keeps their seat; the name is free once its seat goes; check-in after a reset refuses it too | Unit |
+| AR-18 | A taken name arrives over the socket, as a join or from a returning browser's cookie | The browser gets a `name_taken` error and stays unseated; the table is unchanged | Integration |
+| AR-19 | A player types a name already at the table | The name form says who holds it and keeps the name; another name joins, and is remembered | E2E |
 
 ### The menu behind your name
 
