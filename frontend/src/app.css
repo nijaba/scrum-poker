@@ -15,6 +15,11 @@
   --empty-slot: #6f9484;
   --card-back: #c9ddd3;
   --card-face: #f4f8f6;
+  --card-stock: #fbfcfb;
+  --card-edge: #cfd7d3;
+  --suit-red: #b0281d;
+  --card-shadow: 0 1px 1px rgba(17, 22, 20, 0.1), 0 3px 8px rgba(17, 22, 20, 0.1);
+  --card-shadow-up: 0 2px 2px rgba(17, 22, 20, 0.1), 0 12px 22px rgba(17, 22, 20, 0.18);
   --accent: #a84b0a;
   --link: #0f5c45;
   --link-hover: #0a3f30;
@@ -119,6 +124,52 @@ button:disabled {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* Playing cards: the face lives in CardFace.svelte; these give the card its stock, edge and back. */
+.deck-card {
+  position: relative;
+  box-sizing: border-box;
+  border: 1px solid var(--card-edge);
+  border-radius: 7px;
+  background: var(--card-stock);
+  color: var(--ink);
+  box-shadow: var(--card-shadow);
+}
+.deck-card.red {
+  color: var(--suit-red);
+}
+/* A face-down card: a lattice in table green inside a plain margin, with a diamond in the middle. */
+.deck-back {
+  position: relative;
+  box-sizing: border-box;
+  padding: 5px;
+  border: 1px solid var(--card-edge);
+  border-radius: 7px;
+  background:
+    repeating-linear-gradient(45deg, transparent 0 5px, rgba(18, 59, 46, 0.55) 5px 6px) content-box,
+    repeating-linear-gradient(-45deg, transparent 0 5px, rgba(18, 59, 46, 0.55) 5px 6px) content-box,
+    linear-gradient(var(--card-back), var(--card-back)) content-box,
+    var(--card-stock);
+}
+.deck-back::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 2px solid var(--table);
+  border-radius: 3px;
+}
+.deck-back::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 2px solid var(--table);
+  border-radius: 2px;
+  background: var(--card-back);
 }
 
 /* Forms and page chrome shared by the rooms and settings pages */

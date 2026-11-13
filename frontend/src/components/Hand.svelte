@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { suitOf } from "../lib/cards";
   import type { Snapshot } from "../lib/types";
+  import CardFace from "./CardFace.svelte";
 
   let {
     snap,
@@ -14,6 +16,18 @@
 
   const kinds = { fibonacci: "Fibonacci", tshirt: "T-shirt sizes", custom: "Custom cards" };
   const voting = $derived(snap.round.state === "voting");
+
+  // Up to a dozen cards fan out like a hand; longer custom scales lie in a plain row.
+  const FAN_MAX = 12;
+  const fan = $derived(snap.scale.cards.length <= FAN_MAX);
+  function angle(i: number, n: number): number {
+    const step = Math.min(3, 30 / Math.max(1, n - 1));
+    return (i - (n - 1) / 2) * step;
+  }
+  function drop(i: number, n: number): number {
+    const d = i - (n - 1) / 2;
+    return d * d * Math.min(0.9, 25 / Math.max(1, ((n - 1) / 2) ** 2));
+  }
 </script>
 
 <section class="panel hand" aria-label="Your card">
@@ -29,14 +43,19 @@
       <span class="note">{kinds[snap.scale.kind]} · hidden from others until reveal</span>
       <button class="btn sit" type="button" onclick={() => onsit(false)}>Sit out</button>
     </div>
-    <div class="cards">
-      {#each snap.scale.cards as card (card.label)}
+    <div class="cards" class:fan style:--n={snap.scale.cards.length}>
+      {#each snap.scale.cards as card, i (card.label)}
+        {@const suit = suitOf(snap.scale.cards, card.label)}
         <button
           type="button"
-          class="card"
+          class="card deck-card"
+          class:red={suit?.red}
+          style:--r="{angle(i, snap.scale.cards.length)}deg"
+          style:--y="{drop(i, snap.scale.cards.length)}px"
           aria-pressed={snap.you.vote === card.label}
-          aria-label={card.label === "?" ? "Not sure" : undefined}
-          onclick={() => onvote(card.label)}>{card.label}</button
+          aria-label={card.label === "?" ? "Not sure" : card.label}
+          onclick={() => onvote(card.label)}
+          ><CardFace label={card.label} {suit} /></button
         >
       {/each}
     </div>
@@ -72,25 +91,73 @@
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    padding-top: 6px;
+    padding-top: 14px;
   }
   .card {
-    min-width: 60px;
-    height: 84px;
-    padding: 0 6px;
-    border: 1.5px solid var(--border-strong);
-    border-radius: 8px;
-    background: var(--surface);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 26px;
-    transition: transform 0.12s ease;
+    min-width: 66px;
+    height: 92px;
+    padding: 0 8px;
+    transition:
+      transform 0.16s ease,
+      box-shadow 0.16s ease;
   }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--card-shadow-up);
+  }
+  /* The chosen card rises and gets an accent edge, so it never relies on colour alone. */
   .card[aria-pressed="true"] {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: #ffffff;
-    transform: translateY(-6px);
+    z-index: 3;
+    border: 2px solid var(--accent);
+    box-shadow:
+      0 0 0 3px rgba(168, 75, 10, 0.18),
+      var(--card-shadow-up);
+    transform: translateY(-10px);
+  }
+
+  /* A fan: cards overlap, each keeping its top-left index in view, on a gentle arc. */
+  .fan {
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 0;
+    padding: 24px 8px 4px;
+  }
+  .fan .card {
+    transform-origin: 50% 140%;
+    transform: rotate(var(--r)) translateY(var(--y));
+  }
+  /* Overlap 12px, or more when the panel is narrow, up to 40px. */
+  .fan .card + .card {
+    margin-left: max(-40px, min(-12px, calc((100% - var(--n) * 66px) / (var(--n) - 1))));
+  }
+  .fan .card:hover {
+    z-index: 2;
+    transform: rotate(var(--r)) translateY(calc(var(--y) - 8px));
+  }
+  .fan .card[aria-pressed="true"] {
+    z-index: 3;
+    transform: translateY(calc(var(--y) - 20px));
+  }
+  /* On a narrow screen a plain wrapping row keeps every card easy to tap. */
+  @media (max-width: 640px) {
+    .fan {
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 14px 0 0;
+    }
+    .fan .card + .card {
+      margin-left: 0;
+    }
+    .fan .card {
+      transform: none;
+    }
+    .fan .card:hover {
+      transform: translateY(-4px);
+    }
+    .fan .card[aria-pressed="true"] {
+      transform: translateY(-10px);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .card {

@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { suitOf, tiltOf } from "../lib/cards";
   import { clock } from "../lib/format";
   import type { Snapshot } from "../lib/types";
+  import CardFace from "./CardFace.svelte";
 
   let {
     snap,
@@ -43,7 +45,7 @@
     <p class="empty">Nobody is seated yet.</p>
   {:else}
     <ul class="seats">
-      {#each snap.players as p (p.id)}
+      {#each snap.players as p, i (p.id)}
         <li class="seat" class:away={!p.connected} data-player={p.name}>
           {#if onremove}
             <button
@@ -56,16 +58,28 @@
               <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg>
             </button>
           {/if}
-          {#if revealed}
-            {#if p.card != null}
-              <div class="card face" aria-label="{p.name} played {p.card}">{p.card}</div>
-            {:else}
-              <div class="card slot" aria-label="{p.name} did not vote"></div>
-            {/if}
-          {:else if p.voted}
-            <div class="card back" aria-label="{p.name} has voted"><div></div></div>
+          <!-- One element from vote to reveal, so the card turns over in place. -->
+          {#if revealed ? p.card != null : p.voted}
+            {@const suit = p.card != null ? suitOf(snap.scale.cards, p.card) : null}
+            <div
+              class="card flip"
+              class:up={revealed}
+              style:--tilt="{tiltOf(p.id)}deg"
+              style:--delay="{i * 80}ms"
+              aria-label={revealed ? `${p.name} played ${p.card}` : `${p.name} has voted`}
+            >
+              <div class="flip-inner">
+                <div class="side deck-back"></div>
+                <div class="side front deck-card" class:red={suit?.red}>
+                  {#if revealed && p.card != null}<CardFace label={p.card} {suit} />{/if}
+                </div>
+              </div>
+            </div>
           {:else}
-            <div class="card slot" aria-label="{p.name} has not voted"></div>
+            <div
+              class="card slot"
+              aria-label={revealed ? `${p.name} did not vote` : `${p.name} has not voted`}
+            ></div>
           {/if}
           <span class="name">{p.name}</span>
           {#if mark(p.card)}
@@ -187,34 +201,45 @@
     opacity: 0.6;
   }
   .card {
-    width: 64px;
-    height: 88px;
+    width: 66px;
+    height: 92px;
     box-sizing: border-box;
-    border-radius: 8px;
+    border-radius: 7px;
   }
-  .back {
-    background: var(--card-back);
-    padding: 6px;
+  /* Cards lie a little askew; on reveal they turn over one after another. */
+  .flip {
+    perspective: 600px;
+    transform: rotate(var(--tilt));
   }
-  .back > div {
+  .flip-inner {
+    position: relative;
     width: 100%;
     height: 100%;
-    box-sizing: border-box;
-    border: 2px solid var(--table);
-    border-radius: 4px;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) var(--delay);
+  }
+  .up .flip-inner {
+    transform: rotateY(180deg);
+  }
+  .side {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    box-shadow:
+      0 2px 3px rgba(0, 0, 0, 0.35),
+      0 8px 14px rgba(0, 0, 0, 0.25);
+  }
+  .front {
+    transform: rotateY(180deg);
   }
   .slot {
     border: 2px dashed var(--empty-slot);
   }
-  .face {
-    background: var(--card-face);
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 30px;
+  @media (prefers-reduced-motion: reduce) {
+    .flip-inner {
+      transition: none;
+    }
   }
   .name {
     font-size: 14px;
