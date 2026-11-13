@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { untrack } from "svelte";
+  import { flip } from "svelte/animate";
+  import { prefersReducedMotion } from "svelte/motion";
   import { suitOf, tiltOf } from "../lib/cards";
   import { clock } from "../lib/format";
   import type { Snapshot } from "../lib/types";
@@ -21,6 +24,41 @@
   const voted = $derived(snap.players.filter((p) => p.voted).length);
   const results = $derived(snap.round.results);
   const most = $derived(Math.max(1, ...(results?.spread ?? []).map((s) => s.count)));
+
+  // On reveal each card turns over (FLIP_MS, one after another STAGGER_MS apart), then
+  // the seats move into scale order: lowest card first, "?" next, players who did
+  // not vote last. With reduced motion both happen at once, with no animation.
+  const FLIP_MS = 550;
+  const STAGGER_MS = 80;
+  const SORT_MS = 450;
+
+  // A page that opens on a revealed round shows it sorted straight away.
+  let sorted = $state(untrack(() => snap.round.state !== "voting"));
+  $effect(() => {
+    if (!revealed) {
+      sorted = false;
+      return;
+    }
+    if (sorted) return;
+    if (prefersReducedMotion.current) {
+      sorted = true;
+      return;
+    }
+    const turned = FLIP_MS + STAGGER_MS * Math.max(0, untrack(() => snap.players.length) - 1);
+    const timer = setTimeout(() => (sorted = true), turned);
+    return () => clearTimeout(timer);
+  });
+
+  const seats = $derived.by(() => {
+    if (!revealed || !sorted) return snap.players;
+    const cards = snap.scale.cards;
+    const rank = (card: string | null | undefined) => {
+      if (card == null) return cards.length + 1;
+      const i = cards.findIndex((c) => c.label === card);
+      return i < 0 ? cards.length : i;
+    };
+    return [...snap.players].sort((a, b) => rank(a.card) - rank(b.card));
+  });
 
   function mark(card: string | null | undefined): "Highest" | "Lowest" | null {
     if (!revealed || !results || card == null) return null;
@@ -45,8 +83,13 @@
     <p class="empty">Nobody is seated yet.</p>
   {:else}
     <ul class="seats">
-      {#each snap.players as p, i (p.id)}
-        <li class="seat" class:away={!p.connected} data-player={p.name}>
+      {#each seats as p, i (p.id)}
+        <li
+          class="seat"
+          class:away={!p.connected}
+          data-player={p.name}
+          animate:flip={{ duration: prefersReducedMotion.current ? 0 : SORT_MS }}
+        >
           {#if onremove}
             <button
               class="remove"
@@ -65,7 +108,8 @@
               class="card flip"
               class:up={revealed}
               style:--tilt="{tiltOf(p.id)}deg"
-              style:--delay="{i * 80}ms"
+              style:--flip="{FLIP_MS}ms"
+              style:--delay="{i * STAGGER_MS}ms"
               aria-label={revealed ? `${p.name} played ${p.card}` : `${p.name} has voted`}
             >
               <div class="flip-inner">
@@ -216,7 +260,7 @@
     width: 100%;
     height: 100%;
     transform-style: preserve-3d;
-    transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) var(--delay);
+    transition: transform var(--flip) cubic-bezier(0.3, 0.7, 0.3, 1) var(--delay);
   }
   .up .flip-inner {
     transform: rotateY(180deg);

@@ -75,6 +75,8 @@ T-shirt cards count by their mapped values. Confirming a T-shirt card writes its
 
 The reveal also shows the spread: how many chose each card, in scale order, "?" included. When the numeric cards differ, the highest and lowest are marked, and so are the players who chose them, because the discussion usually starts with them.
 
+Once the cards have turned over, the seats move into scale order: lowest card first, cards without a value such as "?" after the numbers, and players who did not vote last. Players who chose the same card keep their seating order. Restarting the vote puts the seats back in the order players joined. The turn and the move are animated; when the browser asks for reduced motion, the cards turn and sort at once, with no animation.
+
 ### Auto-reveal
 
 Auto-reveal turns the cards over once every player at the table who is connected has voted. Away players and players sitting out do not hold it up, and it needs at least one vote. It is a room setting, off by default, that the owner saves; facilitators can switch it for the running session only, like the countdown sound. Switching it on when everyone has already voted reveals at once. It never fires on countdown expiry, which still only signals time's up.
