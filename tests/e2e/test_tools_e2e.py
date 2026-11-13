@@ -70,8 +70,12 @@ def test_rp02_removed_player_is_told_and_can_join_again(table):
     expect(ben.page.get_by_role("region", name="Your card")).to_be_visible()
 
 
-def test_sm04_copy_and_download_the_session_summary(table):
-    table.owner.grant_permissions(["clipboard-read", "clipboard-write"], origin=table.base)
+def test_sm04_copy_and_download_the_session_summary(table, browser_name):
+    # Only Chromium lets a test grant clipboard access and read the clipboard back;
+    # elsewhere the test checks the copy succeeded, then the CSV, which has the same rows.
+    readable = browser_name == "chromium"
+    if readable:
+        table.owner.grant_permissions(["clipboard-read", "clipboard-write"], origin=table.base)
     fay, ana, ben = seat_three(table)
     vote_and_reveal(fay, ana, ben, ("5", "5", "8"))
     fay.press("Confirm 5 points")
@@ -82,11 +86,12 @@ def test_sm04_copy_and_download_the_session_summary(table):
     expect(panel).to_contain_text("1 estimated · 1 skipped")
     panel.get_by_role("button", name="Copy summary").click()
     expect(panel.get_by_role("button", name="Copied")).to_be_visible()
-    text = fay.page.evaluate("navigator.clipboard.readText()")
-    assert "SHOP-134 Order confirmation page redesign: 5 points" in text
-    assert "votes 5×2, 8×1" in text
-    assert "SHOP-138 Address autocomplete at checkout: skipped" in text
-    assert "1 ticket · 5 points" in text
+    if readable:
+        text = fay.page.evaluate("navigator.clipboard.readText()")
+        assert "SHOP-134 Order confirmation page redesign: 5 points" in text
+        assert "votes 5×2, 8×1" in text
+        assert "SHOP-138 Address autocomplete at checkout: skipped" in text
+        assert "1 ticket · 5 points" in text
 
     with fay.page.expect_download() as download:
         panel.get_by_role("button", name="Download CSV").click()
