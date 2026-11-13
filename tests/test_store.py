@@ -77,6 +77,23 @@ def test_custom_scale_round_trips_exactly(store):
     assert store.get("team-a").scale == custom(["1", "2", "4", "?", {"label": "big", "value": 20}])
 
 
+def test_rs05_a_room_saved_with_an_older_fibonacci_list_gets_the_current_cards(store, path):
+    store.create(record())
+    old = (
+        '{"kind": "fibonacci", "cards": ['
+        + ", ".join(
+            f'{{"label": "{label}", "value": {label}}}'
+            for label in ("1", "2", "3", "5", "8", "13", "21")
+        )
+        + ', {"label": "?", "value": null}]}'
+    )
+    with sqlite3.connect(path) as db:
+        db.execute("UPDATE rooms SET scale = ? WHERE slug = 'team-a'", (old,))
+
+    assert store.get("team-a").scale == fibonacci()
+    assert [c.label for c in store.get("team-a").scale.cards][-3:] == ["34", "55", "?"]
+
+
 def test_rename_keeps_the_old_slug_as_a_redirect(store):
     store.create(record())
     store.update("team-a", delegates=[Delegate("google", "ben@example.com")])

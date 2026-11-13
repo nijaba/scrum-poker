@@ -97,6 +97,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | RS-02 | Owner picks T-shirt | Players see sizes; confirmed points use the mapped value | Integration |
 | RS-03 | Owner enters a custom list | Players see exactly those cards, in order | Integration |
 | RS-04 | Owner changes the scale between rounds | The next round uses the new cards | Unit |
+| RS-05 | A room was saved with an older Fibonacci list (1 to 21) | It loads with the current cards, 1 to 55 and ? | Integration |
 
 ### Room reset
 

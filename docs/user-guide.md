@@ -266,7 +266,7 @@ The settings page is only for the owner: click your name in the room header and 
 | --- | --- |
 | **Room link** | The room's **Short name**. Renaming keeps the old link working: it redirects to the new one, and no other room can take the old name. |
 | **Jira Cloud** | The connection, site and board. See above. |
-| **Scale** | The cards players vote with: **Fibonacci** (1, 2, 3, 5, 8, 13, 21, ?), **T-shirt** (XS to XXL, with the points each size confirms as, XS=1 to XXL=13) or a **Custom list** of your own cards, separated by commas. |
+| **Scale** | The cards players vote with: **Fibonacci** (1, 2, 3, 5, 8, 13, 21, 34, 55, ?), **T-shirt** (XS to XXL, with the points each size confirms as, XS=1 to XXL=13) or a **Custom list** of your own cards, separated by commas. |
 | **Countdown, sound and reveal** | **Default seconds** for the countdown, whether the countdown sound plays, and whether cards reveal by themselves once everyone has voted. Facilitators can change these for a running session; these are the defaults. |
 | **Delegates** | People who can run sessions in this room. |
 | **Delete room** | Removes the room for good. Everyone in it sees that it was deleted. |

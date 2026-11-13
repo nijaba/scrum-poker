@@ -13,8 +13,9 @@ def labels(scale):
 def test_fibonacci_cards():
     scale = fibonacci()
 
-    assert labels(scale) == ["1", "2", "3", "5", "8", "13", "21", "?"]  # as in the mock-ups
+    assert labels(scale) == ["1", "2", "3", "5", "8", "13", "21", "34", "55", "?"]
     assert scale.card("13").value == 13
+    assert scale.card("55").value == 55
     assert scale.card("?").value is None
 
 
