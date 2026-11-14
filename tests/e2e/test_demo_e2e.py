@@ -1,4 +1,4 @@
-"""A demo room in a real browser. Case DR-11."""
+"""Demo rooms in a real browser. Cases DR-11 and DR-13."""
 
 import re
 
@@ -33,4 +33,21 @@ def test_dr11_try_a_demo_from_the_home_page(browser, server):
 
     page.get_by_role("button", name="Add a bot").click()
     expect(page.locator("[data-player]")).to_have_count(6)
+    context.close()
+
+
+def test_dr13_when_every_demo_room_is_taken_the_home_page_says_come_back_later(browser, server):
+    context = browser.new_context()
+    page = context.new_page()
+    detail = "The bots are fully booked. Come back later."
+    page.route("**/api/demo", lambda route: route.fulfill(status=503, json={"detail": detail}))
+    page.goto(server)
+
+    page.get_by_role("button", name="Try a demo").click()
+
+    note = page.get_by_role("region", name="Try a demo").get_by_role("status")
+    expect(note).to_contain_text(detail)
+    expect(note).to_contain_text("☕")
+    expect(page).not_to_have_url(re.compile(r"/r/demo-"))
+    expect(page.get_by_role("button", name="Try a demo")).to_be_enabled()
     context.close()

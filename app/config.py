@@ -9,6 +9,9 @@ ATLASSIAN_CLIENT_ID, ATLASSIAN_CLIENT_SECRET   Jira Cloud (OAuth 2.0 3LO app)
 TOKEN_ENCRYPTION_KEY    Fernet key for stored Jira refresh tokens; required outside localhost
 SCRUM_POKER_FAKE_SSO    1 to sign in through the built-in fake provider (localhost only)
 SCRUM_POKER_FAKE_JIRA   1 to use the built-in fake Jira Cloud (localhost only)
+DEMO_ROOMS              1 to offer Try a demo on the home page
+DEMO_MAX_ROOMS          how many demo rooms may run at once (default 20)
+DEMO_IDLE_SECONDS       how long a demo room lasts with no person in it (default 1800)
 """
 
 from __future__ import annotations
@@ -32,6 +35,8 @@ DEFAULT_FORWARDED_ALLOW_IPS = "127.0.0.1"
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 FAKE_SSO_PATH = "/_fake-sso"
 FAKE_JIRA_PATH = "/_fake-jira"
+DEFAULT_DEMO_MAX_ROOMS = 20
+DEFAULT_DEMO_IDLE_SECONDS = 30 * 60
 
 # Granular scopes, per Atlassian's Jira Software OpenAPI spec. See design.md, "Jira Cloud".
 ATLASSIAN_SCOPES = (
@@ -180,6 +185,8 @@ class Settings:
     fake_jira: bool = False
     # Demo rooms: a private room per visitor, with bots and a made-up backlog.
     demo_rooms: bool = False
+    demo_max_rooms: int = DEFAULT_DEMO_MAX_ROOMS
+    demo_idle_seconds: int = DEFAULT_DEMO_IDLE_SECONDS
     # Proxies whose X-Forwarded-Proto and X-Forwarded-For the app believes; "*" for any.
     forwarded_allow_ips: str = DEFAULT_FORWARDED_ALLOW_IPS
 
@@ -262,10 +269,22 @@ class Settings:
             atlassian=atlassian,
             fake_jira=fake_jira,
             demo_rooms=env.get("DEMO_ROOMS", "").strip() in ("1", "true", "yes"),
+            demo_max_rooms=_positive(env, "DEMO_MAX_ROOMS", DEFAULT_DEMO_MAX_ROOMS),
+            demo_idle_seconds=_positive(env, "DEMO_IDLE_SECONDS", DEFAULT_DEMO_IDLE_SECONDS),
             forwarded_allow_ips=(
                 env.get("FORWARDED_ALLOW_IPS") or DEFAULT_FORWARDED_ALLOW_IPS
             ).strip(),
         )
+
+
+def _positive(env: Mapping[str, str], name: str, default: int) -> int:
+    """A whole number of at least 1 from the environment, or the default when unset."""
+    text = env.get(name, "").strip()
+    if not text:
+        return default
+    if not text.isdigit() or int(text) < 1:
+        raise ConfigError(f"{name} must be a whole number of at least 1, not {text!r}.")
+    return int(text)
 
 
 def provider_config(

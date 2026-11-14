@@ -2,8 +2,9 @@
 
 Each demo room is a live room like any other, built from a record that is never
 stored. Its backlog and its point writes go to its own copy of the sample backlog,
-so nothing reaches Jira. It ends when no person has been connected for
-DEMO_IDLE_SECONDS; its bots never keep it alive.
+so nothing reaches Jira. It ends when no person has been connected for its idle
+time (DEMO_IDLE_SECONDS); its bots never keep it alive. At most DEMO_MAX_ROOMS run
+at once.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ import string
 
 from fastapi import APIRouter, HTTPException, Request
 
+from app.config import DEFAULT_DEMO_IDLE_SECONDS, DEFAULT_DEMO_MAX_ROOMS
 from app.demo.backlog import SAMPLE_BACKLOG
 from app.demo.bots import Bot, BotMind
 from app.jira.fake import FakeJira
@@ -26,9 +28,13 @@ from app.store.rooms import RoomRecord
 from app.web import check_write
 
 PREFIX = "demo-"
-MAX_DEMO_ROOMS = 20
+MAX_DEMO_ROOMS = DEFAULT_DEMO_MAX_ROOMS
 MAX_BOTS = 8
-DEMO_IDLE_SECONDS = 30 * 60
+DEMO_IDLE_SECONDS = DEFAULT_DEMO_IDLE_SECONDS
+FULL = (
+    "Every demo table is taken: the bots are busy estimating someone else's backlog."
+    " Grab a coffee and come back in a few minutes."
+)
 BOT_DELAY = (2.0, 7.0)  # seconds before a bot plays, after a round opens
 
 # The team every demo room starts with, and the names Add a bot draws from next.
@@ -52,9 +58,18 @@ class _Demo:
 
 
 class DemoRooms:
-    def __init__(self, clock: Clock, delay: tuple[float, float] = BOT_DELAY) -> None:
+    def __init__(
+        self,
+        clock: Clock,
+        delay: tuple[float, float] = BOT_DELAY,
+        *,
+        max_rooms: int = MAX_DEMO_ROOMS,
+        idle_seconds: int = DEMO_IDLE_SECONDS,
+    ) -> None:
         self.clock = clock
         self.delay = delay
+        self.max_rooms = max_rooms
+        self.idle_seconds = idle_seconds
         self.rng = random.Random()
         self._demos: dict[str, _Demo] = {}
 
@@ -68,7 +83,7 @@ class DemoRooms:
 
     async def create(self) -> str:
         """Start a new demo room with its team of bots, and return its short name."""
-        if len(self._demos) >= MAX_DEMO_ROOMS:
+        if len(self._demos) >= self.max_rooms:
             raise DemoFull
         slug = PREFIX + "".join(secrets.choice(_ALPHABET) for _ in range(8))
         while slug in self._demos:
@@ -77,7 +92,7 @@ class DemoRooms:
         backlog = FakeJira(SAMPLE_BACKLOG)
         room = Room([], clock=self.clock, scale=record.scale, sound=True)
         live = LiveRoom(
-            record, room, backlog, self.clock, backlog, demo=True, idle_seconds=DEMO_IDLE_SECONDS
+            record, room, backlog, self.clock, backlog, demo=True, idle_seconds=self.idle_seconds
         )
         live._on_idle = self._end
         demo = self._demos[slug] = _Demo(live)
@@ -141,7 +156,7 @@ async def create_demo(request: Request) -> dict[str, str]:
     try:
         slug = await _demos(request).create()
     except DemoFull:
-        raise HTTPException(503, "All the demo rooms are in use. Try again later.") from None
+        raise HTTPException(503, FULL) from None
     return {"slug": slug}
 
 
