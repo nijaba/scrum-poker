@@ -51,6 +51,10 @@ priority, epic, labels and description. Choose **Show more** to read a long desc
 Until the reveal, everyone sees only *that* you voted, never what. The table shows each person
 as **Thinking**, **Voted** or **Away**, and how many have voted, such as "3 of 5 voted".
 
+Need a pause? Choose **☕ Coffee break** next to your cards. Everyone sees a cup by your name
+(and hears a short gurgle if the room's sound is on). It isn't a vote, so the round still
+waits for you. Voting, or choosing **☕ Coffee break** again, ends the break.
+
 ### The reveal
 
 When the facilitator reveals, every card turns face up on every screen, with three figures:
@@ -67,7 +71,18 @@ Under the figures, bars show how many people chose each card. When the numbers d
 players who chose the highest and lowest cards are marked **Highest** and **Lowest**: hearing
 from them first is usually the quickest way to agree.
 
+A few things to look out for on the reveal:
+
+- If anyone chose the scale's highest card, such as 55, the results ask "Have you considered
+  splitting this?"
+- If every card is a **?**, the consensus reads "Nobody knows. Ship it?"
+- If five or more players all chose the same number, it's a perfect consensus: the cards take
+  a bow, and a short chord plays when the room's sound is on.
+
 Voting stays closed until the facilitator restarts the vote or moves to the next ticket.
+
+Bored of the classic deck? Try typing ↑ ↑ ↓ ↓ ← → ← → B A. Only your screen changes, and
+typing it again changes it back.
 
 ### The countdown
 
@@ -135,7 +150,7 @@ session began, and **Backlog**, the same for the whole backlog.
 | Control | What it does |
 | --- | --- |
 | **Start** / **Stop** | Starts or stops the countdown. **Seconds** sets its length for this session. |
-| **Sound on** / **Sound off** | Turns the countdown sound on or off for everyone, for this session. |
+| **Sound on** / **Sound off** | Turns the room's sounds (the countdown, a coffee break, a perfect consensus) on or off for everyone, for this session. |
 | **Reveal cards** | Turns all cards face up and shows the average, median and consensus. |
 | **Restart vote** | Clears everyone's cards and reopens voting on the same ticket. |
 | **Final story points** | After the reveal, pick the points to record. It starts on the most-chosen card. |
@@ -267,7 +282,7 @@ The settings page is only for the owner: click your name in the room header and 
 | **Room link** | The room's **Short name**. Renaming keeps the old link working: it redirects to the new one, and no other room can take the old name. |
 | **Jira Cloud** | The connection, site and board. See above. |
 | **Scale** | The cards players vote with: **Fibonacci** (1, 2, 3, 5, 8, 13, 21, 34, 55, ?), **T-shirt** (XS to XXL, with the points each size confirms as, XS=1 to XXL=13) or a **Custom list** of your own cards, separated by commas. |
-| **Countdown, sound and reveal** | **Default seconds** for the countdown, whether the countdown sound plays, and whether cards reveal by themselves once everyone has voted. Facilitators can change these for a running session; these are the defaults. |
+| **Countdown, sound and reveal** | **Default seconds** for the countdown, whether the room's sounds play, and whether cards reveal by themselves once everyone has voted. Facilitators can change these for a running session; these are the defaults. |
 | **Delegates** | People who can run sessions in this room. |
 | **Delete room** | Removes the room for good. Everyone in it sees that it was deleted. |
 

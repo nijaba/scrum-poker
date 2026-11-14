@@ -16,6 +16,7 @@ export interface PlayerView {
   name: string;
   connected: boolean;
   voted: boolean;
+  on_break: boolean; // asked for a coffee break; not a vote
   card?: string | null; // only after reveal
 }
 
@@ -28,6 +29,9 @@ export interface Results {
   spread: { label: string; count: number }[]; // in scale order
   high: string | null; // the highest numeric card, when the numbers differ
   low: string | null;
+  split_hint: boolean; // someone chose the scale's highest numeric card
+  nobody_knows: boolean; // every vote is a card without a value
+  perfect: boolean; // five or more players chose the same numeric card
 }
 
 export interface SummaryEntry {
@@ -66,6 +70,7 @@ export interface Snapshot {
     seated: boolean;
     vote: string | null;
     sitting_out: boolean;
+    on_break: boolean;
     removed: boolean;
     role: "player" | "facilitator";
     access: "owner" | "delegate" | null;

@@ -375,7 +375,7 @@
         </div>
         <label class="check">
           <input type="checkbox" bind:checked={sound} />
-          <span>Play countdown sound: ticks for the last five seconds, a chime at zero</span>
+          <span>Play sounds: ticks for the last five seconds, a chime at zero, and a couple of surprises</span>
         </label>
         <label class="check">
           <input type="checkbox" bind:checked={autoReveal} />

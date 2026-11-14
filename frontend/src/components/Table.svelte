@@ -68,7 +68,11 @@
   }
 </script>
 
-<section class="table" aria-label={revealed ? "Players and results" : "Players"}>
+<section
+  class="table"
+  class:perfect={revealed && results?.perfect}
+  aria-label={revealed ? "Players and results" : "Players"}
+>
   <div class="head">
     <span class="state">{revealed ? "Cards revealed" : "Voting open"}</span>
     {#if showCountdown && remaining !== null}
@@ -110,6 +114,7 @@
               style:--tilt="{tiltOf(p.id)}deg"
               style:--flip="{FLIP_MS}ms"
               style:--delay="{i * STAGGER_MS}ms"
+              style:--bow="{FLIP_MS + SORT_MS + STAGGER_MS * snap.players.length + i * 110}ms"
               aria-label={revealed ? `${p.name} played ${p.card}` : `${p.name} has voted`}
             >
               <div class="flip-inner">
@@ -125,12 +130,21 @@
               aria-label={revealed ? `${p.name} did not vote` : `${p.name} has not voted`}
             ></div>
           {/if}
-          <span class="name">{p.name}</span>
+          <span class="name"
+            >{p.name}{#if p.on_break}<span
+                class="cup"
+                role="img"
+                aria-label="{p.name} needs a break"
+                title="{p.name} needs a break">☕</span
+              >{/if}</span
+          >
           {#if mark(p.card)}
             <span class="mark" class:high={mark(p.card) === "Highest"}>{mark(p.card)}</span>
           {/if}
           {#if !revealed}
-            <span class="status">{p.connected ? (p.voted ? "Voted" : "Thinking") : "Away"}</span>
+            <span class="status"
+              >{p.connected ? (p.voted ? "Voted" : p.on_break ? "On a break" : "Thinking") : "Away"}</span
+            >
           {/if}
         </li>
       {/each}
@@ -157,6 +171,8 @@
         <span class="figure-label">Consensus</span>
         {#if results.votes === 0}
           <span class="figure-text" data-figure="consensus">No votes</span>
+        {:else if results.nobody_knows}
+          <span class="figure-text" data-figure="consensus">Nobody knows. Ship it?</span>
         {:else if results.consensus && results.top}
           <span class="figure-text" data-figure="consensus">Consensus on {results.top.label}</span>
         {:else if results.top}
@@ -167,6 +183,12 @@
         {/if}
       </div>
     </div>
+    {#if results.perfect && results.top}
+      <p class="hint perfect-note">Perfect consensus: everyone chose {results.top.label}.</p>
+    {/if}
+    {#if results.split_hint}
+      <p class="hint">Have you considered splitting this?</p>
+    {/if}
     {#if results.spread.length}
       <ul class="spread" aria-label="Vote spread">
         {#each results.spread as s (s.label)}
@@ -416,6 +438,35 @@
     font-weight: 700;
     font-size: 22px;
     line-height: 1.3;
+  }
+  .cup {
+    margin-left: 4px;
+  }
+  .hint {
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--table-line);
+    font-size: 14px;
+  }
+  .perfect-note {
+    background: #ffd9b8;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  /* A perfect consensus: once the cards have turned and sorted, they take a bow. */
+  .perfect .flip {
+    animation: bow 0.5s ease-in-out var(--bow) 1;
+  }
+  @keyframes bow {
+    50% {
+      transform: rotate(var(--tilt)) translateY(-12px) scale(1.06);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .perfect .flip {
+      animation: none;
+    }
   }
   .figure-sub {
     font-size: 14px;

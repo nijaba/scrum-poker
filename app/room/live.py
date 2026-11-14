@@ -35,7 +35,7 @@ IDLE_SECONDS = 15 * 60
 # the one who confirmed, because only the owner can fix them.
 CONNECTION_CODES = {"jira_not_connected", "jira_reconnect", "jira_no_board", "jira_board_missing"}
 
-PLAYER_COMMANDS = {"join", "vote", "withdraw", "check_in", "sit_out", "sit_in", "leave"}
+PLAYER_COMMANDS = {"join", "vote", "withdraw", "check_in", "sit_out", "sit_in", "leave", "break"}
 # Session controls, for the owner and delegates. Room settings (scale, saved timer
 # and sound, delegates) change only through the owner's settings API.
 FACILITATOR_COMMANDS = {
@@ -311,6 +311,8 @@ class LiveRoom:
             room.sit_in(conn.player_id)
         elif kind == "leave":
             room.leave(conn.player_id)
+        elif kind == "break":
+            room.take_break(conn.player_id, data.get("on"))
         elif kind == "reveal":
             room.reveal()
         elif kind == "restart":

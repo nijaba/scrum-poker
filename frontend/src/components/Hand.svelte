@@ -7,9 +7,12 @@
     snap,
     onvote,
     onsit,
+    onbreak,
   }: {
     snap: Snapshot;
     onvote: (card: string) => void;
+    /** Ask for a coffee break (true) or end it (false). Not a vote. */
+    onbreak: (on: boolean) => void;
     /** Sit out (false) or join the table again (true). */
     onsit: (atTable: boolean) => void;
   } = $props();
@@ -41,7 +44,17 @@
     <div class="head">
       <span class="panel-title">Your card</span>
       <span class="note">{kinds[snap.scale.kind]} · hidden from others until reveal</span>
-      <button class="btn sit" type="button" onclick={() => onsit(false)}>Sit out</button>
+      <span class="actions">
+        <button
+          class="btn coffee"
+          type="button"
+          aria-pressed={snap.you.on_break}
+          title={snap.you.on_break ? "End your break" : "Ask for a coffee break"}
+          onclick={() => onbreak(!snap.you.on_break)}
+          ><span aria-hidden="true">☕</span> Coffee break</button
+        >
+        <button class="btn sit" type="button" onclick={() => onsit(false)}>Sit out</button>
+      </span>
     </div>
     <div class="cards" class:fan style:--n={snap.scale.cards.length}>
       {#each snap.scale.cards as card, i (card.label)}
@@ -79,9 +92,19 @@
     justify-content: space-between;
     gap: 8px;
   }
-  .sit {
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-left: auto;
+  }
+  .sit,
+  .coffee {
     font-size: 14px;
+  }
+  .coffee[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--chip);
   }
   .hand > .sit {
     align-self: flex-start;

@@ -133,6 +133,23 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | RP-02 | The removed player, in the browser | Sees that a facilitator removed them, and can join again | E2E |
 | RP-03 | A player sends a remove command | Rejected | Integration |
 
+### Little extras
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| EE-01 | A player at the table takes a coffee break | Every snapshot marks them on a break; they do not count as voted and auto-reveal waits for them | Unit |
+| EE-02 | A player on a break votes, or presses ☕ again | The break ends | Unit |
+| EE-03 | A player sitting out, or not seated, takes a break | Rejected | Unit |
+| EE-04 | A player takes a break over the socket | Every screen sees the break; no vote value is sent | Integration |
+| EE-05 | Votes include the scale's highest numeric card (55; XXL on T-shirt; the top of a custom list) | The results carry the splitting hint; votes without it do not | Unit |
+| EE-06 | Every vote is "?" | The results say nobody knows; one numeric vote, or no votes, does not | Unit |
+| EE-07 | Five players vote 8 | The results mark a perfect consensus; four players, or five who all vote "?", do not | Unit |
+| EE-08 | A player takes a break in the browser, then votes | The other screens show a cup by their name, then the cup goes | E2E |
+| EE-09 | Reveal with a 55, then with every vote "?" | Every screen shows "Have you considered splitting this?", then "Nobody knows. Ship it?" | E2E |
+| EE-10 | Five players vote 5 and reveal | Every screen marks the perfect consensus | E2E |
+| EE-11 | A player types the Konami code in the room | Their cards switch to the arcade deck and the page says so; it stays after a reload; other players' screens are unchanged; typing it again brings the classic deck back | E2E |
+| EE-12 | The Konami code typed into the name field | Nothing changes | E2E |
+
 ### Session summary
 
 | ID | Case | Expected | Level |

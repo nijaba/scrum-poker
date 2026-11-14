@@ -11,6 +11,8 @@ from typing import Any
 
 from app.room.scales import Card, number
 
+PERFECT_VOTES = 5  # how many matching votes make a perfect consensus
+
 
 @dataclass(frozen=True)
 class Results:
@@ -23,6 +25,9 @@ class Results:
     spread: tuple[tuple[str, int], ...] = ()  # (card, how many chose it), in scale order
     high: str | None = None  # the highest numeric card, when the numeric cards differ
     low: str | None = None  # the lowest
+    split_hint: bool = False  # someone chose the scale's highest numeric card
+    nobody_knows: bool = False  # every vote is a card without a value, such as "?"
+    perfect: bool = False  # at least PERFECT_VOTES players all chose the same numeric card
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -36,6 +41,9 @@ class Results:
             "spread": [{"label": label, "count": count} for label, count in self.spread],
             "high": self.high,
             "low": self.low,
+            "split_hint": self.split_hint,
+            "nobody_knows": self.nobody_knows,
+            "perfect": self.perfect,
         }
 
 
@@ -70,14 +78,22 @@ def compute_results(votes: Iterable[Card], order: Sequence[Card] = ()) -> Result
         high = max(numeric, key=lambda c: c.value).label
         low = min(numeric, key=lambda c: c.value).label
 
+    # The little extras: a hint to split, "nobody knows" and a perfect consensus.
+    scale_values = {c.value for c in order if c.value is not None}
+    top_value = max(scale_values) if len(scale_values) > 1 else None
+    consensus = len(counts) == 1
+
     return Results(
         votes=len(votes),
         average=average,
         median=median,
-        consensus=len(counts) == 1,
+        consensus=consensus,
         top_label=top_label,
         top_count=top_count,
         spread=spread,
         high=high,
         low=low,
+        split_hint=top_value is not None and any(c.value == top_value for c in numeric),
+        nobody_knows=bool(votes) and not numeric,
+        perfect=consensus and len(votes) >= PERFECT_VOTES and bool(numeric),
     )
