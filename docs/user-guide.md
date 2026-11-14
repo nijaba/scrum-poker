@@ -131,13 +131,13 @@ the room tab. Sound plays from the room tab.
 ## Facilitators
 
 You're a facilitator if you own the room, or the owner added you as a delegate. Sign in first:
-open the app's home page, choose **Sign in with Google** or **Sign in with GitHub**, then open
-the room. The header shows
+open the app's home page (from a room, click the room name at the top left), choose
+**Sign in with Google** or **Sign in with GitHub**, then open the room. The header shows
 your role, **Owner** or **Delegate**, under your name.
 
 Click your name for a menu: **Your rooms** goes back to the list of rooms you own or help run,
 **Room settings** (owners only) opens this room's settings, and **Log out** leaves the table,
-signs you out and returns you to the home page.
+signs you out and returns you to the home page. The room name at the top left also goes back to the home page.
 
 ### Starting a session
 

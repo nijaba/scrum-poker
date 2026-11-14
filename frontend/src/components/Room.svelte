@@ -205,7 +205,7 @@
   <div class="room" onpointerdown={unlockAudio} onkeydown={unlockAudio}>
     <header>
       <div class="title">
-        <span class="slug">{currentSlug}</span>
+        <a class="slug" href="/" title="Scrum poker home">{currentSlug}</a>
         <button class="btn icon-btn" type="button" onclick={copyLink}>
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path></svg>
           <span>{copied ? "Copied" : "Copy link"}</span>
@@ -372,6 +372,12 @@
     font-family: var(--font-display);
     font-weight: 700;
     font-size: 22px;
+    color: inherit;
+    text-decoration: none;
+  }
+  .slug:hover,
+  .slug:focus-visible {
+    text-decoration: underline;
   }
   .icon-btn {
     display: flex;

@@ -234,6 +234,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | UM-04 | Owner opens the menu | Your rooms, Room settings, Log out; each link goes where it says; Escape closes it | E2E |
 | UM-05 | Someone signed in who is not the owner logs out from the menu | The menu offers Your rooms and Log out; they leave the table, are signed out and land on the home page | E2E |
 | UM-06 | Player logs out from the menu | The menu offers Log out alone; they leave the table and the name form shows, empty, even after a reload | E2E |
+| UM-07 | A player who is not signed in clicks the room name in the header | The home page opens, with the sign-in buttons | E2E |
 
 ## Demo rooms
 
