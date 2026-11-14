@@ -7,6 +7,9 @@ story points are written back to Jira.
 One lightweight container, one process. Votes and session counters live in memory; room
 definitions live in one SQLite file. Production runs at <https://poker.example.com>.
 
+Try it online, with no sign-in: <https://poker.nijalabs.com/> offers **Try a demo**, a
+private practice room with bot players and a made-up backlog. Nothing there reaches Jira.
+
 How to use it: the [user guide](docs/user-guide.md). How to run it: the
 [admin guide](docs/admin-guide.md).
 
