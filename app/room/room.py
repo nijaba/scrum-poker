@@ -30,6 +30,7 @@ class Seat:
     name: str
     connected: bool = True
     sitting_out: bool = False  # in the room and watching, but not at the table
+    on_break: bool = False  # asked for a coffee break; a signal, not a vote
 
 
 class Room:
@@ -103,6 +104,7 @@ class Room:
         """Leave the table but stay in the room. The vote, if any, is dropped."""
         seat = self._require_seat(player_id)
         seat.sitting_out = True
+        seat.on_break = False
         self.sitting_out.add(player_id)
         self.round.drop(player_id)
         self._auto_reveal()
@@ -143,7 +145,18 @@ class Room:
             raise CommandError("sitting_out", "Join the table to vote.")
         self._require_ticket()
         self.round.vote(player_id, card)
+        seat.on_break = False
         self._auto_reveal()
+
+    def take_break(self, player_id: str, on: Any) -> None:
+        """Ask for a coffee break, or end one. Other screens see it at once; it is not a
+        vote, so the voted count and auto-reveal still wait for the player."""
+        if not isinstance(on, bool):
+            raise CommandError("invalid_value", "A break is on or off.")
+        seat = self._require_seat(player_id)
+        if seat.sitting_out:
+            raise CommandError("sitting_out", "Join the table to take a break.")
+        seat.on_break = on
 
     def withdraw(self, player_id: str) -> None:
         self._require_seat(player_id)
@@ -298,6 +311,7 @@ class Room:
                 "name": seat.name,
                 "connected": seat.connected,
                 "voted": seat.player_id in self.round.votes,
+                "on_break": seat.on_break,
             }
             if revealed:
                 card = self.round.votes.get(seat.player_id)
@@ -320,6 +334,7 @@ class Room:
                 "name": self.seats[player_id].name if seated else None,
                 "vote": None if own is None else own.label,
                 "sitting_out": seated and self.seats[player_id].sitting_out,
+                "on_break": seated and self.seats[player_id].on_break,
                 "removed": not seated and player_id in self.removed,
             },
             "scale": self.round.scale.to_dict(),

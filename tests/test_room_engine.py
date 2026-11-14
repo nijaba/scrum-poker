@@ -45,7 +45,13 @@ def test_re03_latest_vote_counts_and_stays_hidden(room):
     room.vote("p1", "8")
 
     other = room.snapshot_for("p2")
-    assert other["players"][0] == {"id": "p1", "name": "Ana", "connected": True, "voted": True}
+    assert other["players"][0] == {
+        "id": "p1",
+        "name": "Ana",
+        "connected": True,
+        "voted": True,
+        "on_break": False,
+    }
     assert "votes" not in other["round"]
     assert "8" not in repr(other["players"])
     assert room.snapshot_for("p1")["you"]["vote"] == "8"

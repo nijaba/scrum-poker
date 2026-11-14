@@ -36,8 +36,9 @@ Front-end framework: Svelte with TypeScript (owner, 2026-11-11).
 - [x] Facilitator panel: countdown, reveal, restart, confirm, skip, rewind, reset room
 - [x] Countdown rendering and synthesized sound with a local mute
 - [x] Playwright set up with one facilitator and several players
+- [x] Little extras: coffee break, splitting hint, nobody knows, perfect consensus, arcade deck
 
-Cases: RE-02, RR-06, RQ-07, RC-04, RX-02, AR-14, AR-15, AR-16, JC-14 (against the fake backlog). Manual: RC-05, RC-06, RC-07.
+Cases: RE-02, RR-06, RQ-07, RC-04, RX-02, AR-14, AR-15, AR-16, JC-14 (against the fake backlog), EE-01 to EE-12. Manual: RC-05, RC-06, RC-07.
 Manual RC-05, RC-06 and RC-07 passed on 2026-11-11, run by the owner.
 
 ## Step 3: SSO, persistent rooms and delegates

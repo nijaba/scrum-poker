@@ -172,6 +172,50 @@ button:disabled {
   background: var(--card-back);
 }
 
+/* The arcade deck, switched on by the Konami code (lib/deck.ts): neon on night-black,
+   square-cornered, in a monospace face. Only the cards change. */
+[data-deck="arcade"] .deck-card {
+  border: 2px solid #3cf2ff;
+  border-radius: 2px;
+  background: #0d0b1a;
+  color: #3cf2ff;
+  box-shadow:
+    0 0 0 1px #0d0b1a,
+    0 0 10px rgba(60, 242, 255, 0.45);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+[data-deck="arcade"] .deck-card.red {
+  border-color: #ff5ccf;
+  color: #ff5ccf;
+  box-shadow:
+    0 0 0 1px #0d0b1a,
+    0 0 10px rgba(255, 92, 207, 0.45);
+}
+[data-deck="arcade"] .deck-card[aria-pressed="true"] {
+  border-color: #fff36b;
+  box-shadow: 0 0 16px rgba(255, 243, 107, 0.7);
+}
+[data-deck="arcade"] .deck-card .face {
+  font-family: inherit;
+}
+[data-deck="arcade"] .deck-back {
+  border: 2px solid #ff5ccf;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 5px, rgba(60, 242, 255, 0.5) 5px 6px) content-box,
+    repeating-linear-gradient(90deg, transparent 0 5px, rgba(60, 242, 255, 0.5) 5px 6px) content-box,
+    #0d0b1a;
+}
+[data-deck="arcade"] .deck-back::before {
+  border-color: #3cf2ff;
+  border-radius: 0;
+}
+[data-deck="arcade"] .deck-back::after {
+  border-color: #fff36b;
+  border-radius: 0;
+  background: #0d0b1a;
+}
+
 /* Forms and page chrome shared by the rooms and settings pages */
 .page-header {
   display: flex;

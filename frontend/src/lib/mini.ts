@@ -6,6 +6,7 @@
 import { mount, unmount } from "svelte";
 import MiniView from "../components/MiniView.svelte";
 import type { RoomConnection } from "./room.svelte";
+import { applyDeck } from "./deck";
 
 const WIDTH = 340;
 const HEIGHT = 256;
@@ -47,6 +48,7 @@ export async function openMini(
   doc.title = `${room.slug} · Scrum poker`;
   doc.documentElement.lang = "en";
   copyHead(doc);
+  applyDeck(doc);
   doc.body.className = "mini-body";
   doc.body.replaceChildren();
 

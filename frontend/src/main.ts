@@ -7,5 +7,8 @@ import "./app.css";
 
 import { mount } from "svelte";
 import App from "./App.svelte";
+import { applyDeck } from "./lib/deck";
+
+applyDeck(document);
 
 mount(App, { target: document.getElementById("app")! });

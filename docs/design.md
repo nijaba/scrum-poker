@@ -91,6 +91,19 @@ A facilitator can remove one player from the table, for a duplicate seat or some
 
 Facilitators get a summary of the session: every ticket estimated or skipped so far, in queue order, with its points, the average on reveal, and how many chose each card. It lists no names. It is built from the session's memory and never stored, so it ends with the session. The browser turns it into text to copy or a CSV file to download.
 
+### Little extras
+
+A few small touches, decided by the owner on 2026-11-13:
+
+- Coffee break: a player at the table can press ☕ next to their cards to say they need a break. It is a signal, not a vote: it never touches the round's votes, it does not count as voted, and auto-reveal still waits for them. Every screen shows a cup by their name and plays a short gurgle when the break starts, and the break ends when they press ☕ again or vote. Players sitting out cannot take one. A reset clears it with the seats.
+- Splitting hint: when anyone chose the scale's highest numeric card (55 on Fibonacci, XXL on the default T-shirt scale, the top of a custom list), the results add "Have you considered splitting this?". A scale needs at least two numeric values for the hint.
+- Nobody knows: when every vote is a card without a value, such as "?", the consensus figure reads "Nobody knows. Ship it?" instead.
+- Perfect consensus: when at least five players all chose the same numeric card, the results say so, the cards take a bow one after another and a short chord plays. With reduced motion the cards stay still.
+
+- Arcade deck: typing the Konami code (↑ ↑ ↓ ↓ ← → ← → B A) anywhere outside a text field switches your own cards to a neon arcade deck; typing it again brings the classic deck back. It is a browser-only preference, kept in local storage, and also applies in mini mode. Nobody else's screen changes, and the server is not told.
+
+The server works out the hint, "nobody knows" and the perfect consensus with the other results, so every screen agrees. The gurgle and the chord follow the room's sound setting and each player's mute, like the countdown sound.
+
 ### Room reset
 
 A facilitator can reset the room to clear out players who have left. The server empties the player list and the current cards, then asks every connected browser to check in. Only players who answer within five seconds (a server setting) are seated again, and anyone who joins later is seated as a new player.

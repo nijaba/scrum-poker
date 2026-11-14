@@ -4,7 +4,15 @@
   import { plural, points, remainingAt } from "../lib/format";
   import { RoomConnection } from "../lib/room.svelte";
   import { openMini } from "../lib/mini";
-  import { loadMuted, playChime, playTick, saveMuted, unlockAudio } from "../lib/sound";
+  import {
+    loadMuted,
+    playChime,
+    playChord,
+    playGurgle,
+    playTick,
+    saveMuted,
+    unlockAudio,
+  } from "../lib/sound";
   import type { Me, Player } from "../lib/types";
   import FacilitatorPanel from "./FacilitatorPanel.svelte";
   import Hand from "./Hand.svelte";
@@ -143,6 +151,26 @@
     if (second === 0 || countdown.time_up) chimed = true;
     lastSecond = second;
   });
+
+  // The little extras: a gurgle when someone starts a coffee break, a chord on a
+  // perfect consensus. Plain variables again; the first snapshot only sets them.
+  let onBreak: Set<string> | null = null;
+  let celebrated: boolean | null = null; // null until the first snapshot
+  $effect(() => {
+    const players = snap?.players;
+    const enabled = !!snap?.sound && !muted;
+    if (!players) return;
+    const now = new Set(players.filter((p) => p.on_break).map((p) => p.id));
+    if (enabled && onBreak && [...now].some((id) => !onBreak!.has(id))) playGurgle();
+    onBreak = now;
+  });
+  $effect(() => {
+    if (!snap) return;
+    const perfect = !!snap.round.results?.perfect;
+    const enabled = snap.sound && !muted;
+    if (perfect && celebrated === false && enabled) playChord();
+    celebrated = perfect;
+  });
 </script>
 
 {#if missing}
@@ -279,6 +307,7 @@
               {snap}
               onvote={(card) => room?.send({ type: "vote", card })}
               onsit={(atTable) => room?.send({ type: atTable ? "sit_in" : "sit_out" })}
+              onbreak={(on) => room?.send({ type: "break", on })}
             />
           {/if}
         </div>
