@@ -1,4 +1,4 @@
-"""The menu behind your name in the room header, in a real browser: cases UM-04 to UM-06."""
+"""The menu behind your name in the room header, in a real browser: cases UM-04 to UM-07."""
 
 from playwright.sync_api import expect
 
@@ -82,6 +82,17 @@ def test_um06_player_logs_out_and_the_name_is_forgotten(table):
     ben.page.get_by_role("button", name="Join room").click()
     expect(players(fay.page)).to_have_count(3)
     expect(fay.page.locator('[data-player="Benjamin"]')).to_be_visible()
+
+
+def test_um07_the_room_name_leads_home_where_a_player_can_sign_in(table):
+    fay, ana, ben = seat_three(table)
+
+    home = ben.page.get_by_role("banner").get_by_role("link", name=table.slug, exact=True)
+    expect(home).to_have_attribute("href", "/")
+    home.click()
+
+    ben.page.wait_for_url(f"{table.base}/")
+    expect(ben.page.get_by_role("region", name="Sign in")).to_be_visible()
 
 
 def test_menu_closes_on_a_click_outside(table):

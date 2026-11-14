@@ -206,7 +206,7 @@ In the room header, your name and role are a button that opens a small menu:
 | Signed in, anyone else (delegate or player) | Your rooms, Log out |
 | Not signed in | Log out |
 
-Room settings is the only way to the settings page from the room header. Your rooms goes to the home page, which lists the rooms you own or help run. Log out first sends the room a `leave` command, which takes the seat and any vote off the table like a removal but without the "removed" notice. Then someone signed in is signed out and taken to the home page; their player name stays in the browser, so opening a room again seats them as a player under that name. A player who is not signed in has their player cookie cleared (`DELETE /api/player`) and sees the name form again; the next name they type is a new player.
+The room name at the start of the header is a link to the home page, for everyone: a player who is not signed in finds the sign-in buttons there, and someone signed in finds their rooms. Room settings is the only way to the settings page from the room header. Your rooms goes to the home page, which lists the rooms you own or help run. Log out first sends the room a `leave` command, which takes the seat and any vote off the table like a removal but without the "removed" notice. Then someone signed in is signed out and taken to the home page; their player name stays in the browser, so opening a room again seats them as a player under that name. A player who is not signed in has their player cookie cleared (`DELETE /api/player`) and sees the name form again; the next name they type is a new player.
 
 ### Who may create rooms
 
