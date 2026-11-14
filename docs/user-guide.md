@@ -12,7 +12,8 @@ This guide has three parts, one per role. Read the one that matches what you do:
 - [Facilitators](#facilitators): you run the session
 - [Room owners](#room-owners): you set the room up
 
-Want to try it first? If the home page offers **Try a demo**, see [Practising in a demo
+Want to try it first? An online demo runs at <https://poker.nijalabs.com/>: choose
+**Try a demo** for a practice room with bots, no sign-in needed. See [Practising in a demo
 room](#practising-in-a-demo-room).
 
 ## Who does what
@@ -318,8 +319,8 @@ counters are not: they exist only while the session runs. The points you confirm
 
 ## Practising in a demo room
 
-Some servers offer **Try a demo** on the home page. It opens a private room just for you,
-with no sign-in:
+Some servers offer **Try a demo** on the home page, including the online demo at
+<https://poker.nijalabs.com/>. It opens a private room just for you, with no sign-in:
 
 - The other players are bots: Ada, Bo, Cleo and Dev. A few seconds after each round opens they
   vote, mostly close to each other but not always, so reveals give you something to discuss.
