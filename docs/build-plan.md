@@ -101,7 +101,7 @@ Design: "Queue filter". Decided by the owner on 2026-11-14: the queue rules beco
 - [x] Extra JQL; preview; Reload backlog between tickets
 - [x] Queue filter section and preview on the settings page
 
-Cases: QF-01 to QF-10 and QF-12. QF-11 is a Sandbox case.
+Cases: QF-01 to QF-10 and QF-12. Sandbox: QF-11, run by the owner on 2026-11-14 against the production Jira Cloud site: passed (the extra JQL narrows the backlog, and a typo shows Jira's message).
 
 ## After step 6: demo rooms
 
