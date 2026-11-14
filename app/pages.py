@@ -40,6 +40,9 @@ def mount_pages(app: FastAPI, static_dir: Path) -> None:
         return FileResponse(index, status_code=status, headers={"Cache-Control": "no-cache"})
 
     async def room_page(slug: str, request: Request, suffix: str) -> Response:
+        demo = request.app.state.demo
+        if demo is not None and demo.get(slug) is not None:
+            return page(404 if suffix else 200)  # a demo room has no settings page
         current = None
         if SLUG.match(slug):
             current = await asyncio.to_thread(request.app.state.store.resolve, slug)

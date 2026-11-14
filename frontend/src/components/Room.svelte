@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { forgetPlayer, getMe, getPlayer, getRoom, signOut } from "../lib/api";
+  import { addBot, forgetPlayer, getMe, getPlayer, getRoom, signOut } from "../lib/api";
   import { plural, points, remainingAt } from "../lib/format";
   import { RoomConnection } from "../lib/room.svelte";
   import { openMini } from "../lib/mini";
@@ -38,7 +38,13 @@
   const isFacilitator = $derived(snap?.you.role === "facilitator");
   const currentSlug = $derived(room?.slug || slug);
   const roleLabel = $derived(
-    snap?.you.access === "owner" ? "Owner" : snap?.you.access === "delegate" ? "Delegate" : "Player",
+    snap?.you.access === "owner"
+      ? "Owner"
+      : snap?.you.access === "delegate"
+        ? "Delegate"
+        : isFacilitator
+          ? "Facilitator"
+          : "Player",
   );
 
   const remaining = $derived(
@@ -107,6 +113,16 @@
     player = p;
     unlockAudio();
     connect();
+  }
+
+  let botError = $state<string | null>(null);
+  async function moreBots() {
+    botError = null;
+    try {
+      await addBot(currentSlug);
+    } catch (err) {
+      botError = err instanceof Error ? err.message : "Could not add a bot.";
+    }
   }
 
   async function copyLink() {
@@ -232,6 +248,16 @@
       {/if}
     </header>
 
+    {#if snap?.demo && !room?.ended}
+      <p class="banner demo" role="note">
+        <span
+          ><strong>Demo room.</strong> The other players are bots and the backlog is made up; nothing
+          reaches Jira. The room ends after 30 minutes with nobody here.</span
+        >
+        <button class="btn" type="button" onclick={moreBots}>Add a bot</button>
+        {#if botError}<span class="bot-error" role="alert">{botError}</span>{/if}
+      </p>
+    {/if}
     {#if room?.ended}
       <p class="banner banner-error" role="alert">
         {room.ended === "deleted"
@@ -396,6 +422,13 @@
     padding: 10px 16px;
     border-radius: 8px;
     background: var(--chip);
+  }
+  .banner.demo {
+    border: 1px dashed var(--accent);
+    background: var(--surface);
+  }
+  .bot-error {
+    color: var(--danger);
   }
   .banner-error {
     background: #f6e3e3;

@@ -228,6 +228,17 @@ Room definitions persist, so the link `/r/<slug>` survives restarts. Nothing abo
 | Player name and ID | The player's cookie | Yes |
 | Votes, results, session counters | Memory | No |
 
+## Demo rooms
+
+Demo rooms let anyone practise, as a player or a facilitator, with no sign-in and no Jira. The owner decided on 2026-11-13 that each visitor gets a private room of their own, with a team of bots and a made-up backlog. They are off unless `DEMO_ROOMS=1`.
+
+- **Starting one.** With demo rooms on, the home page offers **Try a demo**. It asks the server for a new room, `demo-` and eight random letters and digits, and opens it. Short names starting with `demo-` are reserved, so a stored room can never take one.
+- **Memory only.** A demo room never reaches SQLite. It lives as long as its live session: it ends, and its name stops working, after 30 minutes with no person connected, or on a restart. At most 20 run at once; past that the server says to try again later.
+- **Everyone facilitates.** Anyone with the link gets the session controls, so the visitor can share it to bring colleagues in. There are no room settings: the scale is Fibonacci, the countdown 30 seconds, and the sound is on.
+- **The backlog** is a copy of a sample backlog shipped with the app, made-up tickets in the same shape as Jira's, with some already estimated. Confirming points writes to that copy only, so the counters move; nothing reaches Jira, and no fake OAuth pages are exposed.
+- **The bots** are four players, Ada, Bo, Cleo and Dev, who join with the room. They are ordinary connections inside the server: they see only their own snapshot and send the same commands a browser would, so the room task stays the only writer and votes stay hidden until reveal. A few seconds after each round opens, each bot votes near a size the ticket "really" is (the same for every bot), shifted by the bot's own habit of guessing high or low and a little chance; now and then one plays "?" or takes a short coffee break first. They answer a reset's check-in. A facilitator can remove a bot like any player, and **Add a bot** seats one more, up to eight. Bots do not keep a room alive: only people do.
+- Every screen shows that it is a demo: the players are bots, the backlog is made up, and nothing reaches Jira.
+
 ## Mini mode
 
 Mini mode is a small always-on-top window with the ticket key, the countdown, the card row and the voted count. It uses the Document Picture-in-Picture API, which works on desktop Chrome and Edge 116+ and Firefox 151+, but not Safari ([source](https://www.rabbitpair.com/en/products/dualpip/faqs/document-pip-browser-limits)). Safari falls back to a normal small popup, which does not stay on top.

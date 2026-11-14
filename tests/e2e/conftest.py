@@ -66,6 +66,7 @@ def serve(folder: Path, tls: tuple[Path, Path] | None = None) -> Iterator[str]:
         "SCRUM_POKER_FAKE_BACKLOG": str(path),
         "SCRUM_POKER_FAKE_SSO": "1",
         "SCRUM_POKER_FAKE_JIRA": "1",
+        "DEMO_ROOMS": "1",
         "APP_BASE_URL": base,
         "ROOM_CREATOR_ALLOWLIST": "owner@example.com",
         "DATABASE_PATH": str(base.database),

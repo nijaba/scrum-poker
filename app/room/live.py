@@ -67,6 +67,7 @@ class Connection:
     outbox: asyncio.Queue = field(default_factory=asyncio.Queue)
     player_id: str | None = None
     name: str | None = None
+    bot: bool = False  # a demo room's bot: it never keeps the room alive
 
     def send(self, message: dict[str, Any] | None) -> None:
         """Queue a message. None ends the connection's sender."""
@@ -123,8 +124,14 @@ class LiveRoom:
         writer: PointsWriter,
         clock: Clock,
         backlog: BacklogSource | None = None,
+        *,
+        demo: bool = False,
+        idle_seconds: float = IDLE_SECONDS,
     ) -> None:
         self.slug = record.slug
+        # A demo room: anyone with the link gets the session controls.
+        self.demo = demo
+        self.idle_seconds = idle_seconds
         self.closed = False
         self._record = record
         self._room = room
@@ -153,7 +160,7 @@ class LiveRoom:
         return (
             self._empty_since is not None
             and self._inbox.empty()
-            and self._clock.now() >= self._empty_since + IDLE_SECONDS
+            and self._clock.now() >= self._empty_since + self.idle_seconds
         )
 
     def close(self) -> None:
@@ -162,10 +169,14 @@ class LiveRoom:
         self._inbox.put_nowait(_Close())
 
     def connect(
-        self, account: Identity | None = None, player: tuple[str, str] | None = None
+        self,
+        account: Identity | None = None,
+        player: tuple[str, str] | None = None,
+        *,
+        bot: bool = False,
     ) -> Connection:
         """Register a connection. With a player (from the player cookie) it is seated."""
-        conn = Connection(account=account)
+        conn = Connection(account=account, bot=bot)
         if player is not None:
             conn.player_id, conn.name = player
         self._inbox.put_nowait(_Connect(conn))
@@ -231,7 +242,8 @@ class LiveRoom:
         if isinstance(command, _Connect):
             conn = command.conn
             self._conns.append(conn)
-            self._empty_since = None
+            if not conn.bot:
+                self._empty_since = None
             if conn.player_id is not None:
                 try:
                     room.join(conn.player_id, conn.name)
@@ -247,7 +259,7 @@ class LiveRoom:
             conn = command.conn
             if conn in self._conns:
                 self._conns.remove(conn)
-            if not self._conns:
+            if not any(not c.bot for c in self._conns) and self._empty_since is None:
                 self._empty_since = self._clock.now()
             conn.send(None)
             if conn.player_id and not any(c.player_id == conn.player_id for c in self._conns):
@@ -283,6 +295,8 @@ class LiveRoom:
         return True  # roles may have changed with the delegates
 
     def _role(self, conn: Connection) -> tuple[str, str | None]:
+        if self.demo:
+            return FACILITATOR, None
         access = self._record.access(conn.account)
         return (FACILITATOR if access else PLAYER), access
 
@@ -399,6 +413,8 @@ class LiveRoom:
         snapshot["you"]["account_name"] = conn.account.name if conn.account else None
         snapshot["room"] = {"slug": self._record.slug}
         snapshot["backlog"] = dict(self._backlog_state)
+        if self.demo:
+            snapshot["demo"] = True
         if role == FACILITATOR:  # the session summary is for facilitators only
             snapshot["summary"] = self._room.summary()
         return snapshot
@@ -414,7 +430,7 @@ class LiveRoom:
     def _schedule_timer(self) -> None:
         deadlines = [self._room.next_deadline()]
         if self._empty_since is not None:
-            deadlines.append(self._empty_since + IDLE_SECONDS)
+            deadlines.append(self._empty_since + self.idle_seconds)
         deadline = min((d for d in deadlines if d is not None), default=None)
         if deadline == self._timer_deadline and (self._timer is None or not self._timer.done()):
             return

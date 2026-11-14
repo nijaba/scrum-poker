@@ -61,7 +61,7 @@ Dockerfile      multi-stage: Node builds frontend/, slim Python serves it
 .claude/        settings, path-scoped rules, the /next-step skill
 ```
 
-Packages inside `app/`: `room/` (engine), `store/` (SQLite), `auth/` (sign-in, access), `jira/` (client, connect flow, fakes).
+Packages inside `app/`: `room/` (engine), `store/` (SQLite), `auth/` (sign-in, access), `jira/` (client, connect flow, fakes), `demo/` (demo rooms, bots, sample backlog).
 
 ## How to work here
 

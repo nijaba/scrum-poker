@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from app.auth.access import OWNER
 from app.auth.identity import Identity
 from app.auth.oauth import Auth
+from app.demo.rooms import PREFIX as DEMO_PREFIX
 from app.room.errors import CommandError
 from app.room.live import RoomRegistry
 from app.room.room import MAX_TIMER
@@ -99,6 +100,9 @@ async def create_room(request: Request) -> dict[str, Any]:
 
 @router.get("/api/rooms/{slug}")
 async def read_room(slug: str, request: Request) -> dict[str, Any]:
+    demo = request.app.state.demo
+    if demo is not None and demo.get(slug) is not None:
+        return {"slug": slug, "access": None, "demo": True}
     record = await _record(request, slug)
     identity = _auth(request).identity(request.cookies)
     return view(request, record, record.access(identity))
@@ -195,6 +199,8 @@ def _slug(value: Any) -> str:
             "A short name is 1 to 40 lowercase letters, digits or hyphens,"
             " starting with a letter or digit.",
         )
+    if value.startswith(DEMO_PREFIX):
+        raise HTTPException(422, f"Short names starting with {DEMO_PREFIX} are kept for demos.")
     return value
 
 

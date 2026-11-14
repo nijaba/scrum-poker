@@ -25,6 +25,8 @@ from app.auth.fake_sso import fake_sso_app
 from app.auth.oauth import Auth
 from app.auth.oauth import router as auth_router
 from app.config import FAKE_JIRA_PATH, FAKE_SSO_PATH, Settings
+from app.demo.rooms import DemoRooms
+from app.demo.rooms import router as demo_router
 from app.https import add_https
 from app.jira.client import JiraRooms, JiraService
 from app.jira.fake_atlassian import FakeAtlassian
@@ -64,9 +66,13 @@ def create_app(
         clock=clock,
     )
 
+    demo = DemoRooms(clock) if settings.demo_rooms else None
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         yield
+        if demo is not None:
+            await demo.close()
         await rooms.close()
         store.close()
 
@@ -74,6 +80,7 @@ def create_app(
     app.state.settings = settings
     app.state.store = store
     app.state.rooms = rooms
+    app.state.demo = demo
     app.state.auth = Auth(settings)
     app.state.jira = jira
     app.include_router(room_router)
@@ -81,6 +88,7 @@ def create_app(
     app.include_router(jira_router)  # before auth: /auth/atlassian/* is not a sign-in provider
     app.include_router(auth_router)
     app.include_router(rooms_router)
+    app.include_router(demo_router)
 
     if settings.fake_sso:
         log.warning(

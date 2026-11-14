@@ -159,11 +159,13 @@
         class="btn-primary"
         type="button"
         disabled={!chosenCard || confirming}
-        onclick={confirm}>{confirming ? "Writing to Jira…" : confirmLabel}</button
+        onclick={confirm}
+        >{confirming ? (snap.demo ? "Saving…" : "Writing to Jira…") : confirmLabel}</button
       >
       {#if chosenCard && chosenCard.value !== null}
         <span class="note">
-          Writes {chosenCard.value} to {snap.ticket.key} in Jira, then loads {snap.up_next[0]
+          Writes {chosenCard.value} to {snap.ticket.key}
+          {snap.demo ? "in the demo backlog" : "in Jira"}, then loads {snap.up_next[0]
             ?.key ?? "the end of the queue"}.
         </span>
       {/if}

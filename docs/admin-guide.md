@@ -93,6 +93,7 @@ The app reads its settings from environment variables. With Docker Compose, put 
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | One provider | Google sign-in. |
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | One provider | GitHub sign-in. |
 | `ATLASSIAN_CLIENT_ID`, `ATLASSIAN_CLIENT_SECRET` | For Jira | The Atlassian app. Without them, rooms can't connect to Jira. |
+| `DEMO_ROOMS` | No | `1` offers **Try a demo** on the home page: anyone, with no sign-in, gets a private practice room with bots and a made-up backlog, in memory only and never connected to Jira. At most 20 at once, each ending after 30 minutes with nobody in it. Off by default. |
 | `DATABASE_PATH` | No | The SQLite file. The image and compose file use `/data/scrum-poker.sqlite3`. |
 | `FORWARDED_ALLOW_IPS` | No | Proxies whose `X-Forwarded-Proto` the app believes, comma-separated, or `*`. Default `127.0.0.1`. The compose file sets `*`. |
 | `PORT` | No | The port the container listens on. Default 8000. |
@@ -222,6 +223,7 @@ and start it again.
 | Delegates' Google emails and GitHub logins | SQLite | Until removed or the room is deleted |
 | Jira refresh token (encrypted), Atlassian account email, site and board | SQLite | Until disconnected or the room is deleted |
 | Votes, results, who is in a room, session counters | Memory | Until the session ends or the app restarts |
+| Demo rooms, their bots and their copy of the sample backlog | Memory | 30 minutes with nobody in the room, or until the app restarts |
 | A player's name and random player ID | That player's browser cookie | One year |
 | A signed-in owner or delegate | Their browser cookie | 30 days, or until sign-out |
 

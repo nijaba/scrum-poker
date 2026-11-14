@@ -178,6 +178,8 @@ class Settings:
     token_key: str = field(default_factory=new_key)
     atlassian: AtlassianConfig | None = None
     fake_jira: bool = False
+    # Demo rooms: a private room per visitor, with bots and a made-up backlog.
+    demo_rooms: bool = False
     # Proxies whose X-Forwarded-Proto and X-Forwarded-For the app believes; "*" for any.
     forwarded_allow_ips: str = DEFAULT_FORWARDED_ALLOW_IPS
 
@@ -259,6 +261,7 @@ class Settings:
             token_key=token_key,
             atlassian=atlassian,
             fake_jira=fake_jira,
+            demo_rooms=env.get("DEMO_ROOMS", "").strip() in ("1", "true", "yes"),
             forwarded_allow_ips=(
                 env.get("FORWARDED_ALLOW_IPS") or DEFAULT_FORWARDED_ALLOW_IPS
             ).strip(),
