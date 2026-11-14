@@ -79,7 +79,13 @@ export interface Snapshot {
     account_name: string | null;
   };
   room: { slug: string };
-  backlog: { state: "loading" | "ready" | "error"; code: string | null; message: string | null };
+  backlog: {
+    state: "loading" | "ready" | "error";
+    code: string | null;
+    message: string | null;
+    /** Facilitators only: the owner saved a queue filter this session hasn't loaded yet. */
+    filter_changed?: boolean;
+  };
   scale: Scale;
   next_scale: Scale | null;
   round: { state: "voting" | "revealed" | "confirmed"; results?: Results };

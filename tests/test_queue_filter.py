@@ -347,3 +347,29 @@ def test_qf09_players_still_cannot_reload(jclient):
         state(ws)
         ws.send_json({"type": "reload_backlog"})
         assert until_type(ws, "error")["code"] == "forbidden"
+
+
+# QF-12: facilitators learn that a saved filter waits for a reload
+
+
+def test_qf12_facilitators_see_that_the_filter_changed_until_a_reload(jclient, japp, atlassian):
+    connect(japp, atlassian)
+    with (
+        facilitator(jclient) as ws,
+        open_ws(jclient, "/ws/rooms/team-a", None, ("p1", "Ana")) as player,
+    ):
+        assert ready(ws)["backlog"]["filter_changed"] is False
+
+        save_filter(jclient, japp, estimated=True)
+        assert state(ws, lambda s: s["backlog"]["filter_changed"])["queue"]["length"] == 8
+        snap = state(player, lambda s: s["backlog"]["state"] == "ready")
+        assert "filter_changed" not in snap["backlog"]
+
+        save_filter(jclient, japp)  # back to the filter the session loaded with
+        state(ws, lambda s: s["backlog"]["filter_changed"] is False)
+
+        save_filter(jclient, japp, estimated=True)
+        state(ws, lambda s: s["backlog"]["filter_changed"])
+        ws.send_json({"type": "reload_backlog"})
+        snap = state(ws, lambda s: s["queue"]["length"] == 12)
+        assert snap["backlog"]["filter_changed"] is False

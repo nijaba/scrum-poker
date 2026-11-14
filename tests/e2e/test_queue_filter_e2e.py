@@ -38,3 +38,16 @@ def test_qf10_owner_previews_and_saves_the_filter_then_a_session_follows_it(tabl
     olive.vote("8")
     olive.press("Reveal cards")
     expect(ticket).to_contain_text("Jira has it at 3 points")
+
+    # The owner saves another filter mid-session: the facilitator is told to reload.
+    saved = olive.context.request.patch(
+        f"{table.url.replace('/r/', '/api/rooms/')}", data={"queue_filter": {}}
+    )
+    assert saved.ok, saved.text()
+    panel = olive.page.get_by_role("status").filter(has_text="The queue filter changed")
+    expect(panel).to_contain_text("once this ticket is done")
+    olive.press("Skip")
+    expect(panel).to_contain_text("Reload the backlog to apply it.")
+    olive.press("Reload backlog")
+    expect(panel).to_have_count(0)
+    expect(ticket).to_contain_text("Ticket 1 of 8")

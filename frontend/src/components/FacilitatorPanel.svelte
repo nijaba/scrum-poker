@@ -209,6 +209,13 @@
         >
       {/if}
     </div>
+    {#if snap.backlog.filter_changed}
+      <p class="note" role="status">
+        The queue filter changed. Reload the backlog to apply it{snap.queue.finished || (voting && !snap.players.some((p) => p.voted))
+          ? "."
+          : " once this ticket is done."}
+      </p>
+    {/if}
     <button
       class="btn toggle"
       type="button"

@@ -198,6 +198,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | QF-09 | Reload backlog between tickets | Applies the saved filter; refused once someone has voted; confirmed and skipped tickets keep counting and stay in the summary | Integration |
 | QF-10 | Owner edits and previews the filter in the browser | The preview lists the tickets; after saving, a session loads the same queue | E2E |
 | QF-11 | Extra JQL against real Jira Cloud | Jira narrows the backlog; a typo shows Jira's message | Sandbox |
+| QF-12 | The owner saves a different filter during a session | Facilitators' snapshots say the filter changed, players' don't; a reload clears it; saving the same filter back clears it too | Integration |
 
 ## Auth, rooms and delegates
 

@@ -101,7 +101,7 @@ Design: "Queue filter". Decided by the owner on 2026-11-14: the queue rules beco
 - [x] Extra JQL; preview; Reload backlog between tickets
 - [x] Queue filter section and preview on the settings page
 
-Cases: QF-01 to QF-10. QF-11 is a Sandbox case.
+Cases: QF-01 to QF-10 and QF-12. QF-11 is a Sandbox case.
 
 ## After step 6: demo rooms
 

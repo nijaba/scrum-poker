@@ -139,6 +139,8 @@ class LiveRoom:
         self._backlog = backlog
         self._clock = clock
         self._backlog_state: dict[str, Any] = {"state": "loading", "code": None, "message": None}
+        # The queue filter the backlog last loaded with: a saved change waits for a reload.
+        self._loaded_filter = record.queue_filter
         self._empty_since: float | None = clock.now()
         self._inbox: asyncio.Queue = asyncio.Queue()
         self._conns: list[Connection] = []
@@ -384,6 +386,7 @@ class LiveRoom:
             }
             return True
         self._room.set_backlog(backlog, self._record.queue_filter.estimated)
+        self._loaded_filter = self._record.queue_filter
         self._backlog_state = {"state": "ready", "code": None, "message": None}
         return True
 
@@ -422,6 +425,9 @@ class LiveRoom:
             snapshot["demo"] = True
         if role == FACILITATOR:  # the session summary is for facilitators only
             snapshot["summary"] = self._room.summary()
+            if self._backlog_state["state"] == "ready":
+                changed = self._record.queue_filter != self._loaded_filter
+                snapshot["backlog"]["filter_changed"] = changed
         return snapshot
 
     def _close_all(self) -> None:
