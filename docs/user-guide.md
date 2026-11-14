@@ -370,5 +370,5 @@ Some servers offer **Try a demo** on the home page, including the online demo at
   in to practise together.
 - **Add a bot** in the banner seats another bot, up to eight. Remove one like any player.
 - There are no room settings: Fibonacci cards, a 30-second countdown, sound on.
-- The room ends after a while with nobody in it (30 minutes, unless the server says otherwise). Start another one any time. If every demo room is taken, the home page asks you to come back in a few minutes.
+- The room ends after a while with nobody in it (30 minutes by default; the banner at the top says how long). Start another one any time. If every demo room is taken, the home page asks you to come back in a few minutes.
 

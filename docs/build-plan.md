@@ -112,4 +112,6 @@ Design: "Demo rooms". Decided by the owner on 2026-11-13: one private room per v
 
 - [x] `DEMO_MAX_ROOMS` and `DEMO_IDLE_SECONDS` settings; a friendly come-back-later note when every demo room is taken
 
-Cases: DR-01 to DR-13.
+- [x] The demo banner gives the configured idle time
+
+Cases: DR-01 to DR-14.

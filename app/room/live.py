@@ -423,6 +423,7 @@ class LiveRoom:
         snapshot["backlog"] = dict(self._backlog_state)
         if self.demo:
             snapshot["demo"] = True
+            snapshot["demo_idle_seconds"] = self.idle_seconds  # for the banner
         if role == FACILITATOR:  # the session summary is for facilitators only
             snapshot["summary"] = self._room.summary()
             if self._backlog_state["state"] == "ready":
