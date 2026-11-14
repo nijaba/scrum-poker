@@ -199,6 +199,15 @@
         onclick={() => send({ type: "rewind" })}>Rewind</button
       >
       <button class="btn" type="button" onclick={() => send({ type: "reset" })}>Reset room</button>
+      {#if !snap.demo}
+        <button
+          class="btn"
+          type="button"
+          disabled={!snap.queue.finished && !(voting && !snap.players.some((p) => p.voted))}
+          title="Load the backlog again, with the room's saved queue filter"
+          onclick={() => send({ type: "reload_backlog" })}>Reload backlog</button
+        >
+      {/if}
     </div>
     <button
       class="btn toggle"

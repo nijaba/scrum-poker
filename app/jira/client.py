@@ -18,6 +18,7 @@ from app.config import AtlassianConfig, Settings
 from app.jira.crypto import TokenCipher
 from app.jira.html import clean, from_text
 from app.room.ports import BacklogError, Clock, PointsWriteError
+from app.room.queue_filter import QueueFilter
 from app.store.rooms import RoomRecord, RoomStore
 
 log = logging.getLogger(__name__)
@@ -193,11 +194,16 @@ class JiraService:
                 break
         return found
 
-    async def backlog(self, slug: str) -> list[dict[str, Any]]:
-        """The board's backlog in rank order, as ticket dicts for the room engine."""
+    async def backlog(
+        self, slug: str, queue_filter: QueueFilter | None = None
+    ) -> list[dict[str, Any]]:
+        """The board's backlog in rank order, through the room's queue filter (or the one
+        given, for a preview), as ticket dicts for the room engine. Tickets that already
+        have an estimate are included: they count in the backlog counters."""
         record = await asyncio.to_thread(self.store.get, slug)
         if record is None or not record.jira.connected:
             raise JiraError("jira_not_connected")
+        chosen = record.queue_filter if queue_filter is None else queue_filter
         jira = record.jira
         if not jira.has_board:
             raise JiraError("jira_no_board")
@@ -226,22 +232,28 @@ class JiraService:
         tickets: list[dict[str, Any]] = []
         start = 0
         for _ in range(MAX_PAGES):
+            params: dict[str, Any] = {
+                "startAt": start,
+                "maxResults": BACKLOG_PAGE,
+                "fields": ",".join(fields),
+                "expand": "renderedFields",
+            }
+            if chosen.jql:
+                params["jql"] = chosen.jql
             response, _ = await self._request(
-                slug,
-                "GET",
-                f"{site}/board/{jira.board_id}/backlog",
-                params={
-                    "startAt": start,
-                    "maxResults": BACKLOG_PAGE,
-                    "fields": ",".join(fields),
-                    "expand": "renderedFields",
-                },
+                slug, "GET", f"{site}/board/{jira.board_id}/backlog", params=params
             )
+            if chosen.jql and response.status_code == 400:
+                raise JiraError(
+                    "jira_bad_filter",
+                    f"Jira did not accept the queue filter's JQL ({chosen.jql}): "
+                    + _jira_message(response),
+                )
             _check(response, missing="jira_board_missing")
             data = response.json()
             issues = data.get("issues", [])
             for issue in issues:
-                if not _estimable(issue):
+                if not _estimable(issue, chosen):
                     continue
                 tickets.append(_ticket(issue, field, jira.site_url, len(tickets) + 1))
             start += len(issues)
@@ -310,9 +322,12 @@ def _jira_message(response: httpx2.Response) -> str:
     return " ".join(parts) or f"Jira refused the request ({response.status_code})."
 
 
-def _estimable(issue: dict[str, Any]) -> bool:
-    """Whether the backlog issue is a ticket for the queue: a standard work type, not started,
-    and in no open sprint.
+def _estimable(issue: dict[str, Any], queue_filter: QueueFilter | None = None) -> bool:
+    """Whether the backlog issue is a ticket for the queue and the counters. By default: a
+    standard work type, not started, unresolved, and in no open sprint. The room's queue
+    filter can let sub-tasks, tickets in progress and resolved tickets in; never epics,
+    tickets in the Done category, or tickets in a sprint. Whether a ticket with an
+    estimate enters the queue is the room engine's call (Queue.include_estimated).
 
     Epics, and any type above them, group tickets; sub-tasks split one. Jira Cloud gives every
     issue type a hierarchy level (-1 sub-task, 0 standard, 1 epic) and a subtask flag, which
@@ -322,18 +337,26 @@ def _estimable(issue: dict[str, Any]) -> bool:
     Do) in a To Do status. The backlog endpoint already leaves out tickets in active and future
     sprints; the sprint check keeps that true whatever the endpoint returns.
     """
+    taken = queue_filter or QueueFilter()
     fields = issue.get("fields") or {}
     kind = fields.get("issuetype") or {}
-    if kind.get("subtask") is True:
-        return False
     level = kind.get("hierarchyLevel")
-    if isinstance(level, int):
+    name = kind.get("name")
+    subtask = kind.get("subtask") is True or (
+        level == -1 if isinstance(level, int) else name in ("Sub-task", "Subtask")
+    )
+    if subtask:
+        if not taken.subtasks:
+            return False
+    elif isinstance(level, int):
         if level != 0:
             return False
-    elif kind.get("name") in ("Epic", "Sub-task", "Subtask"):
+    elif name == "Epic":
         return False
     category = ((fields.get("status") or {}).get("statusCategory") or {}).get("key")
-    if category != "new" or fields.get("resolution"):
+    if category not in (("new", "indeterminate") if taken.in_progress else ("new",)):
+        return False
+    if fields.get("resolution") and not taken.resolved:
         return False
     sprint = fields.get("sprint") or {}
     return sprint.get("state") not in ("active", "future")
@@ -361,6 +384,7 @@ def _ticket(
         "key": issue["key"],
         "summary": fields.get("summary") or "",
         "type": (fields.get("issuetype") or {}).get("name"),
+        "status": (fields.get("status") or {}).get("name"),
         "priority": (fields.get("priority") or {}).get("name"),
         "epic": epic,
         "labels": fields.get("labels") or [],

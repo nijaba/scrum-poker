@@ -142,9 +142,10 @@ signs you out and returns you to the home page.
 ### Starting a session
 
 1. Open the room. The first ticket without an estimate is already loaded, in backlog order.
-   The room lists only tickets that are not started (in a To Do status, with no resolution), are
-   in no sprint, and are not epics or sub-tasks. The tickets inside an epic still come up like
-   any other.
+   By default the room lists only tickets that are not started (in a To Do status, with no
+   resolution), are in no sprint, and are not epics or sub-tasks. The tickets inside an epic
+   still come up like any other. The owner can change which tickets come up: see
+   [Queue filter](#queue-filter).
 2. Choose **Copy link** in the header and share it with the team.
 3. Wait for everyone to appear on the table.
 
@@ -221,6 +222,14 @@ checks in automatically within a few seconds and keeps their seat; anyone who do
 off the table. The current ticket, the session counters and your place in the queue don't
 change, and voting on the current ticket starts again.
 
+### Reloading the backlog
+
+**Reload backlog** loads the backlog from Jira again, with the room's saved queue filter. Use
+it after the owner changes the filter, or after reordering the backlog in Jira. It works
+between tickets, before anyone has voted on the current one. Tickets you already confirmed or
+skipped this session keep counting and stay in the session summary, and the room moves to the
+first ticket it hasn't handled yet.
+
 ### When the session ends
 
 A session ends once nobody has been in the room for 15 minutes. The next time someone opens
@@ -241,6 +250,7 @@ room's settings:
 | Jira no longer accepts this room's connection. … | The owner chooses **Reconnect**. This happens after 90 days without use, or if access was revoked in Atlassian. |
 | Jira cannot find the room's board. … | The board was deleted or the owner lost access. The owner picks another board. |
 | Could not reach Jira. Try again. | A network or Jira problem. Choose **Try again**. |
+| Jira did not accept the queue filter's JQL … | The owner fixes the **Extra JQL** in the queue filter. **Preview queue** shows whether Jira accepts it. |
 
 Once it's fixed, choose **Try again** in the room.
 
@@ -271,8 +281,9 @@ The settings show "Connected as" with your Atlassian email. Use **Reconnect** if
 loses access, and **Disconnect** to remove the connection; sessions can't load a backlog until
 you connect again.
 
-The queue is the board's backlog: tickets with no estimate yet, in the backlog's order, which
-you can rearrange in Jira as usual. Changing the board during a session reloads the queue.
+The queue is the board's backlog: by default tickets with no estimate yet, in the backlog's
+order, which you can rearrange in Jira as usual. Changing the board during a session reloads
+the queue.
 
 If several rooms should use Jira, connect each of them. They can use different sites or
 Atlassian accounts.
@@ -287,6 +298,7 @@ The settings page is only for the owner: click your name in the room header and 
 | --- | --- |
 | **Room link** | The room's **Short name**. Renaming keeps the old link working: it redirects to the new one, and no other room can take the old name. |
 | **Jira Cloud** | The connection, site and board. See above. |
+| **Queue filter** | Which backlog tickets sessions walk through. See [Queue filter](#queue-filter). |
 | **Scale** | The cards players vote with: **Fibonacci** (1, 2, 3, 5, 8, 13, 21, 34, 55, ?), **T-shirt** (XS to XXL, with the points each size confirms as, XS=1 to XXL=13) or a **Custom list** of your own cards, separated by commas. |
 | **Countdown, sound and reveal** | **Default seconds** for the countdown, whether the room's sounds play, and whether cards reveal by themselves once everyone has voted. Facilitators can change these for a running session; these are the defaults. |
 | **Delegates** | People who can run sessions in this room. |
@@ -299,6 +311,30 @@ About scales:
   be confirmed.
 - A scale has at most 30 cards, each up to 10 characters.
 - A new scale applies at once if nobody has voted yet, otherwise from the next round.
+
+### Queue filter
+
+By default a session walks through the board's backlog tickets that are stories, tasks or bugs,
+in a To Do status, unresolved, and with no estimate. In the settings' **Queue filter** you can
+also include:
+
+- **Sub-tasks**. Epics never come up: they group tickets and aren't estimated.
+- **Tickets in progress**: those in any In Progress status. Done ones never come up.
+- **Resolved tickets**, such as Won't Do, still in a To Do or included status.
+- **Tickets that already have an estimate**, to re-estimate them. They come up in backlog order
+  with the rest. Once the cards are revealed, the ticket shows the estimate Jira already has, so
+  it can't sway the vote. Confirming replaces it in Jira; skipping leaves it.
+
+**Extra JQL** narrows the backlog further, for example `labels = frontend`,
+`component = Checkout` or `fixVersion = "2.4"`. Tickets in a sprint never come up: Jira's
+backlog leaves them out.
+
+**Preview queue** shows how many tickets the filter, as set in the form, would put in the
+queue, and lists the first 50. It doesn't save anything, so try settings freely, then choose
+**Save changes**. A saved filter applies when a session next loads the backlog, or when a
+facilitator chooses **Reload backlog**.
+
+The backlog counter in the room counts the same tickets as the queue filter.
 
 ### Delegates
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 import secrets
 import time
 from collections.abc import Callable
@@ -63,6 +64,44 @@ def _issue_type(name: str) -> dict[str, Any]:
     return {"name": name, "hierarchyLevel": level, "subtask": level < 0}
 
 
+# The few JQL fields the fake understands, and the issue field each one reads.
+_JQL_FIELDS = {"labels": "labels", "type": "issuetype", "issuetype": "issuetype"}
+_JQL_FIELDS |= {"priority": "priority", "status": "status", "key": "key"}
+_CLAUSE = re.compile(r"^\s*(\w+)\s*(=|in)\s*(.+?)\s*$", re.IGNORECASE)
+
+
+def jql_matcher(jql: str) -> Callable[[dict[str, Any]], bool] | None:
+    """A predicate for a tiny JQL subset: `field = value` and `field in (a, b)`, joined
+    by AND, on labels, type, priority, status and key. None if the fake cannot read it."""
+    tests = []
+    for clause in re.split(r"\s+AND\s+", jql.strip(), flags=re.IGNORECASE):
+        found = _CLAUSE.match(clause)
+        if not found or found.group(1).lower() not in _JQL_FIELDS:
+            return None
+        name, op, raw = found.group(1).lower(), found.group(2).lower(), found.group(3)
+        if op == "in":
+            if not (raw.startswith("(") and raw.endswith(")")):
+                return None
+            values = [v.strip().strip("\"'") for v in raw[1:-1].split(",")]
+        else:
+            values = [raw.strip("\"'")]
+        tests.append((_JQL_FIELDS[name], {v.lower() for v in values if v}))
+
+    def matches(issue: dict[str, Any]) -> bool:
+        for field, wanted in tests:
+            if field == "key":
+                have = {issue["key"].lower()}
+            elif field == "labels":
+                have = {label.lower() for label in issue["fields"].get("labels") or []}
+            else:
+                have = {((issue["fields"].get(field) or {}).get("name") or "").lower()}
+            if not have & wanted:
+                return False
+        return True
+
+    return matches
+
+
 def big_backlog(count: int = 120) -> list[dict[str, Any]]:
     """`count` unestimated tickets, for paging tests."""
     return [
@@ -87,6 +126,7 @@ class FakeAtlassian:
             2: {"name": "BIG board", "issues": [_issue(t, i) for i, t in enumerate(big_backlog())]},
         }
         self.writes: list[tuple[str, str, int]] = []  # (issue key, value, board ID)
+        self.last_jql: str | None = None  # the jql the last backlog request sent, if any
         self.fail_writes: str | None = None  # when set, Jira rejects writes with this message
         self.access_ttl = 3600
         self.codes: dict[str, str] = {}  # code -> redirect_uri
@@ -253,10 +293,18 @@ class FakeAtlassian:
             startAt: int = 0,  # noqa: N803
             maxResults: int = 50,  # noqa: N803
             expand: str = "",
+            jql: str | None = None,
             authorization: str | None = Header(None),
         ):
             self._check(authorization)
             issues = self._board(cloud_id, board_id)["issues"]
+            self.last_jql = jql
+            if jql:
+                matches = jql_matcher(jql)
+                if matches is None:
+                    message = f"Error in the JQL Query: the fake Jira cannot read '{jql}'."
+                    return JSONResponse({"errorMessages": [message], "errors": {}}, status_code=400)
+                issues = [i for i in issues if matches(i)]
             size = min(maxResults, PAGE_LIMIT)
             page = issues[startAt : startAt + size]
             if "renderedFields" not in expand:

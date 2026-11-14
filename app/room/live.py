@@ -52,7 +52,7 @@ FACILITATOR_COMMANDS = {
     "set_auto_reveal",  # this session only
     "remove_player",
     "jump",
-    "reload_backlog",  # after a failed load, once the owner has fixed the connection
+    "reload_backlog",  # after a failed load, or between tickets to apply a changed filter
 }
 
 _ids = itertools.count(1)
@@ -356,8 +356,13 @@ class LiveRoom:
         elif kind == "set_auto_reveal":
             room.set_auto_reveal(data.get("on"))
         elif kind == "reload_backlog":
-            if self._backlog_state["state"] == "ready":
-                raise CommandError("backlog_loaded", "The backlog is already loaded.")
+            if self._backlog_state["state"] == "loading":
+                raise CommandError("backlog_loading", "The backlog is already loading.")
+            if self._backlog_state["state"] == "ready" and not room.can_reload():
+                raise CommandError(
+                    "round_in_progress",
+                    "Reload the backlog between tickets, before anyone votes.",
+                )
             return await self._load()
         return True
 
@@ -378,7 +383,7 @@ class LiveRoom:
                 "message": "The backlog could not load. Try again.",
             }
             return True
-        self._room.set_backlog(backlog)
+        self._room.set_backlog(backlog, self._record.queue_filter.estimated)
         self._backlog_state = {"state": "ready", "code": None, "message": None}
         return True
 

@@ -1,7 +1,10 @@
-"""The ticket queue: unestimated backlog tickets in rank order, a cursor and per-ticket results.
+"""The ticket queue: backlog tickets in rank order, a cursor and per-ticket results.
 
-Counters are derived from the results every time they are read, so a rewind and
-re-estimate replaces the earlier result and never double counts.
+By default the queue holds the tickets with no estimate; with `include_estimated`
+it holds every ticket, for a re-estimation session. Counters are derived from the
+results every time they are read, so a rewind and re-estimate replaces the earlier
+result and never double counts. A reload carries the session's results over, in
+`earlier` for tickets no longer in the queue.
 """
 
 from __future__ import annotations
@@ -81,18 +84,47 @@ class Counters:
 @dataclass
 class Queue:
     backlog: list[Ticket]
+    include_estimated: bool = False
+    # Results from before a reload: (ticket, result) by key, for tickets that have one.
+    earlier: dict[str, tuple[Ticket, TicketResult]] = field(default_factory=dict)
     tickets: list[Ticket] = field(init=False)
     cursor: int = field(init=False, default=0)
     results: dict[str, TicketResult] = field(init=False)
 
     def __post_init__(self) -> None:
-        self.tickets = [t for t in self.backlog if t.story_points is None]
-        self.results = {t.key: TicketResult() for t in self.tickets}
+        if self.include_estimated:
+            self.tickets = list(self.backlog)
+        else:
+            self.tickets = [t for t in self.backlog if t.story_points is None]
+        carried = self.earlier
+        self.results = {
+            t.key: carried[t.key][1] if t.key in carried else TicketResult() for t in self.tickets
+        }
+        self.earlier = {k: v for k, v in carried.items() if k not in self.results}
+        # Start at the first ticket with no result this session.
+        self.cursor = next(
+            (i for i, t in enumerate(self.tickets) if self.results[t.key].status == PENDING),
+            len(self.tickets),
+        )
 
     @classmethod
-    def from_backlog(cls, backlog: list[dict[str, Any]]) -> Queue:
+    def from_backlog(
+        cls,
+        backlog: list[dict[str, Any]],
+        include_estimated: bool = False,
+        earlier: dict[str, tuple[Ticket, TicketResult]] | None = None,
+    ) -> Queue:
         """Build from Jira-shaped dicts. Order is kept: Jira returns rank order."""
-        return cls([Ticket.from_dict(t) for t in backlog])
+        return cls([Ticket.from_dict(t) for t in backlog], include_estimated, dict(earlier or {}))
+
+    def kept(self) -> dict[str, tuple[Ticket, TicketResult]]:
+        """Every ticket with a result this session, to carry over a reload."""
+        found = dict(self.earlier)
+        for ticket in self.tickets:
+            result = self.results[ticket.key]
+            if result.status != PENDING:
+                found[ticket.key] = (ticket, result)
+        return found
 
     @property
     def finished(self) -> bool:
@@ -140,10 +172,11 @@ class Queue:
         self.cursor = index
 
     def summary(self) -> list[dict[str, Any]]:
-        """Every ticket estimated or skipped this session, in queue order."""
+        """Every ticket estimated or skipped this session: those from before a reload that
+        left the queue first, then the queue's, in queue order."""
         entries = []
-        for ticket in self.tickets:
-            result = self.results[ticket.key]
+        done = [*self.earlier.values(), *((t, self.results[t.key]) for t in self.tickets)]
+        for ticket, result in done:
             if result.status == PENDING:
                 continue
             entries.append(
@@ -158,18 +191,28 @@ class Queue:
             )
         return entries
 
+    def _all_results(self) -> list[TicketResult]:
+        return [r for _, r in self.earlier.values()] + list(self.results.values())
+
+    def _result_for(self, key: str) -> TicketResult | None:
+        if key in self.results:
+            return self.results[key]
+        return self.earlier[key][1] if key in self.earlier else None
+
     def session(self) -> Counters:
-        estimated = [r for r in self.results.values() if r.status == ESTIMATED]
+        estimated = [r for r in self._all_results() if r.status == ESTIMATED]
         return Counters(len(estimated), sum(r.points or 0.0 for r in estimated))
 
     def backlog_counters(self) -> dict[str, Any]:
-        already = [t for t in self.backlog if t.story_points is not None]
-        session = self.session()
-        return {
-            "estimated": len(already) + session.tickets,
-            "total": len(self.backlog),
-            "points": number(sum(t.story_points or 0.0 for t in already) + session.points),
-        }
+        """Each backlog ticket counts once, with this session's points if it has them."""
+        count, points = 0, 0.0
+        for ticket in self.backlog:
+            result = self._result_for(ticket.key)
+            if result is not None and result.status == ESTIMATED:
+                count, points = count + 1, points + (result.points or 0.0)
+            elif ticket.story_points is not None:
+                count, points = count + 1, points + ticket.story_points
+        return {"estimated": count, "total": len(self.backlog), "points": number(points)}
 
     def _require_current(self) -> Ticket:
         ticket = self.current

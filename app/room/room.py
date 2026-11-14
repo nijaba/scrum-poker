@@ -44,9 +44,10 @@ class Room:
         sound: bool = False,
         auto_reveal: bool = False,
         check_in_seconds: float = CHECK_IN_SECONDS,
+        include_estimated: bool = False,
     ) -> None:
         self.clock = clock
-        self.queue = Queue.from_backlog(backlog)
+        self.queue = Queue.from_backlog(backlog, include_estimated)
         self.scale = scale or fibonacci()
         self.next_scale: Scale | None = None
         self.timer_seconds = _seconds(timer_seconds)
@@ -64,10 +65,15 @@ class Room:
         self.time_up = False
         self.check_in_deadline: float | None = None
 
-    def set_backlog(self, backlog: list[dict[str, Any]]) -> None:
-        """Replace the queue with a freshly loaded backlog, and start a new round."""
-        self.queue = Queue.from_backlog(backlog)
+    def set_backlog(self, backlog: list[dict[str, Any]], include_estimated: bool = False) -> None:
+        """Replace the queue with a freshly loaded backlog, and start a new round.
+        The session's results carry over, so a reload never loses or double counts one."""
+        self.queue = Queue.from_backlog(backlog, include_estimated, self.queue.kept())
         self._new_round()
+
+    def can_reload(self) -> bool:
+        """Between tickets: nobody has voted on the current one, or the queue is done."""
+        return self.queue.finished or (self.round.state == VOTING and not self.round.votes)
 
     # Seats
 
@@ -344,7 +350,16 @@ class Room:
             "watchers": watchers,
             "ticket": None
             if ticket is None
-            else {**ticket.to_dict(), "result": self.queue.current_result().to_dict()},
+            else {
+                **ticket.to_dict(),
+                "result": self.queue.current_result().to_dict(),
+                # Jira's own estimate, for a re-estimate: only once the cards are shown.
+                **(
+                    {"estimate": number(ticket.story_points)}
+                    if ticket.story_points is not None and self.round.state != VOTING
+                    else {}
+                ),
+            },
             "up_next": [{"key": t.key, "summary": t.summary} for t in self.queue.upcoming(UP_NEXT)],
             "queue": {
                 "position": min(self.queue.cursor + 1, len(self.queue.tickets)),

@@ -1,4 +1,4 @@
-import type { JiraBoard, JiraSite, Me, Player, RoomInfo } from "./types";
+import type { JiraBoard, JiraSite, Me, Player, QueueFilter, QueuePreview, RoomInfo } from "./types";
 
 /** An HTTP error, with the server's message and status. */
 export class ApiError extends Error {
@@ -59,6 +59,11 @@ export function signInUrl(provider: string, next = location.pathname): string {
 
 export function listRooms(): Promise<{ slug: string; access: "owner" | "delegate" }[]> {
   return call("GET", "/api/rooms");
+}
+
+/** The queue a session would load with this filter, not yet saved. Owner only. */
+export function previewQueue(slug: string, queue_filter: QueueFilter): Promise<QueuePreview> {
+  return call("POST", `/api/rooms/${encodeURIComponent(slug)}/queue-preview`, { queue_filter });
 }
 
 /** A new demo room, private to whoever asked for it, with bots and a made-up backlog. */

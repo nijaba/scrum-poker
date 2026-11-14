@@ -53,6 +53,8 @@ export interface TicketView {
   description: string;
   url: string | null;
   result: { status: "pending" | "estimated" | "skipped"; points: number | null };
+  /** Jira's estimate already on the ticket, in a re-estimation session; only after reveal. */
+  estimate?: number;
 }
 
 export interface Countdown {
@@ -154,12 +156,35 @@ export interface JiraSettings {
   board: { id: number; name: string } | null;
 }
 
+/** Which backlog tickets a session walks through. All false and no JQL is the default. */
+export interface QueueFilter {
+  subtasks: boolean;
+  in_progress: boolean;
+  resolved: boolean;
+  estimated: boolean;
+  jql: string;
+}
+
+export interface QueuePreview {
+  count: number;
+  total: number;
+  tickets: {
+    key: string;
+    summary: string;
+    type: string | null;
+    status: string | null;
+    estimate: number | null;
+    url: string | null;
+  }[];
+}
+
 export interface RoomSettings {
   scale: Scale;
   timer_seconds: number;
   sound: boolean;
   auto_reveal: boolean;
   delegates: Delegate[];
+  queue_filter: QueueFilter;
   jira: JiraSettings;
 }
 
