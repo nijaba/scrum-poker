@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import {
+    ApiError,
     PROVIDER_NAMES,
     createDemo,
     createRoom,
@@ -44,14 +45,18 @@
 
   let demoBusy = $state(false);
   let demoError = $state<string | null>(null);
+  let demoFull = $state<string | null>(null);
   async function tryDemo() {
     demoBusy = true;
     demoError = null;
+    demoFull = null;
     try {
       const demo = await createDemo();
       location.href = `/r/${demo.slug}`;
     } catch (err) {
-      demoError = err instanceof Error ? err.message : "Could not start a demo.";
+      // Every demo room is taken: not a fault, so say so kindly rather than in red.
+      if (err instanceof ApiError && err.status === 503) demoFull = err.message;
+      else demoError = err instanceof Error ? err.message : "Could not start a demo.";
       demoBusy = false;
     }
   }
@@ -159,6 +164,9 @@
       <div class="buttons">
         <button class="btn" type="button" disabled={demoBusy} onclick={tryDemo}>Try a demo</button>
       </div>
+      {#if demoFull}
+        <p class="full" role="status"><span class="cup" aria-hidden="true">☕</span> {demoFull}</p>
+      {/if}
       {#if demoError}<p class="form-error" role="alert">{demoError}</p>{/if}
     </section>
   {/if}
@@ -182,6 +190,31 @@
     color: var(--ink);
     text-decoration: none;
     font-weight: 600;
+  }
+  .full {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--chip);
+    color: var(--text-2);
+  }
+  .cup {
+    font-size: 22px;
+    animation: steam 2.4s ease-in-out infinite;
+  }
+  @keyframes steam {
+    50% {
+      transform: translateY(-2px) rotate(-6deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cup {
+      animation: none;
+    }
   }
   .rooms {
     list-style: none;

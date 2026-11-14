@@ -1,6 +1,7 @@
 """Demo rooms: a private room per visitor, with bots and a made-up backlog.
 
-Cases DR-01 to DR-10. DR-06 and DR-09 at Unit level, the rest at Integration level.
+Cases DR-01 to DR-10 and DR-12. DR-06, DR-09 and DR-12 at Unit level, the rest at
+Integration level.
 """
 
 import asyncio
@@ -11,6 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import ConfigError, Settings
 from app.demo.bots import BotMind, ticket_size
 from app.demo.rooms import DEMO_IDLE_SECONDS, MAX_DEMO_ROOMS, DemoRooms
 from app.main import create_app
@@ -139,13 +141,31 @@ def test_dr05_the_number_of_demo_rooms_is_capped(demo):
     response = demo.post("/api/demo", json={})
 
     assert response.status_code == 503
-    assert "try again later" in response.json()["detail"].lower()
+    assert "come back" in response.json()["detail"].lower()
 
 
-def test_dr06_an_idle_demo_room_ends_and_its_bots_stop():
+def test_dr05_the_cap_follows_the_settings(settings, jira, clock, tmp_path):
+    static = tmp_path / "static"
+    static.mkdir()
+    (static / "index.html").write_text("<!doctype html><title>Scrum poker</title>")
+    app = create_app(
+        settings=dataclasses.replace(settings, demo_rooms=True, demo_max_rooms=2),
+        backlog_source=jira,
+        points_writer=jira,
+        clock=clock,
+        static_dir=static,
+    )
+    with TestClient(app, base_url=BASE) as client:
+        new_demo(client)
+        new_demo(client)
+        assert client.post("/api/demo", json={}).status_code == 503
+
+
+@pytest.mark.parametrize("idle", [DEMO_IDLE_SECONDS, 90])
+def test_dr06_an_idle_demo_room_ends_and_its_bots_stop(idle):
     async def scenario():
         clock = FakeClock()
-        rooms = DemoRooms(clock, delay=(0, 0))
+        rooms = DemoRooms(clock, delay=(0, 0), idle_seconds=idle)
         slug = await rooms.create()
         live = rooms.get(slug)
         bots = rooms.bot_tasks(slug)
@@ -153,7 +173,7 @@ def test_dr06_an_idle_demo_room_ends_and_its_bots_stop():
         for _ in range(20):
             await asyncio.sleep(0)
 
-        clock.advance(DEMO_IDLE_SECONDS - 1)  # bots alone do not keep it alive...
+        clock.advance(idle - 1)  # bots alone do not keep it alive...
         for _ in range(20):
             await asyncio.sleep(0)
         assert rooms.get(slug) is live
@@ -240,3 +260,17 @@ def test_dr10_stored_rooms_cannot_take_a_demo_name(client):
     client.app.state.store.create(RoomRecord("team-b", OWNER.key, OWNER.label))
     renamed = client.patch("/api/rooms/team-b", json={"slug": "demo-x"}, headers=owner)
     assert renamed.status_code == 422
+
+
+def test_dr12_the_cap_and_idle_time_come_from_the_environment():
+    defaults = Settings.from_env({})
+    assert defaults.demo_max_rooms == MAX_DEMO_ROOMS == 20
+    assert defaults.demo_idle_seconds == DEMO_IDLE_SECONDS == 30 * 60
+
+    tuned = Settings.from_env({"DEMO_MAX_ROOMS": " 5 ", "DEMO_IDLE_SECONDS": "600"})
+    assert (tuned.demo_max_rooms, tuned.demo_idle_seconds) == (5, 600)
+
+    for name in ("DEMO_MAX_ROOMS", "DEMO_IDLE_SECONDS"):
+        for bad in ("0", "-3", "ten", "1.5"):
+            with pytest.raises(ConfigError, match=name):
+                Settings.from_env({name: bad})

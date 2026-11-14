@@ -85,6 +85,7 @@ python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | from the GitHub app |
 | `ATLASSIAN_CLIENT_ID`, `ATLASSIAN_CLIENT_SECRET` | from the Atlassian app |
 | `DEMO_ROOMS` | optional: `1` offers **Try a demo** on the home page, a private practice room with bots and a made-up backlog for anyone, no sign-in |
+| `DEMO_MAX_ROOMS`, `DEMO_IDLE_SECONDS` | optional: how many demo rooms may run at once (default 20), and how long one lasts with nobody in it (default 1800 seconds) |
 
 Leave the development-only `SCRUM_POKER_FAKE_*` variables unset: the app refuses them
 outside localhost. The compose file sets `DATABASE_PATH` and `FORWARDED_ALLOW_IPS` itself.

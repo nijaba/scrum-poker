@@ -66,7 +66,13 @@ def create_app(
         clock=clock,
     )
 
-    demo = DemoRooms(clock) if settings.demo_rooms else None
+    demo = None
+    if settings.demo_rooms:
+        demo = DemoRooms(
+            clock,
+            max_rooms=settings.demo_max_rooms,
+            idle_seconds=settings.demo_idle_seconds,
+        )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:

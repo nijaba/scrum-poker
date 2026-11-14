@@ -100,4 +100,6 @@ Design: "Demo rooms". Decided by the owner on 2026-11-13: one private room per v
 - [x] Demo rooms in memory, with a sample backlog and bots
 - [x] Try a demo on the home page; demo banner and Add a bot in the room
 
-Cases: DR-01 to DR-11.
+- [x] `DEMO_MAX_ROOMS` and `DEMO_IDLE_SECONDS` settings; a friendly come-back-later note when every demo room is taken
+
+Cases: DR-01 to DR-13.

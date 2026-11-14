@@ -226,13 +226,15 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | DR-02 | Ask for a demo room with them on | A new `demo-` room, not in SQLite; a visitor with no sign-in gets the session controls; four bots are seated | Integration |
 | DR-03 | A round opens in a demo room | Each bot votes; before reveal the visitor learns only who voted | Integration |
 | DR-04 | Confirm points in a demo room | The demo backlog takes the points and the counters move; the room's Jira is never called | Integration |
-| DR-05 | Ask for a 21st demo room | Refused with "try again later" (503) | Integration |
-| DR-06 | A demo room has had no person connected for 30 minutes | It ends, its bots stop and its name is gone; bots alone never keep it alive | Unit |
+| DR-05 | Ask for one demo room more than `DEMO_MAX_ROOMS` (default 20) | Refused (503) with a message saying to come back later | Integration |
+| DR-06 | A demo room has had no person connected for `DEMO_IDLE_SECONDS` (default 30 minutes) | It ends, its bots stop and its name is gone; bots alone never keep it alive | Unit |
 | DR-07 | A facilitator removes a bot, then adds bots | The removed bot stays out; Add a bot seats a new one, up to eight in all | Integration |
 | DR-08 | Reset a demo room | The bots check in and are seated again | Integration |
 | DR-09 | Bot votes on many tickets | Every vote is a card on the scale, near the ticket's size: within two cards of it, or "?" | Unit |
 | DR-10 | A stored room named `demo-…` | Refused when creating or renaming | Integration |
 | DR-11 | Try a demo in the browser | The home page's Try a demo opens a demo room that says it is a demo; the bots vote and the visitor can reveal and confirm | E2E |
+| DR-12 | `DEMO_MAX_ROOMS` and `DEMO_IDLE_SECONDS` set, unset, or not a whole number of at least 1 | Read as given; 20 and 1800 when unset; refused at start-up, naming the variable, otherwise | Unit |
+| DR-13 | Try a demo when every demo room is taken | The home page shows the server's come-back-later message beside a coffee cup, as a status note, not an error; the page stays put and Try a demo can be pressed again | E2E |
 
 ## Mini mode
 
