@@ -153,7 +153,7 @@ def test_open_page_learns_its_room_is_gone_when_it_reconnects(table):
     context.close()
 
 
-def test_every_page_links_help_and_the_source_code_in_a_new_tab(table):
+def test_every_page_links_help_why_and_the_source_code_in_a_new_tab(table):
     ana = table.join("Ana")
     pages = {"room": ana.page}
     home = table.new_context().new_page()
@@ -172,3 +172,9 @@ def test_every_page_links_help_and_the_source_code_in_a_new_tab(table):
             "href", "https://github.com/nijaba/scrum-poker/blob/main/docs/user-guide.md"
         )
         expect(help_link).to_have_attribute("target", "_blank")
+        why_link = page.get_by_role("contentinfo").get_by_role("link", name="Why scrum poker?")
+        expect(why_link).to_have_attribute(
+            "href", "https://github.com/nijaba/scrum-poker/blob/main/docs/why-scrum-poker.md"
+        )
+        expect(why_link).to_have_attribute("target", "_blank")
+        assert "noopener" in why_link.get_attribute("rel"), name

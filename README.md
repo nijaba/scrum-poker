@@ -213,6 +213,7 @@ Open this folder in Claude Code. `CLAUDE.md` gives it the constraints, commands 
 ## Documents
 
 - [docs/user-guide.md](docs/user-guide.md): for players, facilitators and room owners
+- [docs/why-scrum-poker.md](docs/why-scrum-poker.md): what estimating with scrum poker gives a team
 - [docs/admin-guide.md](docs/admin-guide.md): sign-in and Jira apps, settings, operations, troubleshooting
 - [docs/design.md](docs/design.md): architecture and behaviour
 - [docs/test-plan.md](docs/test-plan.md): test cases with IDs

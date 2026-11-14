@@ -4,6 +4,8 @@ Scrum poker walks your team through the Jira tickets that still need an estimate
 time, in the order they sit in your backlog. Everyone picks a card in secret, the cards turn
 over together, and the agreed points go straight back to Jira.
 
+New to scrum poker? [Why scrum poker?](why-scrum-poker.md) explains what it gives a team.
+
 This guide has three parts, one per role. Read the one that matches what you do:
 
 - [Players](#players): you got a link and want to vote
