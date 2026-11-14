@@ -17,10 +17,11 @@ from pathlib import Path
 
 from app.auth.access import access_for
 from app.auth.identity import Identity
+from app.room.queue_filter import QueueFilter
 from app.room.room import DEFAULT_TIMER
 from app.room.scales import Card, Scale, fibonacci, validated
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 SCHEMA = """
 CREATE TABLE rooms (
@@ -59,6 +60,9 @@ ALTER TABLE rooms ADD COLUMN jira_board_name TEXT;
 """,
     3: """
 ALTER TABLE rooms ADD COLUMN auto_reveal INTEGER NOT NULL DEFAULT 0;
+""",
+    4: """
+ALTER TABLE rooms ADD COLUMN queue_filter TEXT;
 """,
 }
 
@@ -118,6 +122,7 @@ class RoomRecord:
     auto_reveal: bool = False
     delegates: tuple[Delegate, ...] = ()
     jira: JiraLink = field(default_factory=JiraLink)
+    queue_filter: QueueFilter = field(default_factory=QueueFilter)
 
     def access(self, identity: Identity | None) -> str | None:
         return access_for(identity, self.owner, self.delegates)
@@ -192,8 +197,8 @@ class RoomStore:
                 raise SlugTaken(record.slug)
             self._db.execute(
                 "INSERT INTO rooms (slug, owner_provider, owner_subject, owner_label, scale,"
-                " timer_seconds, sound, auto_reveal, created_at)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                " timer_seconds, sound, auto_reveal, queue_filter, created_at)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     record.slug,
                     *record.owner,
@@ -202,6 +207,7 @@ class RoomStore:
                     record.timer_seconds,
                     int(record.sound),
                     int(record.auto_reveal),
+                    _filter_json(record.queue_filter),
                     datetime.now(UTC).isoformat(timespec="seconds"),
                 ),
             )
@@ -217,6 +223,7 @@ class RoomStore:
         sound: bool | None = None,
         auto_reveal: bool | None = None,
         delegates: Iterable[Delegate] | None = None,
+        queue_filter: QueueFilter | None = None,
     ) -> RoomRecord:
         with self._lock, self._transaction():
             current = self._get(slug)
@@ -228,15 +235,17 @@ class RoomStore:
                 timer_seconds=current.timer_seconds if timer_seconds is None else timer_seconds,
                 sound=current.sound if sound is None else sound,
                 auto_reveal=current.auto_reveal if auto_reveal is None else auto_reveal,
+                queue_filter=current.queue_filter if queue_filter is None else queue_filter,
             )
             self._db.execute(
-                "UPDATE rooms SET scale = ?, timer_seconds = ?, sound = ?, auto_reveal = ?"
-                " WHERE slug = ?",
+                "UPDATE rooms SET scale = ?, timer_seconds = ?, sound = ?, auto_reveal = ?,"
+                " queue_filter = ? WHERE slug = ?",
                 (
                     _scale_json(new.scale),
                     new.timer_seconds,
                     int(new.sound),
                     int(new.auto_reveal),
+                    _filter_json(new.queue_filter),
                     slug,
                 ),
             )
@@ -344,7 +353,7 @@ class RoomStore:
         row = self._db.execute(
             "SELECT slug, owner_provider, owner_subject, owner_label, scale, timer_seconds, sound, "
             + ", ".join(JIRA_COLUMNS)
-            + ", auto_reveal"
+            + ", auto_reveal, queue_filter"
             + " FROM rooms WHERE slug = ?",
             (slug,),
         ).fetchone()
@@ -365,6 +374,7 @@ class RoomStore:
             delegates=tuple(Delegate(p, i) for p, i in delegates),
             jira=JiraLink(*row[7:14]),
             auto_reveal=bool(row[14]),
+            queue_filter=_filter_from_json(row[15]),
         )
 
 
@@ -377,6 +387,15 @@ class _Transaction:
 
     def __exit__(self, kind, value, tb) -> None:
         self._db.execute("ROLLBACK" if kind else "COMMIT")
+
+
+def _filter_json(queue_filter: QueueFilter) -> str | None:
+    """None for the default, so a room that never changed it follows a changed default."""
+    return None if queue_filter.is_default else json.dumps(queue_filter.to_dict())
+
+
+def _filter_from_json(text: str | None) -> QueueFilter:
+    return QueueFilter() if text is None else QueueFilter.from_dict(json.loads(text))
 
 
 def _scale_json(scale: Scale) -> str:

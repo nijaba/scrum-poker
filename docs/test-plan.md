@@ -183,6 +183,23 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | JC-18 | Backlog response holds tickets in the active sprint, a future sprint and a closed sprint | The active- and future-sprint tickets are left out; the closed-sprint ticket enters the queue | Integration |
 | JC-19 | Backlog holds resolved tickets, one in a To Do status | Resolved tickets are left out of the queue and the backlog counters, whatever their status | Integration |
 
+### Queue filter
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| QF-01 | A room with no saved filter | The queue and counters are exactly as in JI cases: standard types, To Do category, no resolution, no estimate, no sprint | Unit |
+| QF-02 | Include sub-tasks | Sub-tasks join the queue; epics still stay out | Unit |
+| QF-03 | Include tickets in progress | In Progress category tickets join; Done stays out | Unit |
+| QF-04 | Include resolved tickets | Resolved tickets in a taken status category join | Unit |
+| QF-05 | Include tickets with an estimate | They join the queue in rank order; the card shows the Jira estimate only after reveal; confirming replaces it; the backlog counter counts each ticket once with its latest points | Unit |
+| QF-06 | Extra JQL | Sent to Jira as `jql`; the fake narrows by it; a refused JQL shows Jira's message with `jira_bad_filter` | Integration |
+| QF-07 | Save the filter | Only the owner can; it survives a restart; a bad value is refused (422); the database upgrades with no filter set | Integration |
+| QF-08 | Preview the queue | Uses the unsaved filter; lists the count and the first 50 tickets as a session would load them; refused to delegates and visitors; a JQL error is shown | Integration |
+| QF-09 | Reload backlog between tickets | Applies the saved filter; refused once someone has voted; confirmed and skipped tickets keep counting and stay in the summary | Integration |
+| QF-10 | Owner edits and previews the filter in the browser | The preview lists the tickets; after saving, a session loads the same queue | E2E |
+| QF-11 | Extra JQL against real Jira Cloud | Jira narrows the backlog; a typo shows Jira's message | Sandbox |
+| QF-12 | The owner saves a different filter during a session | Facilitators' snapshots say the filter changed, players' don't; a reload clears it; saving the same filter back clears it too | Integration |
+
 ## Auth, rooms and delegates
 
 | ID | Case | Expected | Level |

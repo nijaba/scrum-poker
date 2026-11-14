@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { points } from "../lib/format";
   import {
     PROVIDER_NAMES,
     chooseJiraBoard,
@@ -10,6 +11,7 @@
     getRoom,
     jiraBoards,
     jiraSites,
+    previewQueue,
     signInUrl,
     updateRoom,
   } from "../lib/api";
@@ -19,12 +21,17 @@
     JiraSettings,
     JiraSite,
     Me,
+    QueueFilter,
+    QueuePreview,
     RoomInfo,
     RoomSettings,
     Scale,
   } from "../lib/types";
 
   let { slug }: { slug: string } = $props();
+
+  const JQL_DOCS =
+    "https://support.atlassian.com/jira-software-cloud/docs/use-advanced-search-with-jira-query-language-jql/";
 
   let me = $state<Me | null>(null);
   let info = $state<RoomInfo | null | undefined>(undefined); // undefined while loading
@@ -41,6 +48,16 @@
   let delegates = $state<Delegate[]>([]);
   let newDelegate = $state("");
   let newProvider = $state<Delegate["provider"]>("google");
+  let filter = $state<QueueFilter>({
+    subtasks: false,
+    in_progress: false,
+    resolved: false,
+    estimated: false,
+    jql: "",
+  });
+  let preview = $state<QueuePreview | null>(null);
+  let previewing = $state(false);
+  let previewError = $state<string | null>(null);
 
   // Jira
   let jira = $state<JiraSettings | null>(null);
@@ -87,6 +104,20 @@
     sound = s.sound;
     autoReveal = s.auto_reveal;
     delegates = s.delegates;
+    filter = { ...s.queue_filter };
+  }
+
+  async function runPreview() {
+    previewing = true;
+    previewError = null;
+    try {
+      preview = await previewQueue(current, { ...filter, jql: filter.jql.trim() });
+    } catch (err) {
+      preview = null;
+      previewError = err instanceof Error ? err.message : "Could not preview the queue.";
+    } finally {
+      previewing = false;
+    }
   }
 
   async function loadJira(settings: JiraSettings) {
@@ -179,6 +210,7 @@
         sound,
         auto_reveal: autoReveal,
         delegates,
+        queue_filter: { ...filter, jql: filter.jql.trim() },
       };
     } catch (err) {
       error = err instanceof Error ? err.message : "Check the form.";
@@ -325,11 +357,97 @@
           </div>
         </div>
         <span class="text-2">
-          Sessions score the tickets in this board's backlog that have no estimate, in rank order.
+          Sessions score this board's backlog tickets that pass the queue filter below, in rank order.
           Every write goes through this connection, so Jira's history shows your account.
         </span>
       {/if}
       {#if jiraError}<p class="form-error" role="alert">{jiraError}</p>{/if}
+    </section>
+
+    <section class="section" aria-label="Queue filter">
+      <h2>Queue filter</h2>
+      <span class="text-2">
+        Which backlog tickets a session walks through, in rank order. By default: stories, tasks and
+        bugs in a To Do status, unresolved, with no estimate. Epics and tickets in a sprint never
+        enter.
+      </span>
+      <fieldset>
+        <legend class="label">Also include</legend>
+        <label class="check">
+          <input type="checkbox" bind:checked={filter.subtasks} />
+          <span>Sub-tasks</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" bind:checked={filter.in_progress} />
+          <span>Tickets in progress</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" bind:checked={filter.resolved} />
+          <span>Resolved tickets</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" bind:checked={filter.estimated} />
+          <span>Tickets that already have an estimate, to re-estimate them</span>
+        </label>
+      </fieldset>
+      <div class="field">
+        <label for="jql">Extra JQL (optional)</label>
+        <input
+          id="jql"
+          class="input"
+          maxlength="500"
+          bind:value={filter.jql}
+          placeholder="labels in (frontend, mobile)"
+          aria-describedby="jql-help"
+        />
+        <span id="jql-help" class="label">
+          Narrows the backlog. Several labels, any of them: <code>labels in (frontend, mobile)</code>
+          (commas inside brackets). All of them: <code>labels = frontend AND labels = mobile</code>.
+          Also by component or fix version: <code>component = Checkout</code>.
+          <a href={JQL_DOCS} target="_blank" rel="noopener noreferrer">Atlassian's JQL guide</a>
+        </span>
+      </div>
+      <div class="row tight">
+        <button
+          class="btn"
+          type="button"
+          disabled={previewing || !jira?.connected || !jira?.board}
+          onclick={runPreview}>{previewing ? "Previewing…" : "Preview queue"}</button
+        >
+        {#if !jira?.connected || !jira?.board}
+          <span class="text-2">Connect Jira and choose a board to preview.</span>
+        {/if}
+      </div>
+      <span class="text-2">Changes apply when a session loads the backlog, or when a facilitator reloads it.</span>
+      {#if previewError}<p class="form-error" role="alert">{previewError}</p>{/if}
+      {#if preview}
+        <div class="preview" aria-label="Queue preview" role="region">
+          <p class="preview-count" role="status">
+            {preview.count} {preview.count === 1 ? "ticket" : "tickets"} would be in the queue
+            <span class="text-2">({preview.total} in the filtered backlog)</span>
+          </p>
+          {#if preview.tickets.length}
+            <ol class="preview-list">
+              {#each preview.tickets as t (t.key)}
+                <li>
+                  {#if t.url}
+                    <a class="preview-key" href={t.url} target="_blank" rel="noopener noreferrer">{t.key}</a>
+                  {:else}
+                    <span class="preview-key">{t.key}</span>
+                  {/if}
+                  <span class="preview-summary">{t.summary}</span>
+                  {#if t.type}<span class="chip">{t.type}</span>{/if}
+                  {#if t.status}<span class="chip">{t.status}</span>{/if}
+                  {#if t.estimate !== null}<span class="chip">{points(t.estimate)}</span>{/if}
+                </li>
+              {/each}
+            </ol>
+            {#if preview.count > preview.tickets.length}
+              <p class="text-2">…and {preview.count - preview.tickets.length} more</p>
+            {/if}
+          {/if}
+        </div>
+      {/if}
     </section>
 
     <section class="section" aria-label="Scale">
@@ -561,6 +679,45 @@
     background: var(--chip);
     font-size: 13px;
     color: var(--text-2);
+  }
+  #jql-help code {
+    white-space: nowrap;
+  }
+  .preview {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .preview-count {
+    font-weight: 600;
+  }
+  .preview-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+  .preview-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .preview-list li:last-child {
+    border-bottom: none;
+  }
+  .preview-key {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .preview-summary {
+    flex: 1 1 200px;
+    min-width: 0;
   }
   .remove {
     margin-left: auto;

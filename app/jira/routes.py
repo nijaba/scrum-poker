@@ -17,12 +17,13 @@ from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from app.auth.access import OWNER
 from app.jira.client import JiraError, JiraService
-from app.rooms_api import json_body, view
+from app.rooms_api import json_body, queue_filter, view
 from app.store.rooms import RoomRecord
 from app.web import check_write
 
 STATE_COOKIE = "sp_jira_oauth"
 STATE_MAX_AGE = 10 * 60
+PREVIEW_LIMIT = 50
 
 router = APIRouter()
 
@@ -184,6 +185,34 @@ async def choose_board(slug: str, request: Request) -> dict[str, Any]:
     )
     await request.app.state.rooms.update(record)
     return view(request, record, OWNER)
+
+
+@router.post("/api/rooms/{slug}/queue-preview")
+async def queue_preview(slug: str, request: Request) -> dict[str, Any]:
+    """The queue a session would load with the filter as set in the form, not yet saved."""
+    check_write(request)
+    record = await owner_record(request, slug)
+    chosen = queue_filter((await json_body(request)).get("queue_filter", {}))
+    try:
+        tickets = await _service(request).backlog(record.slug, chosen)
+    except JiraError as err:
+        raise _http_error(err) from None
+    queue = [t for t in tickets if chosen.estimated or t.get("story_points") is None]
+    return {
+        "count": len(queue),
+        "total": len(tickets),
+        "tickets": [
+            {
+                "key": t["key"],
+                "summary": t["summary"],
+                "type": t["type"],
+                "status": t["status"],
+                "estimate": t["story_points"],
+                "url": t["url"],
+            }
+            for t in queue[:PREVIEW_LIMIT]
+        ],
+    }
 
 
 @router.delete("/api/rooms/{slug}/jira", status_code=204)

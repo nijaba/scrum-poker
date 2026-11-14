@@ -37,6 +37,9 @@
     <span class="position">Ticket {queue.position} of {queue.length}</span>
   </div>
   <h1>{ticket.summary}</h1>
+  {#if ticket.estimate !== undefined}
+    <p class="result">Jira has it at {points(ticket.estimate)}. Confirming replaces that.</p>
+  {/if}
   {#if ticket.result.status === "estimated" && ticket.result.points !== null}
     <p class="result">Estimated earlier at {points(ticket.result.points)}.</p>
   {:else if ticket.result.status === "skipped"}

@@ -199,7 +199,23 @@
         onclick={() => send({ type: "rewind" })}>Rewind</button
       >
       <button class="btn" type="button" onclick={() => send({ type: "reset" })}>Reset room</button>
+      {#if !snap.demo}
+        <button
+          class="btn"
+          type="button"
+          disabled={!snap.queue.finished && !(voting && !snap.players.some((p) => p.voted))}
+          title="Load the backlog again, with the room's saved queue filter"
+          onclick={() => send({ type: "reload_backlog" })}>Reload backlog</button
+        >
+      {/if}
     </div>
+    {#if snap.backlog.filter_changed}
+      <p class="note" role="status">
+        The queue filter changed. Reload the backlog to apply it{snap.queue.finished || (voting && !snap.players.some((p) => p.voted))
+          ? "."
+          : " once this ticket is done."}
+      </p>
+    {/if}
     <button
       class="btn toggle"
       type="button"

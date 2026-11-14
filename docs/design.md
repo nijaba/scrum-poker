@@ -59,6 +59,7 @@ Every screen shows two counters: tickets estimated and points assigned in this s
 | Rewind | Returns to the previous ticket |
 | Reset room | Clears the player list and the current cards, then seats only players who still respond |
 | Auto-reveal | Reveals the cards by itself once every connected player at the table has voted. On or off for this session |
+| Reload backlog | Loads the backlog again with the saved queue filter, between tickets; see "Queue filter" |
 | Remove player | Takes one player off the table and drops their card. They can join again |
 | Jump to a ticket | Moves straight to a ticket in Up next, which lists the next five. The ticket left behind keeps its result and is not marked skipped |
 | Session summary | Copies or downloads this session's tickets with status, points, average and vote counts |
@@ -148,6 +149,25 @@ On session start the adapter reads the board configuration for the estimate fiel
 
 A session ends when nobody has been connected to the room for 15 minutes. The next visit starts a new session: the backlog loads again and the session counters start at zero. A short drop-out or a page reload keeps the session.
 
+### Queue filter
+
+The owner decided on 2026-11-14 that the rules above are a default the room's owner can change, on the settings page. Each room stores its filter with its settings; a room that never changed it uses the default, which is the behaviour described in "Loading the backlog".
+
+| Setting | Default | The other choice |
+| --- | --- | --- |
+| Sub-tasks | Left out | Included. Epics, and any type above them, always stay out: they group tickets and are never estimated. |
+| Tickets in progress | Left out | Included: Jira's In Progress status category (key `indeterminate`) joins To Do. The Done category always stays out. |
+| Resolved tickets | Left out | Included, when their status is in a category the filter takes. |
+| Tickets with an estimate | Left out of the queue (they count in the backlog counters) | Included, for a re-estimation session. |
+| Extra JQL | None | A JQL clause, at most 500 characters, sent as the backlog endpoint's `jql` parameter. It only narrows the backlog, for example `labels = frontend` or `component = Checkout`. |
+
+- **Sprints.** Tickets in an active or future sprint always stay out. The backlog endpoint never returns them, and fetching them separately would mix in a second rank order.
+- **The counters** use the same filter as the queue, so "5 of 12 tickets estimated" counts the same tickets the session walks through.
+- **Re-estimation.** With tickets that have an estimate included, the queue holds every ticket the filter takes, estimated or not, in rank order. The ticket card shows the estimate already in Jira once the cards are revealed, never before, so it cannot sway the vote. Confirming writes the new value through the estimation endpoint, replacing the old one; Jira keeps the old value in the ticket's history. Skipping leaves it alone. In the backlog counter a ticket counts once, estimated before or during the session, with its latest points. The session counters count every confirm.
+- **A JQL error.** If Jira refuses the extra JQL, the room shows Jira's message where it shows any backlog error, with the code `jira_bad_filter`, and the owner fixes the filter in the settings.
+- **Preview.** The settings page shows how many tickets the filter, as currently set in the form and not yet saved, would put in the queue, and lists the first 50 in rank order with their key, summary, type, status and estimate. It runs only when the owner presses **Preview queue**, through `POST /api/rooms/{slug}/queue-preview`, which only the owner may call because it uses the room's Jira connection. It calls the same backlog code the room uses, so the preview and the session cannot disagree.
+- **When a change applies.** A saved filter applies the next time the backlog loads: in a new session, or when a facilitator presses **Reload backlog**. Reload works between tickets, while nobody has voted on the current one, as well as after a failed load. When the owner saves a filter that differs from the one the session loaded with, facilitators see "The queue filter changed. Reload the backlog to apply it." next to **Reload backlog**, until a reload applies it. A reload keeps the session's results: confirmed and skipped tickets keep counting and stay in the session summary, and the queue starts at the first ticket that has no result this session.
+
 ### Writing points
 
 On confirm the adapter writes through the board's estimation endpoint. The estimation field is set per board configuration, and this endpoint works even when the field is not on an edit screen ([source](https://docs.atlassian.com/jira-software/REST/2017-09-06T07:06:51Z/)). The room advances only once Jira accepts the write.
@@ -208,7 +228,7 @@ The rooms page at `/` offers sign-in when signed out. Signed in, it lists the ro
 
 The owner can rename a room. The old short name keeps redirecting to the new one, also for room sockets, and no other room can take it. Deleting a room frees all its names and ends its live session on every screen.
 
-Saved settings reach a live room through its command queue: a new scale from the next round, the timer default, sound and auto-reveal at once. In the facilitator panel, the Seconds field and the Sound and Auto-reveal toggles change the running session only, and never the saved defaults.
+Saved settings reach a live room through its command queue: a new scale from the next round, the timer default, sound and auto-reveal at once, and a queue filter the next time the backlog loads. In the facilitator panel, the Seconds field and the Sound and Auto-reveal toggles change the running session only, and never the saved defaults.
 
 Writes to the JSON API refuse a foreign `Origin` and any body that is not JSON.
 
@@ -222,7 +242,7 @@ Room definitions persist, so the link `/r/<slug>` survives restarts. Nothing abo
 
 | Data | Lives in | Survives a restart |
 | --- | --- | --- |
-| Room slug, owner, delegates, Jira site and board, scale, timer default, sound and auto-reveal settings | SQLite file | Yes |
+| Room slug, owner, delegates, Jira site and board, queue filter, scale, timer default, sound and auto-reveal settings | SQLite file | Yes |
 | Each room's Jira connection: refresh token (encrypted), account email, site and board | SQLite file | Yes |
 | Confirmed story points | Jira | Yes |
 | Player name and ID | The player's cookie | Yes |

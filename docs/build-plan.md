@@ -93,6 +93,16 @@ Ask the owner for the hostname before writing the deployment notes.
 
 Cases: PK-01, PK-02, PK-04, HS-01, HS-02, HS-03.
 
+## After step 6: queue filter
+
+Design: "Queue filter". Decided by the owner on 2026-11-14: the queue rules become a per-room filter the owner sets, with the current rules as the default, an optional extra JQL, a preview, and re-estimation of tickets that already have an estimate.
+
+- [x] Filter stored with the room and applied to the queue and counters
+- [x] Extra JQL; preview; Reload backlog between tickets
+- [x] Queue filter section and preview on the settings page
+
+Cases: QF-01 to QF-10 and QF-12. QF-11 is a Sandbox case.
+
 ## After step 6: demo rooms
 
 Design: "Demo rooms". Decided by the owner on 2026-11-13: one private room per visitor, a realistic team of bots, an in-memory sample backlog, off unless `DEMO_ROOMS=1`.

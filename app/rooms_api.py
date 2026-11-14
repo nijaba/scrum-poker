@@ -18,6 +18,7 @@ from app.auth.oauth import Auth
 from app.demo.rooms import PREFIX as DEMO_PREFIX
 from app.room.errors import CommandError
 from app.room.live import RoomRegistry
+from app.room.queue_filter import FilterError, QueueFilter
 from app.room.room import MAX_TIMER
 from app.room.scales import Scale, number
 from app.store.rooms import Delegate, RoomRecord, RoomStore, SlugTaken
@@ -28,6 +29,7 @@ EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 GITHUB_LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
 MAX_DELEGATES = 100
 SETTINGS_FIELDS = {"slug", "scale", "timer_seconds", "sound", "auto_reveal", "delegates"}
+SETTINGS_FIELDS |= {"queue_filter"}
 
 router = APIRouter()
 
@@ -138,6 +140,8 @@ async def update_room(slug: str, request: Request) -> dict[str, Any]:
         changes["auto_reveal"] = body["auto_reveal"]
     if "delegates" in body:
         changes["delegates"] = _delegates(body["delegates"])
+    if "queue_filter" in body:
+        changes["queue_filter"] = queue_filter(body["queue_filter"])
     new_slug = _slug(body["slug"]) if "slug" in body else record.slug
 
     store = _store(request)
@@ -179,6 +183,7 @@ def view(request: Request, record: RoomRecord, access: str | None) -> dict[str, 
             "sound": record.sound,
             "auto_reveal": record.auto_reveal,
             "delegates": [d.to_dict() for d in record.delegates],
+            "queue_filter": record.queue_filter.to_dict(),
             "jira": {
                 "available": request.app.state.settings.atlassian is not None,
                 "connected": jira.connected,
@@ -190,6 +195,13 @@ def view(request: Request, record: RoomRecord, access: str | None) -> dict[str, 
             },
         }
     return result
+
+
+def queue_filter(value: Any) -> QueueFilter:
+    try:
+        return QueueFilter.from_dict(value)
+    except FilterError as err:
+        raise HTTPException(422, str(err)) from None
 
 
 def _slug(value: Any) -> str:
