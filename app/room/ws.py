@@ -25,18 +25,22 @@ router = APIRouter()
 
 @router.websocket("/ws/rooms/{slug}")
 async def room_socket(websocket: WebSocket, slug: str) -> None:
-    store = websocket.app.state.store
-    current = await asyncio.to_thread(store.resolve, slug) if SLUG.match(slug) else None
-    record = await asyncio.to_thread(store.get, current) if current else None
+    demo = websocket.app.state.demo
+    demo_live = demo.get(slug) if demo is not None else None
+    record = None
+    if demo_live is None:
+        store = websocket.app.state.store
+        current = await asyncio.to_thread(store.resolve, slug) if SLUG.match(slug) else None
+        record = await asyncio.to_thread(store.get, current) if current else None
     await websocket.accept()
-    if record is None:
+    if record is None and demo_live is None:
         # Accept first: a socket refused before it is accepted reaches the browser as
         # close code 1006, which looks like a dropped connection and is retried forever.
         await websocket.close(code=CLOSE_NO_ROOM)
         return
 
     registry: RoomRegistry = websocket.app.state.rooms
-    live = await registry.get(record)
+    live = demo_live or await registry.get(record)
     account = websocket.app.state.auth.identity(websocket.cookies)
     player = decode_player(websocket.cookies.get(COOKIE))
     conn = live.connect(account, None if player is None else (player.id, player.name))

@@ -92,3 +92,12 @@ Ask the owner for the hostname before writing the deployment notes.
 - [x] Deployment notes in `README.md`
 
 Cases: PK-01, PK-02, PK-04, HS-01, HS-02, HS-03.
+
+## After step 6: demo rooms
+
+Design: "Demo rooms". Decided by the owner on 2026-11-13: one private room per visitor, a realistic team of bots, an in-memory sample backlog, off unless `DEMO_ROOMS=1`.
+
+- [x] Demo rooms in memory, with a sample backlog and bots
+- [x] Try a demo on the home page; demo banner and Add a bot in the room
+
+Cases: DR-01 to DR-11.

@@ -61,6 +61,7 @@ def test_ar01_owner_signs_in_with_google(visitor):
         "label": "owner@example.com",
         "can_create": True,
         "providers": ["google", "github"],
+        "demo_rooms": False,
     }
     assert create_room(visitor, "team-g").status_code == 201
 
@@ -85,7 +86,11 @@ def test_ar04_account_not_on_the_allowlist_cannot_create_rooms(visitor):
 
 
 def test_signed_out_cannot_create_rooms(visitor):
-    assert me(visitor) == {"signed_in": False, "providers": ["google", "github"]}
+    assert me(visitor) == {
+        "signed_in": False,
+        "providers": ["google", "github"],
+        "demo_rooms": False,
+    }
     assert create_room(visitor, "nope").status_code == 401
 
 

@@ -10,6 +10,9 @@ This guide has three parts, one per role. Read the one that matches what you do:
 - [Facilitators](#facilitators): you run the session
 - [Room owners](#room-owners): you set the room up
 
+Want to try it first? If the home page offers **Try a demo**, see [Practising in a demo
+room](#practising-in-a-demo-room).
+
 ## Who does what
 
 | Role | Signs in? | What they can do |
@@ -310,3 +313,19 @@ name. A Google entry only matches a Google sign-in, and a GitHub entry only a Gi
 
 The room, its settings, delegates and Jira connection are saved. Votes, results and session
 counters are not: they exist only while the session runs. The points you confirm are in Jira.
+
+## Practising in a demo room
+
+Some servers offer **Try a demo** on the home page. It opens a private room just for you,
+with no sign-in:
+
+- The other players are bots: Ada, Bo, Cleo and Dev. A few seconds after each round opens they
+  vote, mostly close to each other but not always, so reveals give you something to discuss.
+  Now and then one plays **?** or takes a coffee break.
+- The backlog is made up. Confirming points moves the counters but never reaches Jira.
+- You get the facilitator panel, and so does anyone you share the link with: bring colleagues
+  in to practise together.
+- **Add a bot** in the banner seats another bot, up to eight. Remove one like any player.
+- There are no room settings: Fibonacci cards, a 30-second countdown, sound on.
+- The room ends after 30 minutes with nobody in it. Start another one any time.
+

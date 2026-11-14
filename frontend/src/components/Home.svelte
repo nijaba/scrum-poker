@@ -1,6 +1,14 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { PROVIDER_NAMES, createRoom, getMe, listRooms, signInUrl, signOut } from "../lib/api";
+  import {
+    PROVIDER_NAMES,
+    createDemo,
+    createRoom,
+    getMe,
+    listRooms,
+    signInUrl,
+    signOut,
+  } from "../lib/api";
   import type { Me } from "../lib/types";
 
   let me = $state<Me | null>(null);
@@ -31,6 +39,20 @@
       error = err instanceof Error ? err.message : "Could not create the room.";
     } finally {
       busy = false;
+    }
+  }
+
+  let demoBusy = $state(false);
+  let demoError = $state<string | null>(null);
+  async function tryDemo() {
+    demoBusy = true;
+    demoError = null;
+    try {
+      const demo = await createDemo();
+      location.href = `/r/${demo.slug}`;
+    } catch (err) {
+      demoError = err instanceof Error ? err.message : "Could not start a demo.";
+      demoBusy = false;
     }
   }
 
@@ -126,6 +148,19 @@
     {:else}
       <p class="text-2">This account can run sessions in rooms where it is a delegate, but cannot create rooms.</p>
     {/if}
+  {/if}
+  {#if me?.demo_rooms}
+    <section class="section" aria-label="Try a demo">
+      <h2>Practise first</h2>
+      <p class="text-2">
+        Open a private demo room with a team of bots and a made-up backlog. You run the session;
+        nothing reaches Jira. Share its link to bring colleagues in.
+      </p>
+      <div class="buttons">
+        <button class="btn" type="button" disabled={demoBusy} onclick={tryDemo}>Try a demo</button>
+      </div>
+      {#if demoError}<p class="form-error" role="alert">{demoError}</p>{/if}
+    </section>
   {/if}
 </main>
 

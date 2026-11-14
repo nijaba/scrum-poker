@@ -95,6 +95,7 @@ export interface Snapshot {
   sound: boolean;
   auto_reveal: boolean;
   check_in_open: boolean;
+  demo?: boolean; // a demo room: bots, a made-up backlog, anyone facilitates
   summary?: SummaryEntry[]; // facilitators only
 }
 
@@ -123,6 +124,7 @@ export interface Me {
   name?: string;
   label?: string;
   can_create?: boolean;
+  demo_rooms: boolean; // the server offers demo rooms
 }
 
 export type Access = "owner" | "delegate" | null;
@@ -164,5 +166,6 @@ export interface RoomSettings {
 export interface RoomInfo {
   slug: string;
   access: Access;
+  demo?: boolean;
   settings?: RoomSettings;
 }

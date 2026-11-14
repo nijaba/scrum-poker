@@ -61,6 +61,16 @@ export function listRooms(): Promise<{ slug: string; access: "owner" | "delegate
   return call("GET", "/api/rooms");
 }
 
+/** A new demo room, private to whoever asked for it, with bots and a made-up backlog. */
+export function createDemo(): Promise<{ slug: string }> {
+  return call("POST", "/api/demo", {});
+}
+
+/** Seat one more bot in a demo room. */
+export function addBot(slug: string): Promise<{ name: string }> {
+  return call("POST", `/api/demo/${encodeURIComponent(slug)}/bots`, {});
+}
+
 export function createRoom(slug: string): Promise<RoomInfo> {
   return call("POST", "/api/rooms", { slug });
 }
