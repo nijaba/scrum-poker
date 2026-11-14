@@ -28,3 +28,10 @@ export function remainingAt(
   if (!countdown.running) return countdown.time_up ? 0 : null;
   return Math.max(0, (countdown.remaining ?? 0) - (now - receivedAt) / 1000);
 }
+
+/** A length of time for a sentence: "30 minutes", "1 hour", "90 seconds". */
+export function duration(seconds: number): string {
+  if (seconds >= 3600 && seconds % 3600 === 0) return plural(seconds / 3600, "hour");
+  if (seconds >= 60 && seconds % 60 === 0) return plural(seconds / 60, "minute");
+  return plural(seconds, "second");
+}

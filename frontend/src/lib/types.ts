@@ -104,6 +104,7 @@ export interface Snapshot {
   auto_reveal: boolean;
   check_in_open: boolean;
   demo?: boolean; // a demo room: bots, a made-up backlog, anyone facilitates
+  demo_idle_seconds?: number; // a demo room ends after this long with nobody in it
   summary?: SummaryEntry[]; // facilitators only
 }
 

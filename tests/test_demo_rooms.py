@@ -1,6 +1,6 @@
 """Demo rooms: a private room per visitor, with bots and a made-up backlog.
 
-Cases DR-01 to DR-10 and DR-12. DR-06, DR-09 and DR-12 at Unit level, the rest at
+Cases DR-01 to DR-10, DR-12 and DR-14. DR-06, DR-09 and DR-12 at Unit level, the rest at
 Integration level.
 """
 
@@ -274,3 +274,25 @@ def test_dr12_the_cap_and_idle_time_come_from_the_environment():
         for bad in ("0", "-3", "ten", "1.5"):
             with pytest.raises(ConfigError, match=name):
                 Settings.from_env({name: bad})
+
+
+@pytest.mark.parametrize("idle", [DEMO_IDLE_SECONDS, 2700])
+def test_dr14_a_demo_room_tells_visitors_its_idle_time(settings, jira, clock, tmp_path, idle):
+    static = tmp_path / "static"
+    static.mkdir()
+    (static / "index.html").write_text("<!doctype html><title>Scrum poker</title>")
+    app = create_app(
+        settings=dataclasses.replace(settings, demo_rooms=True, demo_idle_seconds=idle),
+        backlog_source=jira,
+        points_writer=jira,
+        clock=clock,
+        static_dir=static,
+    )
+    with TestClient(app, base_url=BASE) as client:
+        slug = new_demo(client)
+        ws, join = visit(client, slug)
+        with ws:
+            ws.send_json(join)
+            snap = until(ws, state(lambda s: s["you"]["seated"]))
+            assert snap["demo"] is True
+            assert snap["demo_idle_seconds"] == idle

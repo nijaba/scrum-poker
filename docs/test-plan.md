@@ -253,6 +253,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | DR-11 | Try a demo in the browser | The home page's Try a demo opens a demo room that says it is a demo; the bots vote and the visitor can reveal and confirm | E2E |
 | DR-12 | `DEMO_MAX_ROOMS` and `DEMO_IDLE_SECONDS` set, unset, or not a whole number of at least 1 | Read as given; 20 and 1800 when unset; refused at start-up, naming the variable, otherwise | Unit |
 | DR-13 | Try a demo when every demo room is taken | The home page shows the server's come-back-later message beside a coffee cup, as a status note, not an error; the page stays put and Try a demo can be pressed again | E2E |
+| DR-14 | A visitor is in a demo room, with `DEMO_IDLE_SECONDS` at its default or set | The room's state carries the idle time, and the demo banner gives it ("ends after 45 minutes with nobody here" for 2700) | Integration, E2E |
 
 ## Mini mode
 

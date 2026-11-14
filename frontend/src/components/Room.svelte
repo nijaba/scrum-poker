@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { addBot, forgetPlayer, getMe, getPlayer, getRoom, signOut } from "../lib/api";
-  import { plural, points, remainingAt } from "../lib/format";
+  import { duration, plural, points, remainingAt } from "../lib/format";
   import { RoomConnection } from "../lib/room.svelte";
   import { openMini } from "../lib/mini";
   import {
@@ -252,7 +252,8 @@
       <p class="banner demo" role="note">
         <span
           ><strong>Demo room.</strong> The other players are bots and the backlog is made up; nothing
-          reaches Jira. The room ends after 30 minutes with nobody here.</span
+          reaches Jira. The room ends after {duration(snap.demo_idle_seconds ?? 1800)} with
+          nobody here.</span
         >
         <button class="btn" type="button" onclick={moreBots}>Add a bot</button>
         {#if botError}<span class="bot-error" role="alert">{botError}</span>{/if}

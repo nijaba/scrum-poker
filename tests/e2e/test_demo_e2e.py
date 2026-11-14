@@ -1,4 +1,4 @@
-"""Demo rooms in a real browser. Cases DR-11 and DR-13."""
+"""Demo rooms in a real browser. Cases DR-11, DR-13 and DR-14."""
 
 import re
 
@@ -18,6 +18,8 @@ def test_dr11_try_a_demo_from_the_home_page(browser, server):
     page.get_by_role("button", name="Join room").click()
 
     expect(page.get_by_role("note")).to_contain_text("Demo room.")
+    # DR-14: the banner gives the server's idle time (DEMO_IDLE_SECONDS=2700 here)
+    expect(page.get_by_role("note")).to_contain_text("ends after 45 minutes with nobody here")
     expect(page.get_by_text("5 of 5 voted")).not_to_be_visible()
     hand = page.get_by_role("region", name="Your card")
     hand.get_by_role("button", name="5", exact=True).click()
