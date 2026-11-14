@@ -326,8 +326,12 @@ also include:
   it can't sway the vote. Confirming replaces it in Jira; skipping leaves it.
 
 **Extra JQL** narrows the backlog further, for example `labels = frontend`,
-`component = Checkout` or `fixVersion = "2.4"`. Tickets in a sprint never come up: Jira's
-backlog leaves them out.
+`component = Checkout` or `fixVersion = "2.4"`. For several labels, list them with commas
+inside brackets: `labels in (frontend, mobile)` takes tickets with any of them, and
+`labels = frontend AND labels = mobile` only those with both. Tickets in a sprint never come
+up: Jira's backlog leaves them out. Atlassian's
+[JQL guide](https://support.atlassian.com/jira-software-cloud/docs/use-advanced-search-with-jira-query-language-jql/)
+covers every field and operator.
 
 **Preview queue** shows how many tickets the filter, as set in the form, would put in the
 queue, and lists the first 50. It doesn't save anything, so try settings freely, then choose

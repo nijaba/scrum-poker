@@ -30,6 +30,9 @@
 
   let { slug }: { slug: string } = $props();
 
+  const JQL_DOCS =
+    "https://support.atlassian.com/jira-software-cloud/docs/use-advanced-search-with-jira-query-language-jql/";
+
   let me = $state<Me | null>(null);
   let info = $state<RoomInfo | null | undefined>(undefined); // undefined while loading
   let loadError = $state<string | null>(null);
@@ -354,7 +357,7 @@
           </div>
         </div>
         <span class="text-2">
-          Sessions score the tickets in this board's backlog that have no estimate, in rank order.
+          Sessions score this board's backlog tickets that pass the queue filter below, in rank order.
           Every write goes through this connection, so Jira's history shows your account.
         </span>
       {/if}
@@ -394,10 +397,15 @@
           class="input"
           maxlength="500"
           bind:value={filter.jql}
-          placeholder="labels = frontend"
+          placeholder="labels in (frontend, mobile)"
           aria-describedby="jql-help"
         />
-        <span id="jql-help" class="label">Narrows the backlog, for example by label, component or fix version.</span>
+        <span id="jql-help" class="label">
+          Narrows the backlog. Several labels, any of them: <code>labels in (frontend, mobile)</code>
+          (commas inside brackets). All of them: <code>labels = frontend AND labels = mobile</code>.
+          Also by component or fix version: <code>component = Checkout</code>.
+          <a href={JQL_DOCS} target="_blank" rel="noopener noreferrer">Atlassian's JQL guide</a>
+        </span>
       </div>
       <div class="row tight">
         <button
@@ -671,6 +679,9 @@
     background: var(--chip);
     font-size: 13px;
     color: var(--text-2);
+  }
+  #jql-help code {
+    white-space: nowrap;
   }
   .preview {
     display: flex;
