@@ -5,7 +5,7 @@ unestimated tickets of a backlog in rank order; everyone votes with hidden cards
 story points are written back to Jira.
 
 One lightweight container, one process. Votes and session counters live in memory; room
-definitions live in one SQLite file. Production runs at <https://poker.example.com>.
+definitions live in one SQLite file.
 
 Try it online, with no sign-in: <https://poker.nijalabs.com/> offers **Try a demo**, a
 private practice room with bot players and a made-up backlog. Nothing there reaches Jira.
