@@ -276,6 +276,23 @@ def test_dr12_the_cap_and_idle_time_come_from_the_environment():
                 Settings.from_env({name: bad})
 
 
+def test_dr17_tour_video_is_on_unless_turned_off():
+    assert Settings.from_env({}).tour_video is True
+    for on in ("1", "true", "yes", " YES "):
+        assert Settings.from_env({"TOUR_VIDEO": on}).tour_video is True
+    for off in ("0", "false", "no", "No"):
+        assert Settings.from_env({"TOUR_VIDEO": off}).tour_video is False
+    with pytest.raises(ConfigError, match="TOUR_VIDEO"):
+        Settings.from_env({"TOUR_VIDEO": "maybe"})
+
+
+def test_dr17_the_home_page_learns_whether_to_offer_the_video(client, settings, tmp_path):
+    assert client.get("/api/me").json()["tour_video"] is True
+    off = create_app(settings=dataclasses.replace(settings, tour_video=False), static_dir=tmp_path)
+    with TestClient(off, base_url=BASE) as other:
+        assert other.get("/api/me").json()["tour_video"] is False
+
+
 @pytest.mark.parametrize("idle", [DEMO_IDLE_SECONDS, 2700])
 def test_dr14_a_demo_room_tells_visitors_its_idle_time(settings, jira, clock, tmp_path, idle):
     static = tmp_path / "static"

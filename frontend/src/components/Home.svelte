@@ -165,6 +165,13 @@
       <p class="text-2">This account can run sessions in rooms where it is a delegate, but cannot create rooms.</p>
     {/if}
   {/if}
+  {#if me?.tour_video && !me.demo_rooms}
+    <section class="section" aria-label="Watch the video">
+      <h2>See it in 30 seconds</h2>
+      <p class="text-2">A short narrated tour of a session, from the first vote to the points in Jira.</p>
+      <div class="buttons">{@render watchButton()}</div>
+    </section>
+  {/if}
   {#if me?.demo_rooms}
     <section class="section" aria-label="Try a demo">
       <h2>Practise first</h2>
@@ -174,10 +181,7 @@
       </p>
       <div class="buttons">
         <button class="btn" type="button" disabled={demoBusy} onclick={tryDemo}>Try a demo</button>
-        <button class="btn" type="button" aria-haspopup="dialog" onclick={watch}>
-          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"></path></svg>
-          Watch the video
-        </button>
+        {#if me.tour_video}{@render watchButton()}{/if}
       </div>
       {#if demoFull}
         <p class="full" role="status"><span class="cup" aria-hidden="true">☕</span> {demoFull}</p>
@@ -186,6 +190,13 @@
     </section>
   {/if}
 </main>
+
+{#snippet watchButton()}
+  <button class="btn" type="button" aria-haspopup="dialog" onclick={watch}>
+    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"></path></svg>
+    Watch the video
+  </button>
+{/snippet}
 
 <dialog class="player" bind:this={player} aria-labelledby="player-title" onclose={stopVideo}>
   <div class="player-head">

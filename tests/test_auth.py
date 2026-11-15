@@ -62,6 +62,7 @@ def test_ar01_owner_signs_in_with_google(visitor):
         "can_create": True,
         "providers": ["google", "github"],
         "demo_rooms": False,
+        "tour_video": True,
     }
     assert create_room(visitor, "team-g").status_code == 201
 
@@ -90,6 +91,7 @@ def test_signed_out_cannot_create_rooms(visitor):
         "signed_in": False,
         "providers": ["google", "github"],
         "demo_rooms": False,
+        "tour_video": True,
     }
     assert create_room(visitor, "nope").status_code == 401
 
