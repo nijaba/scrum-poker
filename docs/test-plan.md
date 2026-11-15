@@ -269,6 +269,34 @@ The always-on-top window is checked by hand. Its content is automated through th
 | MM-06 | Countdown ends with sound on and the mini window open | The chime plays | Manual |
 | MM-07 | Close the main tab | The mini window closes | Manual |
 
+## Phones
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| PH-01 | A player opens a room in a 440 × 956 window | The header is one row; the ticket title, the table and every card of the hand are in view without scrolling, and the hand stays put when the page scrolls | E2E |
+| PH-02 | A facilitator on a phone votes, reveals and confirms | Reveal cards and, after reveal, the final points and Confirm are in the dock, in view without scrolling; Jira gets the points | E2E |
+| PH-03 | A facilitator on a phone opens the more-controls sheet | It holds the countdown, Skip and the other controls, and Session summary; Close and Escape close it | E2E |
+| PH-04 | Open the menu on a phone | It shows the session and backlog counters, Mute when the room has sound, and Theme | E2E |
+| PH-05 | The same room in a 1280 px window | No dock and no sheet: the counters and Mini mode are in the header and the facilitator panel sits beside the table, as before | E2E |
+| PH-06 | Use the phone layout on a real iPhone and Android phone | Taps land, the dock clears the home bar, nothing scrolls sideways | Manual |
+
+## Remote view
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| RV-01 | A player on a phone turns on Remote view and votes | Large cards; the vote counts at the table; after a reload Remote view is still on; Full room switches back | E2E |
+| RV-02 | The facilitator reveals while a player is in Remote view | The player sees their card, the most-chosen card, the average and the median | E2E |
+| RV-03 | A facilitator opens the menu on a phone | No Remote view item | E2E |
+
+## Dark mode
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| TH-01 | Open the home page and a room with the device in dark mode, and again in light mode, with no theme chosen | The page follows the device: dark tokens in dark mode, light ones in light mode | E2E |
+| TH-02 | Choose Dark, then Light, then System from the room menu and from the footer | The page changes at once; the choice survives a reload; System follows the device again | E2E |
+| TH-03 | Every text token on every background token it is used on, in both palettes | Contrast is at least 4.5:1 | Unit |
+| TH-04 | Look over every screen in dark mode | Nothing is left light, unreadable or invisible | Manual |
+
 ## HTTPS
 
 | ID | Case | Expected | Level |

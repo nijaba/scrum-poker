@@ -115,3 +115,13 @@ Design: "Demo rooms". Decided by the owner on 2026-11-13: one private room per v
 - [x] The demo banner gives the configured idle time
 
 Cases: DR-01 to DR-14.
+
+## After step 6: phones and dark mode
+
+Design: "Phones" and "Dark mode". Decided by the owner on 2026-11-14 from the mock-ups: a compact phone layout with the hand docked at the bottom and the facilitator's next step beside it (option A), a Remote view players can turn on (option B), and a dark palette that follows the device, with a Theme choice in the menu and the footer. Desktop layout unchanged.
+
+- [x] Dark palette, Theme choice, applied before the page draws
+- [x] Phone layout: one-row header, compact table, docked hand and facilitator actions, more-controls sheet
+- [x] Remote view for players
+
+Cases: PH-01 to PH-05, RV-01 to RV-03, TH-01 to TH-03. Manual: PH-06, TH-04.

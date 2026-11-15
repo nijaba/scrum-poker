@@ -14,9 +14,12 @@
     unlockAudio,
   } from "../lib/sound";
   import type { Me, Player } from "../lib/types";
+  import { remote, setRemote, viewport } from "../lib/viewport.svelte";
   import FacilitatorPanel from "./FacilitatorPanel.svelte";
+  import FinalPoints from "./FinalPoints.svelte";
   import Hand from "./Hand.svelte";
   import Join from "./Join.svelte";
+  import RemoteView from "./RemoteView.svelte";
   import Table from "./Table.svelte";
   import TicketCard from "./TicketCard.svelte";
   import UserMenu from "./UserMenu.svelte";
@@ -46,6 +49,19 @@
           ? "Facilitator"
           : "Player",
   );
+
+  // Phones get their own arrangement of the same pieces (design.md, "Phones").
+  const phone = $derived(viewport.phone);
+  const remoteView = $derived(phone && !isFacilitator && remote.on);
+  const phoneInfo = $derived(
+    phone && snap
+      ? [
+          `Session: ${plural(snap.counters.session.tickets, "ticket")} · ${points(snap.counters.session.points)}`,
+          `Backlog: ${snap.counters.backlog.estimated} of ${plural(snap.counters.backlog.total, "ticket")} · ${points(snap.counters.backlog.points)}`,
+        ]
+      : [],
+  );
+  let sheet = $state<HTMLDialogElement | null>(null);
 
   const remaining = $derived(
     room ? remainingAt(snap?.countdown, room.receivedAt, now) : null,
@@ -189,6 +205,18 @@
   });
 </script>
 
+{#snippet moreButton()}
+  <button
+    class="btn more"
+    type="button"
+    aria-label="More controls"
+    aria-haspopup="dialog"
+    onclick={() => sheet?.showModal()}
+  >
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>
+  </button>
+{/snippet}
+
 {#if missing}
   <p class="loading">There is no room called {slug}. <a href="/">Scrum poker home</a></p>
 {:else if player === undefined}
@@ -206,12 +234,38 @@
     <header>
       <div class="title">
         <a class="slug" href="/" title="Scrum poker home">{currentSlug}</a>
-        <button class="btn icon-btn" type="button" onclick={copyLink}>
+        {#if phone && snap?.ticket}
+          <span class="position">Ticket {snap.queue.position} of {snap.queue.length}</span>
+        {/if}
+        <button
+          class="btn icon-btn copy"
+          type="button"
+          aria-label={phone ? (copied ? "Copied" : "Copy link") : undefined}
+          onclick={copyLink}
+        >
           <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"></path><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"></path></svg>
-          <span>{copied ? "Copied" : "Copy link"}</span>
+          {#if !phone}<span>{copied ? "Copied" : "Copy link"}</span>{/if}
         </button>
       </div>
-      {#if snap}
+      {#if snap && phone}
+        <div class="meta">
+          {#if remoteView}
+            <button class="btn icon-btn" type="button" onclick={() => setRemote(false)}>Full room</button>
+          {/if}
+          <UserMenu
+            name={snap.you.name ?? player.name}
+            role={roleLabel}
+            signedIn={!!me?.signed_in}
+            settingsHref={snap.you.access === "owner" ? `/r/${currentSlug}/settings` : null}
+            onlogout={logOut}
+            info={phoneInfo}
+            muted={snap.sound ? muted : null}
+            onmute={toggleMute}
+            remote={isFacilitator ? null : remote.on}
+            onremote={() => setRemote(!remote.on)}
+          />
+        </div>
+      {:else if snap}
         <div class="meta">
           <div class="counter" aria-label="Session counter">
             <span class="counter-label">Session</span>
@@ -289,7 +343,80 @@
       </p>
     {/if}
 
-    {#if snap && room && !room.ended}
+    {#if snap && room && !room.ended && remoteView}
+      <RemoteView
+        {snap}
+        {remaining}
+        onvote={(card) => room?.send({ type: "vote", card })}
+        onsit={(atTable) => room?.send({ type: atTable ? "sit_in" : "sit_out" })}
+        onbreak={(on) => room?.send({ type: "break", on })}
+      />
+    {:else if snap && room && !room.ended && phone}
+      <main class="phone">
+        {#if snap.backlog.state !== "ready"}
+          <section class="panel" aria-label="Backlog" aria-live="polite">
+            <h1 class="done">
+              {snap.backlog.state === "loading"
+                ? "Loading the backlog from Jira…"
+                : "The backlog did not load"}
+            </h1>
+            {#if snap.backlog.state === "error"}<p class="note">{snap.backlog.message}</p>{/if}
+          </section>
+        {:else if snap.ticket}
+          <TicketCard ticket={snap.ticket} queue={snap.queue} />
+        {:else}
+          <section class="panel" aria-label="Current ticket">
+            <h1 class="done">All tickets in the queue are done.</h1>
+          </section>
+        {/if}
+        <Table
+          {snap}
+          {remaining}
+          compact
+          showCountdown
+          onremove={isFacilitator
+            ? (id) => room?.send({ type: "remove_player", player_id: id })
+            : undefined}
+        />
+      </main>
+      <div class="dock">
+        {#if snap.ticket && snap.you.seated && (snap.round.state === "voting" || !isFacilitator)}
+          <Hand
+            {snap}
+            compact
+            onvote={(card) => room?.send({ type: "vote", card })}
+            onsit={(atTable) => room?.send({ type: atTable ? "sit_in" : "sit_out" })}
+            onbreak={(on) => room?.send({ type: "break", on })}
+          />
+        {/if}
+        {#if isFacilitator}
+          {#if snap.ticket && snap.round.state !== "voting"}
+            <FinalPoints {snap} send={(m) => room?.send(m)} docked lead={moreButton} />
+          {:else}
+            <div class="dock-actions">
+              {@render moreButton()}
+              {#if snap.ticket}
+                <button class="btn-primary" type="button" onclick={() => room?.send({ type: "reveal" })}
+                  >Reveal cards · {snap.players.filter((p) => p.voted).length} of {snap.players
+                    .length}</button
+                >
+              {/if}
+            </div>
+          {/if}
+        {/if}
+      </div>
+      {#if isFacilitator}
+        <dialog class="sheet" bind:this={sheet} aria-label="Session controls">
+          <div class="sheet-head">
+            <h2>Session controls</h2>
+            <button class="btn icon-btn" type="button" aria-label="Close" onclick={() => sheet?.close()}>
+              <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+            </button>
+          </div>
+          <FacilitatorPanel {snap} {remaining} send={(m) => room?.send(m)} docked />
+        </dialog>
+      {/if}
+    {:else if snap && room && !room.ended}
       <main>
         <div class="main-column">
           {#if snap.backlog.state !== "ready"}
@@ -438,7 +565,7 @@
     color: var(--danger);
   }
   .banner-error {
-    background: #f6e3e3;
+    background: var(--danger-bg);
     color: var(--danger);
   }
   main {
@@ -466,5 +593,116 @@
       padding-left: 16px;
       padding-right: 16px;
     }
+  }
+
+  /* Phones (design.md, "Phones"): one-row header, a compact column, a docked hand. */
+  .position {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    header {
+      flex-wrap: nowrap;
+      gap: 8px;
+      min-height: 56px;
+      box-sizing: border-box;
+      padding: 0 8px 0 16px;
+    }
+    .title {
+      flex: 1;
+      min-width: 0;
+      gap: 8px;
+    }
+    .slug {
+      font-size: 20px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .copy {
+      flex: none;
+      width: 44px;
+      justify-content: center;
+      padding: 0;
+      border: none;
+      background: none;
+    }
+    .meta {
+      flex-wrap: nowrap;
+      gap: 4px;
+    }
+    .banner {
+      margin: 12px 16px 0;
+    }
+  }
+  main.phone {
+    flex: 1;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 16px max(14px, env(safe-area-inset-bottom));
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -6px 18px rgb(0 0 0 / 8%);
+  }
+  .dock:empty {
+    display: none;
+  }
+  .dock-actions {
+    display: flex;
+    gap: 10px;
+  }
+  .dock-actions .btn-primary {
+    flex: 1;
+  }
+  .more {
+    flex: none;
+    width: 52px;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .sheet {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: 100%;
+    max-width: 640px;
+    max-height: 88vh;
+    box-sizing: border-box;
+    margin: auto auto 0;
+    padding: 8px 16px max(20px, env(safe-area-inset-bottom));
+    border: none;
+    border-radius: 18px 18px 0 0;
+    background: var(--ground);
+    color: var(--ink);
+    overflow-y: auto;
+  }
+  .sheet::backdrop {
+    background: rgb(17 22 20 / 45%);
+  }
+  .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 8px;
+  }
+  .sheet-head h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 20px;
   }
 </style>

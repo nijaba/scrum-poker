@@ -116,6 +116,24 @@ and the voted count, so you can vote while you share your screen or read the tic
 Keep the main room tab open: the mini window works through it, and closes when you close
 the room tab. Sound plays from the room tab.
 
+### On a phone
+
+On a phone the room fits on one screen. Your cards stay at the bottom of the screen; the
+ticket and the table sit above them, with each player shown as a small chip that fills in when
+they vote. The counters and **Mute** are in the menu behind your name. Mini mode isn't
+offered on phones.
+
+If the session is on a shared screen, choose **Remote view** in that menu. Your phone then
+shows only the ticket title, how many have voted, and large cards to tap. After the reveal it
+shows your card beside the most-chosen one, with the average and median. **Full room** switches
+back. Your phone remembers the choice.
+
+### Light or dark
+
+The app follows your device's light or dark setting. To pick one yourself, choose **Theme**
+(System, Light or Dark) in the menu behind your name or at the foot of any page. Your browser
+remembers the choice.
+
 ### Messages you might see
 
 | Message | What it means |
@@ -138,6 +156,13 @@ your role, **Owner** or **Delegate**, under your name.
 Click your name for a menu: **Your rooms** goes back to the list of rooms you own or help run,
 **Room settings** (owners only) opens this room's settings, and **Log out** leaves the table,
 signs you out and returns you to the home page. The room name at the top left also goes back to the home page.
+
+### Running a session from a phone
+
+On a phone, the next step sits under your cards at the bottom of the screen: **Reveal cards**
+with the voted count while voting, then the final points and **Confirm** after the reveal. The
+**⋯** button beside it opens the other controls (countdown, Restart vote, Skip, Rewind, Reset
+room, auto-reveal, Up next and the session summary); close them with **Close**. Touch the **×** on a player's chip to remove them.
 
 ### Starting a session
 

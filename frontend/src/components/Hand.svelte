@@ -8,8 +8,11 @@
     onvote,
     onsit,
     onbreak,
+    compact = false,
   }: {
     snap: Snapshot;
+    /** In the phone dock: rows of five small cards, no panel around them. */
+    compact?: boolean;
     onvote: (card: string) => void;
     /** Ask for a coffee break (true) or end it (false). Not a vote. */
     onbreak: (on: boolean) => void;
@@ -22,7 +25,7 @@
 
   // Up to a dozen cards fan out like a hand; longer custom scales lie in a plain row.
   const FAN_MAX = 12;
-  const fan = $derived(snap.scale.cards.length <= FAN_MAX);
+  const fan = $derived(!compact && snap.scale.cards.length <= FAN_MAX);
   function angle(i: number, n: number): number {
     const step = Math.min(3, 30 / Math.max(1, n - 1));
     return (i - (n - 1) / 2) * step;
@@ -33,7 +36,7 @@
   }
 </script>
 
-<section class="panel hand" aria-label="Your card">
+<section class="panel hand" class:compact aria-label="Your card">
   {#if snap.you.sitting_out}
     <div class="head">
       <span class="panel-title">You are watching</span>
@@ -43,7 +46,9 @@
   {:else if voting}
     <div class="head">
       <span class="panel-title">Your card</span>
-      <span class="note">{kinds[snap.scale.kind]} · hidden from others until reveal</span>
+      <span class="note"
+        >{compact ? "hidden until reveal" : `${kinds[snap.scale.kind]} · hidden from others until reveal`}</span
+      >
       <span class="actions">
         <button
           class="btn coffee"
@@ -68,7 +73,7 @@
           aria-pressed={snap.you.vote === card.label}
           aria-label={card.label === "?" ? "Not sure" : card.label}
           onclick={() => onvote(card.label)}
-          ><CardFace label={card.label} {suit} /></button
+          ><CardFace label={card.label} {suit} {compact} /></button
         >
       {/each}
     </div>
@@ -133,7 +138,7 @@
     z-index: 3;
     border: 2px solid var(--accent);
     box-shadow:
-      0 0 0 3px rgba(168, 75, 10, 0.18),
+      0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent),
       var(--card-shadow-up);
     transform: translateY(-10px);
   }
@@ -181,6 +186,46 @@
     .fan .card[aria-pressed="true"] {
       transform: translateY(-10px);
     }
+  }
+  /* The phone dock: no panel, rows of five cards that fill the width. */
+  .compact {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    gap: 8px;
+  }
+  .compact .head {
+    align-items: center;
+    flex-wrap: nowrap;
+  }
+  .compact .note {
+    flex: 1;
+    min-width: 0;
+  }
+  .compact .actions {
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .compact .sit,
+  .compact .coffee {
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+  .compact .cards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    padding-top: 10px;
+  }
+  .compact .card {
+    min-width: 0;
+    height: 60px;
+    padding: 0 4px;
+  }
+  .compact .card[aria-pressed="true"] {
+    transform: translateY(-8px);
   }
   @media (prefers-reduced-motion: reduce) {
     .card {

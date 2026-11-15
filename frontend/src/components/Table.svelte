@@ -12,8 +12,11 @@
     remaining,
     showCountdown,
     onremove,
+    compact = false,
   }: {
     snap: Snapshot;
+    /** On a phone: chips while voting, small cards after reveal (design.md, "Phones"). */
+    compact?: boolean;
     remaining: number | null;
     showCountdown: boolean;
     /** Facilitators get a remove button on each seat. */
@@ -70,6 +73,8 @@
 
 <section
   class="table"
+  class:compact
+  class:revealed
   class:perfect={revealed && results?.perfect}
   aria-label={revealed ? "Players and results" : "Players"}
 >
@@ -120,7 +125,7 @@
               <div class="flip-inner">
                 <div class="side deck-back"></div>
                 <div class="side front deck-card" class:red={suit?.red}>
-                  {#if revealed && p.card != null}<CardFace label={p.card} {suit} />{/if}
+                  {#if revealed && p.card != null}<CardFace label={p.card} {suit} {compact} />{/if}
                 </div>
               </div>
             </div>
@@ -363,7 +368,7 @@
   }
   .mark.high {
     background: #ffd9b8;
-    color: var(--ink);
+    color: var(--card-ink);
   }
   .watchers {
     margin: 0;
@@ -451,7 +456,7 @@
   }
   .perfect-note {
     background: #ffd9b8;
-    color: var(--ink);
+    color: var(--card-ink);
     font-weight: 600;
   }
   /* A perfect consensus: once the cards have turned and sorted, they take a bow. */
@@ -467,6 +472,94 @@
     .perfect .flip {
       animation: none;
     }
+  }
+  /* Phone: three chips to a row while voting; four small cards after reveal. */
+  .compact {
+    padding: 12px 14px;
+    gap: 12px;
+    border-radius: 12px;
+  }
+  .compact .state {
+    font-size: 16px;
+  }
+  .compact .seats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .compact:not(.revealed) .seat {
+    flex-direction: row;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 0 0 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--table-line) 55%, var(--table));
+  }
+  .compact:not(.revealed) .card {
+    flex: none;
+    width: 14px;
+    height: 20px;
+    border-radius: 3px;
+  }
+  .compact:not(.revealed) .slot {
+    border-width: 1.5px;
+  }
+  /* A chip's card mark is too small for the printed back: a plain filled card. */
+  .compact:not(.revealed) .side {
+    box-shadow: none;
+  }
+  .compact:not(.revealed) .side.deck-back {
+    padding: 0;
+    border: none;
+    border-radius: 3px;
+    background: var(--card-back);
+  }
+  .compact:not(.revealed) .side.deck-back::before,
+  .compact:not(.revealed) .side.deck-back::after {
+    display: none;
+  }
+  .compact:not(.revealed) .name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .compact:not(.revealed) .status {
+    display: none;
+  }
+  .compact .remove {
+    position: static;
+    flex: none;
+    width: 40px;
+    order: 3;
+    opacity: 1;
+  }
+  .compact .remove::before {
+    width: 22px;
+    height: 22px;
+  }
+  .compact.revealed .seats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .compact.revealed .card {
+    width: 48px;
+    height: 66px;
+  }
+  .compact.revealed .remove {
+    display: none;
+  }
+  .compact .results {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    padding-top: 12px;
+  }
+  .compact .figure-value {
+    font-size: 28px;
+  }
+  .compact .figure-text {
+    font-size: 15px;
   }
   .figure-sub {
     font-size: 14px;
