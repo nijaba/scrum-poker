@@ -206,7 +206,7 @@ In the room header, your name and role are a button that opens a small menu:
 | Signed in, anyone else (delegate or player) | Your rooms, Log out |
 | Not signed in | Log out |
 
-Every menu also has Theme (System, Light or Dark; see "Dark mode"). On a phone it also holds what the wide header shows: the session and backlog counters and Mute; a player's menu adds Remote view (see "Phones").
+Every menu also has Theme (System, Light or Dark; see "Dark mode") and Tour, just before Log out (see "Tour"). On a phone it also holds what the wide header shows: the session and backlog counters and Mute; a player's menu adds Remote view (see "Phones").
 
 The room name at the start of the header is a link to the home page, for everyone: a player who is not signed in finds the sign-in buttons there, and someone signed in finds their rooms. Room settings is the only way to the settings page from the room header. Your rooms goes to the home page, which lists the rooms you own or help run. Log out first sends the room a `leave` command, which takes the seat and any vote off the table like a removal but without the "removed" notice. Then someone signed in is signed out and taken to the home page; their player name stays in the browser, so opening a room again seats them as a player under that name. A player who is not signed in has their player cookie cleared (`DELETE /api/player`) and sees the name form again; the next name they type is a new player.
 
@@ -279,6 +279,20 @@ A window 640 px wide or narrower gets a phone layout of the room. Wider windows 
 ## Dark mode
 
 Every page has a light and a dark palette. By default the app follows the device's setting (`prefers-color-scheme`). The Theme choice (System, Light or Dark) is in the room menu and in the footer of every page; it is kept in the browser (`localStorage`) and applied before the page draws, so a dark page never flashes light. The palettes are the same tokens with other values: the green table and the card faces stay as they are, and every text colour keeps a contrast of at least 4.5:1 on its background in both.
+
+## Tour
+
+A short guided tour explains the room to whoever opens it, and the settings page to the owner. Decided by the owner on 2026-11-15.
+
+- **Offered once.** The first time someone is in a room, a note under the header offers **Take the tour** or **No thanks**. Either answer is kept in the browser (`localStorage`), so the note does not come back. The owner's first visit to the settings page offers that page's tour the same way, kept separately.
+- **On demand.** **Tour** in the room menu and in the footer of the room and settings pages starts the tour again at any time.
+- **By role.** Everyone sees the ticket, the table, their cards, what the reveal shows, and the menu. A facilitator also sees Reveal cards with the other controls, the final points and Confirm, the countdown, and Up next with the session summary; on a phone the dock and the **⋯** sheet stand in for the panel. The owner also hears where Room settings is. The settings tour walks through the room link, Jira, the queue filter and its preview, the scale, the countdown, sound and reveal settings, and delegates.
+- **How a step looks.** The part of the page it explains is outlined and the rest dimmed; a caption beside it gives a title, a sentence or two, "Step 2 of 6", and Back, Next and Done. The page stays usable underneath. Escape or Close ends the tour and returns focus where it was. A step whose part is not on the page (Up next with an empty queue, Remote view's table) shows its caption on its own. The tour follows the theme and respects reduced motion.
+- The tour is drawn by the page alone: no library, nothing sent to the server.
+
+## Guide pictures
+
+The pictures in the user and admin guides (`docs/images/`) are screenshots taken by `scripts/guide_pictures.py`, which runs the app with the fake sign-in, the fake Jira and the fake backlog and drives it with Playwright. Run it again when a screen changes. The pictures show only the fakes' made-up people and tickets.
 
 ## HTTPS
 

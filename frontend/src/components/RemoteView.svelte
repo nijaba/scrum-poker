@@ -39,7 +39,7 @@
   {:else if !snap.ticket}
     <h1>All tickets in the queue are done.</h1>
   {:else}
-    <div class="ticket">
+    <div class="ticket" data-tour="ticket">
       <span class="key">{snap.ticket.key} · Ticket {snap.queue.position} of {snap.queue.length}</span>
       <h1>{snap.ticket.summary}</h1>
     </div>
@@ -58,7 +58,7 @@
         <button class="btn" type="button" onclick={() => onsit(true)}>Join the table</button>
       </div>
     {:else if voting}
-      <div class="cards" aria-label="Your card">
+      <div class="cards" aria-label="Your card" data-tour="hand">
         {#each snap.scale.cards as card (card.label)}
           {@const suit = suitOf(snap.scale.cards, card.label)}
           <button

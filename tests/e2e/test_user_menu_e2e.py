@@ -22,7 +22,7 @@ def test_um04_owner_menu_offers_rooms_settings_and_log_out(table):
     fay, ana, ben = seat_three(table)
 
     menu = open_menu(fay)
-    expect(items(menu)).to_have_text(["Your rooms", "Room settings", "Log out"])
+    expect(items(menu)).to_have_text(["Your rooms", "Room settings", "Tour", "Log out"])
 
     # Escape closes it and gives focus back to the name.
     fay.page.keyboard.press("Escape")
@@ -48,7 +48,7 @@ def test_um05_signed_in_person_gets_rooms_and_log_out_and_leaves_for_home(table)
 
     cole = type(fay)("Cole Colleague", context, page)
     menu = open_menu(cole)
-    expect(items(menu)).to_have_text(["Your rooms", "Log out"])
+    expect(items(menu)).to_have_text(["Your rooms", "Tour", "Log out"])
 
     menu.get_by_role("menuitem", name="Log out").click()
 
@@ -68,7 +68,7 @@ def test_um06_player_logs_out_and_the_name_is_forgotten(table):
     expect(fay.page.get_by_text("1 of 3 voted")).to_be_visible()
 
     menu = open_menu(ben)
-    expect(items(menu)).to_have_text(["Log out"])
+    expect(items(menu)).to_have_text(["Tour", "Log out"])
     menu.get_by_role("menuitem", name="Log out").click()
 
     expect(ben.page.get_by_label("Your name")).to_have_value("")

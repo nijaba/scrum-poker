@@ -1,6 +1,9 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { points } from "../lib/format";
+  import { offerTour } from "../lib/tour.svelte";
+  import { settingsTour } from "../lib/tours";
+  import TourOffer from "./TourOffer.svelte";
   import {
     PROVIDER_NAMES,
     chooseJiraBoard,
@@ -36,6 +39,12 @@
   let me = $state<Me | null>(null);
   let info = $state<RoomInfo | null | undefined>(undefined); // undefined while loading
   let loadError = $state<string | null>(null);
+
+  // The owner's tour of this page (design.md, "Tour").
+  const isOwner = $derived(!!me?.signed_in && info?.access === "owner");
+  $effect(() => {
+    if (isOwner) return offerTour("settings", settingsTour);
+  });
 
   // The form
   let shortName = $state("");
@@ -277,6 +286,10 @@
   </div>
 </header>
 
+{#if isOwner}
+  <TourOffer text="First time here? A short tour walks through these settings." />
+{/if}
+
 <main class="page-main">
   {#if loadError}
     <p class="form-error" role="alert">{loadError}</p>
@@ -296,7 +309,7 @@
   {:else if info.access !== "owner"}
     <p>Only the room's owner can change its settings. <a href="/r/{current}">Back to the room</a></p>
   {:else}
-    <section class="section" aria-label="Room link">
+    <section class="section" aria-label="Room link" data-tour="room-link">
       <h2>Room link</h2>
       <div class="row">
         <div class="field grow">
@@ -311,7 +324,7 @@
       </span>
     </section>
 
-    <section class="section" aria-label="Jira">
+    <section class="section" aria-label="Jira" data-tour="jira">
       <div class="jira-head">
         <h2>Jira Cloud</h2>
         {#if jira?.available && jira.connected}
@@ -364,7 +377,7 @@
       {#if jiraError}<p class="form-error" role="alert">{jiraError}</p>{/if}
     </section>
 
-    <section class="section" aria-label="Queue filter">
+    <section class="section" aria-label="Queue filter" data-tour="queue-filter">
       <h2>Queue filter</h2>
       <span class="text-2">
         Which backlog tickets a session walks through, in rank order. By default: stories, tasks and
@@ -450,7 +463,7 @@
       {/if}
     </section>
 
-    <section class="section" aria-label="Scale">
+    <section class="section" aria-label="Scale" data-tour="scale">
       <h2>Scale</h2>
       <fieldset>
         <legend class="label">Cards players vote with</legend>
@@ -484,7 +497,7 @@
       {/if}
     </section>
 
-    <section class="section" aria-label="Countdown, sound and reveal">
+    <section class="section" aria-label="Countdown, sound and reveal" data-tour="countdown">
       <h2>Countdown, sound and reveal</h2>
       <div class="row wide">
         <div class="field">
@@ -503,7 +516,7 @@
       <span class="text-2">Facilitators can change these for a running session; these are the defaults.</span>
     </section>
 
-    <section class="section" aria-label="Delegates">
+    <section class="section" aria-label="Delegates" data-tour="delegates">
       <h2>Delegates</h2>
       <span class="text-2">Delegates can run sessions in this room. They cannot change these settings.</span>
       {#if delegates.length}

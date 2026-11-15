@@ -36,7 +36,7 @@
   }
 </script>
 
-<section class="panel hand" class:compact aria-label="Your card">
+<section class="panel hand" class:compact aria-label="Your card" data-tour="hand">
   {#if snap.you.sitting_out}
     <div class="head">
       <span class="panel-title">You are watching</span>

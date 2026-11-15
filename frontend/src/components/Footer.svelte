@@ -1,11 +1,16 @@
 <script lang="ts">
   import { THEMES, setTheme, theme, type Theme } from "../lib/theme.svelte";
+  import { startTour, tour } from "../lib/tour.svelte";
   const SOURCE = "https://github.com/nijaba/scrum-poker";
   const HELP = `${SOURCE}/blob/main/docs/user-guide.md`;
   const WHY = `${SOURCE}/blob/main/docs/why-scrum-poker.md`;
 </script>
 
 <footer>
+  {#if tour.steps}
+    <button class="tour" type="button" onclick={(e) => startTour(e.currentTarget)}>Tour</button>
+    <span aria-hidden="true">·</span>
+  {/if}
   <a href={HELP} target="_blank" rel="noopener noreferrer">Help</a>
   <span aria-hidden="true">·</span>
   <a href={WHY} target="_blank" rel="noopener noreferrer">Why scrum poker?</a>
@@ -37,11 +42,22 @@
     font-size: 13px;
     color: var(--text-3);
   }
-  a {
+  a,
+  .tour {
     display: inline-flex;
     align-items: center;
     min-height: 44px;
     color: var(--link);
+  }
+  .tour {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    text-decoration: underline;
+  }
+  .tour:hover {
+    color: var(--link-hover);
   }
   .theme {
     display: inline-flex;

@@ -65,7 +65,7 @@
   }
 </script>
 
-<section class="panel" class:docked aria-label="Final points">
+<section class="panel" class:docked aria-label="Final points" data-tour="final">
   <span class="panel-title">{docked ? "Final points" : "Final story points"}</span>
   <div class="picks">
     {#each numeric as card (card.label)}

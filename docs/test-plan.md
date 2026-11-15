@@ -297,6 +297,25 @@ The always-on-top window is checked by hand. Its content is automated through th
 | TH-03 | Every text token on every background token it is used on, in both palettes | Contrast is at least 4.5:1 | Unit |
 | TH-04 | Look over every screen in dark mode | Nothing is left light, unreadable or invisible | Manual |
 
+## Tour
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| TR-01 | Someone opens a room for the first time and answers No thanks | The offer shows once under the header; after No thanks and a reload it does not come back | E2E |
+| TR-02 | A player takes the tour from the offer | Steps for the ticket, the table, their cards, the reveal and the menu, each outlining its part; Back and Next move between them; Done ends it and the offer is gone for good | E2E |
+| TR-03 | A facilitator starts the tour from the menu | Their tour adds Reveal cards, the final points and Confirm, the countdown, and Up next with the session summary | E2E |
+| TR-04 | A facilitator on a phone takes the tour | The steps outline the dock and the **⋯** button, and each outlined part is on screen | E2E |
+| TR-05 | Press Escape during the tour, then choose Tour in the footer | Escape ends the tour and focus goes back; Tour starts it again at step 1 | E2E |
+| TR-06 | The owner opens the settings page for the first time and takes its tour | The offer shows; the steps cover the room link, Jira, the queue filter, the scale, countdown and sound, and delegates | E2E |
+| TR-07 | Take each tour with a screen reader, in dark mode and with reduced motion | Captions are read, nothing animates, the outline and caption are clear in both themes | Manual |
+
+## Guide pictures
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| GP-01 | Every picture the user and admin guides show | Exists in `docs/images/` and has alt text | Unit |
+| GP-02 | Every picture in `docs/images/` | Is shown by a guide and made by `scripts/guide_pictures.py` | Unit |
+
 ## HTTPS
 
 | ID | Case | Expected | Level |

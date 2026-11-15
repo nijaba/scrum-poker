@@ -27,6 +27,11 @@ players between processes that can't see each other.
 All three use the app's public address in their callbacks. Plain `http://` addresses are
 refused outside `localhost`.
 
+The home page offers a sign-in button for each provider you set up, and **Try a demo** when
+`DEMO_ROOMS=1`:
+
+![The home page before sign-in: Sign in with Google, Sign in with GitHub, and Try a demo](images/home-signed-out.png)
+
 ### Google
 
 1. In the [Google Cloud console](https://console.cloud.google.com/apis/credentials), set up
@@ -78,6 +83,11 @@ You can enable Google, GitHub or both. With neither, nobody can sign in.
 
 Room owners need a Jira account that can see the board and edit the tickets' estimates:
 everything is read and written as them.
+
+Once the Atlassian app works, a room owner's **Connect Jira** ends with the room's settings
+showing the connection:
+
+![A room's Jira Cloud settings, connected, with its site and board](images/settings-jira.png)
 
 ## Settings
 
@@ -137,6 +147,11 @@ For example: `ROOM_CREATOR_ALLOWLIST=google-domain:example.com,github:ana-dev`
 
 The allowlist only controls creating rooms. Anyone can join a room as a player with its link,
 and an owner can make anyone a delegate of their room.
+
+Someone on the allowlist sees **Create a room** on the home page once signed in; anyone else
+sees only the rooms they help run:
+
+![The home page for someone allowed to create rooms: Your rooms, and Create a room with a Short name field](images/home-rooms.png)
 
 GitHub organisation membership is checked at sign-in. Someone who leaves the organisation
 keeps the right to create rooms until they sign out or their 30-day sign-in expires.
