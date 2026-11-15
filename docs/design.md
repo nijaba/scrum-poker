@@ -206,6 +206,8 @@ In the room header, your name and role are a button that opens a small menu:
 | Signed in, anyone else (delegate or player) | Your rooms, Log out |
 | Not signed in | Log out |
 
+Every menu also has Theme (System, Light or Dark; see "Dark mode"). On a phone it also holds what the wide header shows: the session and backlog counters and Mute; a player's menu adds Remote view (see "Phones").
+
 The room name at the start of the header is a link to the home page, for everyone: a player who is not signed in finds the sign-in buttons there, and someone signed in finds their rooms. Room settings is the only way to the settings page from the room header. Your rooms goes to the home page, which lists the rooms you own or help run. Log out first sends the room a `leave` command, which takes the seat and any vote off the table like a removal but without the "removed" notice. Then someone signed in is signed out and taken to the home page; their player name stays in the browser, so opening a room again seats them as a player under that name. A player who is not signed in has their player cookie cleared (`DELETE /api/player`) and sees the name form again; the next name they type is a new player.
 
 ### Who may create rooms
@@ -264,6 +266,19 @@ Demo rooms let anyone practise, as a player or a facilitator, with no sign-in an
 Mini mode is a small always-on-top window with the ticket key, the countdown, the card row and the voted count. It uses the Document Picture-in-Picture API, which works on desktop Chrome and Edge 116+ and Firefox 151+, but not Safari ([source](https://www.rabbitpair.com/en/products/dualpip/faqs/document-pip-browser-limits)). Safari falls back to a normal small popup, which does not stay on top.
 
 The main tab stays open and holds the connection. The countdown sound plays from it, so sound works in mini mode too. The mini view is drawn by the main tab into the mini window, so votes go through the main tab's connection. While the mini window is open, its timer also keeps the main tab's countdown and sound on time, because browsers slow the timers of hidden tabs. A popup closes when the main tab closes; a Picture-in-Picture window does so by itself.
+
+## Phones
+
+A window 640 px wide or narrower gets a phone layout of the room. Wider windows keep the layout above unchanged. The layout changes nothing the server sends or accepts.
+
+- **Header.** One row: the room name (still the link home), "Ticket 4 of 8", Copy link as an icon, and the menu. The counters and Mute move into the menu. Mini mode is left out: phones offer no Picture-in-Picture window.
+- **Table.** Each seat is a small chip, three to a row: a card mark (filled when voted, dashed when not) and the name. After reveal the seats show small turned cards, four to a row, above the results and the vote spread.
+- **Dock.** Your cards stay in a panel fixed to the bottom of the screen, in rows of five, with Coffee break and Sit out. A facilitator's dock adds the next step: Reveal cards with the voted count while voting; after reveal the cards make way for the final points and Confirm. A **⋯** button beside it opens the rest of the facilitator panel (countdown, Restart vote, Skip, Rewind, Reload backlog, Reset room, auto-reveal, Up next, Session summary) in a sheet that rises from the bottom and closes with its Close button or Escape.
+- **Remote view.** For a player who follows the session on a shared screen, Remote view in the menu turns the phone into a remote: the ticket key and title, a voted bar with the countdown, and the scale's cards large, three to a row, with Coffee break and Sit out among them. After reveal it shows the player's own card beside the most-chosen one, with the average and median. Full room switches back. The choice is kept in the browser (`localStorage`), only applies at phone width, and is not offered to facilitators, who need the dock.
+
+## Dark mode
+
+Every page has a light and a dark palette. By default the app follows the device's setting (`prefers-color-scheme`). The Theme choice (System, Light or Dark) is in the room menu and in the footer of every page; it is kept in the browser (`localStorage`) and applied before the page draws, so a dark page never flashes light. The palettes are the same tokens with other values: the green table and the card faces stay as they are, and every text colour keeps a contrast of at least 4.5:1 on its background in both.
 
 ## HTTPS
 

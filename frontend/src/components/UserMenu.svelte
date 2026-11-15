@@ -5,6 +5,7 @@
    * and Log out alone for a player.
    */
   import { tick } from "svelte";
+  import { THEMES, setTheme, theme } from "../lib/theme.svelte";
 
   let {
     name,
@@ -12,12 +13,25 @@
     signedIn,
     settingsHref,
     onlogout,
+    info = [],
+    muted = null,
+    onmute,
+    remote = null,
+    onremote,
   }: {
     name: string;
     role: string;
     signedIn: boolean;
     settingsHref: string | null; // only the owner gets one
     onlogout: () => void;
+    /** On a phone: the counters the wide header shows, as lines of text. */
+    info?: string[];
+    /** On a phone, when the room has sound: the local mute, as a menu switch. */
+    muted?: boolean | null;
+    onmute?: () => void;
+    /** On a phone, for a player: Remote view on or off. */
+    remote?: boolean | null;
+    onremote?: () => void;
   } = $props();
 
   let open = $state(false);
@@ -26,7 +40,7 @@
   let menu = $state<HTMLDivElement | null>(null);
 
   function entries(): HTMLElement[] {
-    return menu ? Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]')) : [];
+    return menu ? Array.from(menu.querySelectorAll<HTMLElement>('[role^="menuitem"]')) : [];
   }
 
   async function show() {
@@ -107,12 +121,50 @@
       aria-label="Account"
       onkeydown={onMenuKey}
     >
+      {#if info.length}
+        <div class="info">
+          {#each info as line (line)}<span>{line}</span>{/each}
+        </div>
+      {/if}
+      {#if remote !== null}
+        <button
+          class="item radio"
+          role="menuitemcheckbox"
+          type="button"
+          aria-checked={remote}
+          onclick={() => {
+            open = false;
+            onremote?.();
+          }}>Remote view</button
+        >
+      {/if}
+      {#if muted !== null}
+        <button
+          class="item radio"
+          role="menuitemcheckbox"
+          type="button"
+          aria-checked={muted}
+          onclick={() => onmute?.()}>Mute</button
+        >
+      {/if}
       {#if signedIn}
         <a class="item" role="menuitem" href="/">Your rooms</a>
       {/if}
       {#if signedIn && settingsHref}
         <a class="item" role="menuitem" href={settingsHref}>Room settings</a>
       {/if}
+      <div class="group" role="group" aria-label="Theme">
+        <span class="group-label" aria-hidden="true">Theme</span>
+        {#each THEMES as t (t.value)}
+          <button
+            class="item radio"
+            role="menuitemradio"
+            type="button"
+            aria-checked={theme.value === t.value}
+            onclick={() => setTheme(t.value)}>{t.label}</button
+          >
+        {/each}
+      </div>
       <button class="item" role="menuitem" type="button" onclick={logOut}>Log out</button>
     </div>
   {/if}
@@ -145,6 +197,19 @@
     outline: 2px solid var(--link);
     outline-offset: 2px;
   }
+  /* Phone: the first name only, so the header stays one row. */
+  @media (max-width: 640px) {
+    .who-role {
+      display: none;
+    }
+    .who-name {
+      display: block;
+      max-width: 96px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
   .chevron {
     flex: none;
     color: var(--text-3);
@@ -165,7 +230,7 @@
     border: 1px solid var(--border);
     border-radius: 10px;
     background: var(--surface);
-    box-shadow: 0 8px 24px rgb(17 22 20 / 14%);
+    box-shadow: var(--menu-shadow);
   }
   .item {
     display: flex;
@@ -181,6 +246,40 @@
     text-align: left;
     text-decoration: none;
     cursor: pointer;
+  }
+  .info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .group {
+    display: flex;
+    flex-direction: column;
+    margin: 4px 0;
+    padding: 4px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .group-label {
+    padding: 4px 12px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-3);
+  }
+  /* A check mark beside the chosen theme or a switch that is on, never colour alone. */
+  .radio::before {
+    content: "";
+    width: 18px;
+    flex: none;
+  }
+  .radio[aria-checked="true"]::before {
+    content: "✓";
+    font-weight: 700;
   }
   .item:hover,
   .item:focus-visible {

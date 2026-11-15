@@ -1,21 +1,24 @@
 <script lang="ts">
-  import { clock, points } from "../lib/format";
+  import { clock } from "../lib/format";
   import { downloadCsv, summaryText } from "../lib/summary";
-  import type { Card, Snapshot } from "../lib/types";
+  import type { Snapshot } from "../lib/types";
+  import FinalPoints from "./FinalPoints.svelte";
 
   let {
     snap,
     remaining,
     send,
+    docked = false,
   }: {
     snap: Snapshot;
     remaining: number | null;
     send: (message: Record<string, unknown>) => void;
+    /** On a phone, in the more-controls sheet: Reveal and the final points are in the dock. */
+    docked?: boolean;
   } = $props();
 
   const voting = $derived(snap.round.state === "voting");
   const countdown = $derived(snap.countdown);
-  const numeric = $derived(snap.scale.cards.filter((c) => c.value !== null));
   const progress = $derived(
     countdown.running && countdown.duration && remaining !== null
       ? Math.max(0, Math.min(1, remaining / countdown.duration))
@@ -25,44 +28,9 @@
   );
 
   let seconds = $state(30);
-  let chosen = $state<string | null>(null);
-  let confirming = $state(false);
-
   // Follow the room's timer setting when it changes.
   $effect(() => {
     seconds = snap.timer_seconds;
-  });
-
-  // Each new round starts with the most-chosen card picked, or the card nearest the median.
-  $effect(() => {
-    void snap.ticket?.key;
-    void snap.round.state;
-    chosen = defaultChoice(snap, numeric);
-  });
-
-  // A new snapshot means the confirm finished, one way or the other.
-  $effect(() => {
-    void snap;
-    confirming = false;
-  });
-
-  function defaultChoice(s: Snapshot, cards: Card[]): string | null {
-    const results = s.round.results;
-    if (!results) return null;
-    const top = cards.find((c) => c.label === results.top?.label);
-    if (top) return top.label;
-    if (results.median === null || cards.length === 0) return null;
-    const median = results.median;
-    return cards.reduce((best, c) =>
-      Math.abs((c.value ?? 0) - median) < Math.abs((best.value ?? 0) - median) ? c : best,
-    ).label;
-  }
-
-  const chosenCard = $derived(numeric.find((c) => c.label === chosen) ?? null);
-  const confirmLabel = $derived.by(() => {
-    if (!chosenCard || chosenCard.value === null) return "Confirm points";
-    if (chosenCard.label === String(chosenCard.value)) return `Confirm ${points(chosenCard.value)}`;
-    return `Confirm ${chosenCard.label} (${points(chosenCard.value)})`;
   });
 
   function setTimer() {
@@ -86,12 +54,6 @@
     }
   }
 
-  function confirm() {
-    if (!chosenCard) return;
-    confirming = true;
-    send({ type: "confirm", points: chosenCard.label });
-    setTimeout(() => (confirming = false), 10_000);
-  }
 </script>
 
 <aside class="facilitator" aria-label="Facilitator panel">
@@ -142,39 +104,13 @@
     </div>
   </section>
 
-  {#if !voting && snap.ticket}
-    <section class="panel" aria-label="Final points">
-      <span class="panel-title">Final story points</span>
-      <div class="picks">
-        {#each numeric as card (card.label)}
-          <button
-            class="pick"
-            type="button"
-            aria-pressed={chosen === card.label}
-            onclick={() => (chosen = card.label)}>{card.label}</button
-          >
-        {/each}
-      </div>
-      <button
-        class="btn-primary"
-        type="button"
-        disabled={!chosenCard || confirming}
-        onclick={confirm}
-        >{confirming ? (snap.demo ? "Saving…" : "Writing to Jira…") : confirmLabel}</button
-      >
-      {#if chosenCard && chosenCard.value !== null}
-        <span class="note">
-          Writes {chosenCard.value} to {snap.ticket.key}
-          {snap.demo ? "in the demo backlog" : "in Jira"}, then loads {snap.up_next[0]
-            ?.key ?? "the end of the queue"}.
-        </span>
-      {/if}
-    </section>
+  {#if !voting && snap.ticket && !docked}
+    <FinalPoints {snap} {send} />
   {/if}
 
   <section class="panel" aria-label="Facilitator controls">
     <span class="panel-title">Facilitator controls</span>
-    {#if voting}
+    {#if voting && !docked}
       <button
         class="btn-primary"
         type="button"
@@ -225,7 +161,7 @@
       <span class="switch" aria-hidden="true"></span>
       <span>Auto-reveal when everyone has voted</span>
     </button>
-    {#if voting}
+    {#if voting && !docked}
       <button class="btn" type="button" disabled>Confirm points</button>
       <span class="note">Confirm becomes available after reveal.</span>
     {/if}
@@ -342,27 +278,6 @@
     padding: 0 12px;
     font-size: 14px;
     font-weight: 400;
-  }
-  .picks {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .pick {
-    min-width: 44px;
-    height: 44px;
-    padding: 0 8px;
-    border: 1.5px solid var(--border-strong);
-    border-radius: 8px;
-    background: var(--surface);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 17px;
-  }
-  .pick[aria-pressed="true"] {
-    border-color: var(--accent);
-    background: var(--accent);
-    color: #ffffff;
   }
   .grid {
     display: grid;

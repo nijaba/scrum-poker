@@ -137,6 +137,26 @@
     max-height: calc(3 * 1.45em);
     overflow: hidden;
   }
+  /* Phone: the header shows the position; a smaller title and two lines of description. */
+  @media (max-width: 640px) {
+    .ticket {
+      padding: 14px 16px;
+      gap: 6px;
+    }
+    .position {
+      display: none;
+    }
+    .chip {
+      font-size: 12px;
+      padding: 1px 8px;
+    }
+    h1 {
+      font-size: 20px;
+    }
+    .collapsed {
+      max-height: calc(2 * 1.45em);
+    }
+  }
   .more {
     align-self: flex-start;
     min-height: 44px;

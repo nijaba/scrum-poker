@@ -52,7 +52,7 @@
     padding: 10px 18px;
     border-radius: 8px;
     background: var(--ink);
-    color: #ffffff;
+    color: var(--ground);
     font-weight: 600;
     transform: translateX(-50%);
     pointer-events: none;

@@ -47,6 +47,9 @@ export async function openMini(
   const doc = win.document;
   doc.title = `${room.slug} · Scrum poker`;
   doc.documentElement.lang = "en";
+  // The same theme as the main tab.
+  const chosen = document.documentElement.dataset.theme;
+  if (chosen) doc.documentElement.dataset.theme = chosen;
   copyHead(doc);
   applyDeck(doc);
   doc.body.className = "mini-body";

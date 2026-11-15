@@ -17,6 +17,7 @@
   --card-face: #f4f8f6;
   --card-stock: #fbfcfb;
   --card-edge: #cfd7d3;
+  --card-ink: #111614; /* cards and the light badges on the table stay light in both palettes */
   --suit-red: #b0281d;
   --card-shadow: 0 1px 1px rgba(17, 22, 20, 0.1), 0 3px 8px rgba(17, 22, 20, 0.1);
   --card-shadow-up: 0 2px 2px rgba(17, 22, 20, 0.1), 0 12px 22px rgba(17, 22, 20, 0.18);
@@ -24,7 +25,11 @@
   --link: #0f5c45;
   --link-hover: #0a3f30;
   --danger: #8e1b1b;
+  --danger-bg: #f6e3e3;
   --disabled-text: #4a5550;
+  --on-accent: #ffffff;
+  --menu-shadow: 0 8px 24px rgb(17 22 20 / 14%);
+  color-scheme: light;
 
   --font-text: "Inter", system-ui, sans-serif;
   --font-display: "Space Grotesk", system-ui, sans-serif;
@@ -34,6 +39,63 @@
   line-height: 1.45;
   color: var(--ink);
   background: var(--ground);
+}
+
+/* Dark palette: chosen in the Theme menu, or the device's setting when the choice is System.
+   The two blocks hold the same values; tests/test_theme.py checks they match. */
+:root[data-theme="dark"] {
+  --ground: #0e1311;
+  --surface: #171e1b;
+  --ink: #e6ece9;
+  --text-2: #c9d3ce;
+  --text-3: #aab7b1;
+  --border: #2b3531;
+  --border-strong: #4a5852;
+  --chip: #242d29;
+  --table: #123b2e;
+  --table-line: #2f6350;
+  --on-table: #e9f2ee;
+  --on-table-2: #a9c4b8;
+  --empty-slot: #6f9484;
+  --card-shadow: 0 1px 1px rgba(0, 0, 0, 0.4), 0 3px 8px rgba(0, 0, 0, 0.45);
+  --card-shadow-up: 0 2px 2px rgba(0, 0, 0, 0.4), 0 12px 22px rgba(0, 0, 0, 0.55);
+  --accent: #e3904f;
+  --link: #74d1ac;
+  --link-hover: #a3e4c9;
+  --danger: #ff8f85;
+  --danger-bg: #3b1d1b;
+  --disabled-text: #929d98;
+  --on-accent: #111614;
+  --menu-shadow: 0 8px 24px rgb(0 0 0 / 50%);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0e1311;
+    --surface: #171e1b;
+    --ink: #e6ece9;
+    --text-2: #c9d3ce;
+    --text-3: #aab7b1;
+    --border: #2b3531;
+    --border-strong: #4a5852;
+    --chip: #242d29;
+    --table: #123b2e;
+    --table-line: #2f6350;
+    --on-table: #e9f2ee;
+    --on-table-2: #a9c4b8;
+    --empty-slot: #6f9484;
+    --card-shadow: 0 1px 1px rgba(0, 0, 0, 0.4), 0 3px 8px rgba(0, 0, 0, 0.45);
+    --card-shadow-up: 0 2px 2px rgba(0, 0, 0, 0.4), 0 12px 22px rgba(0, 0, 0, 0.55);
+    --accent: #e3904f;
+    --link: #74d1ac;
+    --link-hover: #a3e4c9;
+    --danger: #ff8f85;
+    --danger-bg: #3b1d1b;
+    --disabled-text: #929d98;
+    --on-accent: #111614;
+    --menu-shadow: 0 8px 24px rgb(0 0 0 / 50%);
+    color-scheme: dark;
+  }
 }
 
 body {
@@ -108,7 +170,7 @@ button:disabled {
   border: none;
   border-radius: 8px;
   background: var(--accent);
-  color: #ffffff;
+  color: var(--on-accent);
   font-weight: 600;
   font-size: 16px;
 }
@@ -133,7 +195,7 @@ button:disabled {
   border: 1px solid var(--card-edge);
   border-radius: 7px;
   background: var(--card-stock);
-  color: var(--ink);
+  color: var(--card-ink);
   box-shadow: var(--card-shadow);
 }
 .deck-card.red {
