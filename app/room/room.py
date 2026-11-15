@@ -7,6 +7,7 @@ checks roles; this class checks everything else.
 from __future__ import annotations
 
 import math
+import secrets
 from dataclasses import dataclass
 from typing import Any
 
@@ -55,6 +56,10 @@ class Room:
         self.auto_reveal = auto_reveal
         self.check_in_seconds = check_in_seconds
         self.seats: dict[str, Seat] = {}
+        # A per-room opaque handle for each seat, sent to clients in place of the real
+        # player_id. The player_id is the bearer token in the player cookie; broadcasting
+        # it would let any room member forge another player's cookie and take their seat.
+        self._handles: dict[str, str] = {}
         # Players who chose to sit out. Kept apart from the seats so a reset keeps it.
         self.sitting_out: set[str] = set()
         # Players a facilitator removed, until they join again: their screen says so.
@@ -120,11 +125,17 @@ class Room:
         seat.sitting_out = False
         self.sitting_out.discard(player_id)
 
-    def remove(self, player_id: Any) -> None:
-        """A facilitator takes a player off the table. They can join again."""
-        if not isinstance(player_id, str) or player_id not in self.seats:
+    def remove(self, token: Any) -> None:
+        """A facilitator takes a player off the table. They can join again.
+
+        The facilitator's client names the seat by its handle; a real player_id is
+        also accepted so server-side callers and tests can target a seat directly.
+        """
+        player_id = self._seat_for(token)
+        if player_id is None:
             raise CommandError("not_seated", "That player is not in the room.")
         del self.seats[player_id]
+        self._handles.pop(player_id, None)
         self.sitting_out.discard(player_id)
         self.removed.add(player_id)
         self.round.drop(player_id)
@@ -136,12 +147,33 @@ class Room:
         if player_id is None or player_id not in self.seats:
             return
         del self.seats[player_id]
+        self._handles.pop(player_id, None)
         self.sitting_out.discard(player_id)
         self.round.drop(player_id)
         self._auto_reveal()
 
     def is_seated(self, player_id: str | None) -> bool:
         return player_id is not None and player_id in self.seats
+
+    def _handle(self, player_id: str) -> str:
+        """The stable opaque handle for a seat, minted on first use. It is what other
+        clients see; the real player_id never leaves the server for another player."""
+        handle = self._handles.get(player_id)
+        if handle is None:
+            handle = self._handles[player_id] = secrets.token_urlsafe(9)
+        return handle
+
+    def _seat_for(self, token: Any) -> str | None:
+        """The player_id a facilitator command names, by handle or (for callers that
+        hold it) by the id itself. None when it matches no current seat."""
+        if not isinstance(token, str):
+            return None
+        if token in self.seats:
+            return token
+        for player_id, handle in self._handles.items():
+            if handle == token and player_id in self.seats:
+                return player_id
+        return None
 
     # Round
 
@@ -309,11 +341,15 @@ class Room:
         for seat in self.seats.values():
             if seat.sitting_out:
                 watchers.append(
-                    {"id": seat.player_id, "name": seat.name, "connected": seat.connected}
+                    {
+                        "id": self._handle(seat.player_id),
+                        "name": seat.name,
+                        "connected": seat.connected,
+                    }
                 )
                 continue
             entry: dict[str, Any] = {
-                "id": seat.player_id,
+                "id": self._handle(seat.player_id),
                 "name": seat.name,
                 "connected": seat.connected,
                 "voted": seat.player_id in self.round.votes,

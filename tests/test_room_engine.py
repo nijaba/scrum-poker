@@ -45,15 +45,18 @@ def test_re03_latest_vote_counts_and_stays_hidden(room):
     room.vote("p1", "8")
 
     other = room.snapshot_for("p2")
-    assert other["players"][0] == {
-        "id": "p1",
+    entry = other["players"][0]
+    assert {k: entry[k] for k in ("name", "connected", "voted", "on_break")} == {
         "name": "Ana",
         "connected": True,
         "voted": True,
         "on_break": False,
     }
+    # Ana's real player_id is never sent to another player: her seat carries an opaque
+    # handle instead (RE-03 / M1), so it cannot be used to forge her cookie.
+    assert entry["id"] != "p1"
     assert "votes" not in other["round"]
-    assert "8" not in repr(other["players"])
+    assert all("card" not in p for p in other["players"])  # no vote value before reveal
     assert room.snapshot_for("p1")["you"]["vote"] == "8"
 
     room.reveal()
@@ -265,11 +268,36 @@ def test_reset_seats_only_players_who_check_in(room, clock):
     clock.advance(5)
     room.tick()
 
-    assert [p["id"] for p in room.snapshot_for("p1")["players"]] == ["p1", "p3"]
+    assert [p["name"] for p in room.snapshot_for("p1")["players"]] == ["Ana", "Cy"]
     with pytest.raises(CommandError):
         room.check_in("p2", "Ben")
     room.join("p2", "Ben")  # a later join is seated as a new player
-    assert [p["id"] for p in room.snapshot_for("p1")["players"]] == ["p1", "p3", "p2"]
+    assert [p["name"] for p in room.snapshot_for("p1")["players"]] == ["Ana", "Cy", "Ben"]
+
+
+# Seat identity (M1)
+
+
+def test_rx05_snapshot_hides_other_players_real_ids(room):
+    """A snapshot never carries another player's real id, so it cannot be used to forge
+    their cookie and take their seat. The handle is stable and the same for everyone."""
+    seen = room.snapshot_for("p1")
+    ids = {p["name"]: p["id"] for p in seen["players"]}
+    assert "p2" not in ids.values() and "p3" not in ids.values()
+    assert len(set(ids.values())) == 3  # each seat has its own handle
+    # Stable across snapshots, and the same handle in every viewer's snapshot.
+    assert room.snapshot_for("p1")["players"][1]["id"] == ids["Ben"]
+    for p in room.snapshot_for("p3")["players"]:
+        if p["name"] == "Ben":
+            assert p["id"] == ids["Ben"]
+
+
+def test_rx05_remove_accepts_the_handle_a_facilitator_sees(room):
+    handle = next(p["id"] for p in room.snapshot_for("p1")["players"] if p["name"] == "Ben")
+    room.remove(handle)
+    assert "Ben" not in [p["name"] for p in room.snapshot_for("p1")["players"]]
+    with pytest.raises(CommandError):
+        room.remove(handle)  # the handle is gone with the seat
 
 
 # Countdown and sound

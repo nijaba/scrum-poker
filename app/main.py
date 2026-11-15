@@ -82,7 +82,10 @@ def create_app(
         await rooms.close()
         store.close()
 
-    app = FastAPI(title="Scrum poker", docs_url=None, redoc_url=None, lifespan=lifespan)
+    # openapi_url=None: no interactive docs and no public schema; the API is internal.
+    app = FastAPI(
+        title="Scrum poker", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan
+    )
     app.state.settings = settings
     app.state.store = store
     app.state.rooms = rooms

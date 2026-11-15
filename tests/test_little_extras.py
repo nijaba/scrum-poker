@@ -102,7 +102,8 @@ def test_ee04_a_break_over_the_socket_reaches_every_screen(client):
 
         while True:
             msg = fay.receive_json()
-            assert "8" not in str(msg.get("players", ""))  # no vote value before reveal
+            # No vote value before reveal: a card field only appears once revealed.
+            assert all("card" not in p for p in msg.get("players", []))
             if ana_on_break(msg):
                 break
 

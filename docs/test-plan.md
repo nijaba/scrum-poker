@@ -107,6 +107,8 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | RX-02 | A departed player returns after the reset | Seated as a new player, with the name from the cookie | E2E |
 | RX-03 | Reset after two confirmed tickets | Queue position and session counters stay the same | Unit |
 | RX-04 | Reset during a vote | Cards clear and voting reopens | Unit |
+| RX-05 | A snapshot sent to one player | Other seats carry an opaque handle, never the real player id | Unit |
+| RX-06 | A connection sends a join naming another player's id | It keeps its own cookie seat; the named seat is untouched | Integration |
 
 ### Auto-reveal
 

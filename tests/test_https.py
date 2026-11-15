@@ -108,6 +108,19 @@ def test_hs02_hsts_also_on_errors_and_redirects(proxy):
     assert moved.headers["strict-transport-security"] == HSTS
 
 
+def test_defensive_security_headers_are_sent(proxy):
+    response = proxy.get("/", headers={"x-forwarded-proto": "https"})
+
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["content-security-policy"] == "frame-ancestors 'none'"
+    assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+
+
+def test_openapi_schema_is_not_served(proxy):
+    assert proxy.get("/openapi.json", headers={"x-forwarded-proto": "https"}).status_code == 404
+
+
 def test_localhost_serves_plain_http_without_hsts(client):
     response = client.get("/")
 

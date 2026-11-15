@@ -37,6 +37,23 @@ def patch(client, body):
     return client.patch("/api/rooms/team-a", json=body, headers=headers(client.app, OWNER))
 
 
+def test_rx06_a_player_cannot_seat_as_another_by_sending_their_id(client):
+    """With a player cookie (what the browser always has), the join message's player_id
+    is ignored: a client cannot take another player's seat by naming their id. M1."""
+    with (
+        open_ws(client, ROOM, player=("victim", "Vic")) as victim,
+        open_ws(client, ROOM, player=("attacker", "Mal")) as attacker,
+    ):
+        until(victim, state(lambda s: s["you"]["seated"]))
+        until(attacker, state(lambda s: s["you"]["seated"]))
+        # The attacker tries to assume the victim's id and rename them.
+        attacker.send_json({"type": "join", "player_id": "victim", "name": "Pwned"})
+        snap = until(attacker, state(lambda s: s["you"]["seated"]))
+        # The attacker stays on their own seat; the victim's name is untouched.
+        assert snap["you"]["name"] == "Mal"
+        assert sorted(p["name"] for p in snap["players"]) == ["Mal", "Vic"]
+
+
 def test_rv01_auto_reveal_turns_the_cards_when_the_last_player_votes(client):
     with (
         open_ws(client, ROOM, OWNER) as fay,
