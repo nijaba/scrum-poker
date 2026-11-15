@@ -1,4 +1,4 @@
-"""Demo rooms in a real browser. Cases DR-11, DR-13 and DR-14."""
+"""Demo rooms in a real browser. Cases DR-11, DR-13 to DR-16."""
 
 import re
 
@@ -52,4 +52,59 @@ def test_dr13_when_every_demo_room_is_taken_the_home_page_says_come_back_later(b
     expect(note).to_contain_text("☕")
     expect(page).not_to_have_url(re.compile(r"/r/demo-"))
     expect(page.get_by_role("button", name="Try a demo")).to_be_enabled()
+    context.close()
+
+
+def test_dr15_the_demo_banner_offers_the_tour_every_time(browser, server):
+    context = browser.new_context()  # never offered a tour
+    page = context.new_page()
+    page.goto(server)
+    page.get_by_role("button", name="Try a demo").click()
+    page.wait_for_url(re.compile(r"/r/demo-[a-z0-9]{8}$"))
+    page.get_by_label("Your name").fill("Vic")
+    page.get_by_role("button", name="Join room").click()
+
+    banner = page.get_by_role("note")
+    expect(banner).to_contain_text("Demo room.")
+    expect(page.get_by_role("region", name="Tour offer")).to_have_count(0)
+    banner.get_by_role("button", name="Take the tour").click()
+    caption = page.locator(".tour-caption")
+    expect(caption.get_by_role("heading")).to_have_text("The ticket")
+    expect(caption.locator(".tour-count")).to_have_text("Step 1 of 9")  # the facilitator's tour
+    caption.get_by_role("button", name="Close").click()
+    expect(caption).to_have_count(0)
+
+    page.reload()
+    expect(page.get_by_role("region", name="Your card")).to_be_visible()
+    expect(page.get_by_role("region", name="Tour offer")).to_have_count(0)
+    page.get_by_role("note").get_by_role("button", name="Take the tour").click()
+    expect(caption.get_by_role("heading")).to_have_text("The ticket")
+    context.close()
+
+
+def test_dr16_watch_the_video_from_the_home_page(browser, server):
+    context = browser.new_context()
+    page = context.new_page()
+    page.goto(server)
+    demo = page.get_by_role("region", name="Try a demo")
+    watch = demo.get_by_role("button", name="Watch the video")
+    expect(watch).to_be_visible()
+    expect(demo.get_by_role("button", name="Try a demo")).to_be_visible()
+
+    watch.click()
+    player = page.get_by_role("dialog", name="Scrum poker in 30 seconds")
+    expect(player).to_be_visible()
+    video = page.locator("video")  # a closed dialog leaves the accessibility tree
+    expect(video).to_have_attribute("src", "/tour.mp4")
+    expect(video).to_have_attribute("controls", "")
+
+    page.keyboard.press("Escape")
+    expect(player).to_be_hidden()
+    page.wait_for_function("document.querySelector('video').paused")
+
+    watch.click()
+    expect(player).to_be_visible()
+    player.get_by_role("button", name="Close").click()
+    expect(player).to_be_hidden()
+    page.wait_for_function("document.querySelector('video').paused")
     context.close()

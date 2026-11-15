@@ -114,7 +114,9 @@ Design: "Demo rooms". Decided by the owner on 2026-11-13: one private room per v
 
 - [x] The demo banner gives the configured idle time
 
-Cases: DR-01 to DR-14.
+- [x] Take the tour in the demo banner; Watch the video beside Try a demo
+
+Cases: DR-01 to DR-16.
 
 ## After step 6: phones and dark mode
 

@@ -431,7 +431,8 @@ counters are not: they exist only while the session runs. The points you confirm
 ## Practising in a demo room
 
 Some servers offer **Try a demo** on the home page, including the online demo at
-<https://poker.nijalabs.com/>. It opens a private room just for you, with no sign-in:
+<https://poker.nijalabs.com/>, with **Watch the video** beside it for a 30-second tour first.
+**Try a demo** opens a private room just for you, with no sign-in:
 
 - The other players are bots: Ada, Bo, Cleo and Dev. A few seconds after each round opens they
   vote, mostly close to each other but not always, so reveals give you something to discuss.
@@ -440,6 +441,7 @@ Some servers offer **Try a demo** on the home page, including the online demo at
 - You get the facilitator panel, and so does anyone you share the link with: bring colleagues
   in to practise together.
 - **Add a bot** in the banner seats another bot, up to eight. Remove one like any player.
+- **Take the tour** in the banner walks you through the room, as often as you like.
 - There are no room settings: Fibonacci cards, a 30-second countdown, sound on.
 - The room ends after a while with nobody in it (30 minutes by default; the banner at the top says how long). Start another one any time. If every demo room is taken, the home page asks you to come back in a few minutes.
 
