@@ -13,6 +13,14 @@ private practice room with bot players and a made-up backlog. Nothing there reac
 How to use it: the [user guide](docs/user-guide.md). How to run it: the
 [admin guide](docs/admin-guide.md).
 
+### The tour in 30 seconds
+
+[![A facilitator's tour of a room: the cards are revealed and the final points are outlined, with the step's caption beside them](docs/video/tour-poster.png)](docs/video/tour.mp4)
+
+A facilitator's walk through the room's built-in tour while the team votes, with a voice-over.
+Click the picture to [play the video](docs/video/tour.mp4) (MP4, 30 seconds, with sound). The
+narration is in [docs/video/tour-voiceover.md](docs/video/tour-voiceover.md).
+
 ## Quick start (local development)
 
 Requires Python 3.12 or newer and Node 22.
@@ -224,3 +232,4 @@ Open this folder in Claude Code. `CLAUDE.md` gives it the constraints, commands 
 - [docs/test-plan.md](docs/test-plan.md): test cases with IDs
 - [docs/build-plan.md](docs/build-plan.md): the six build steps
 - [docs/mockups/](docs/mockups/): the four screens as static HTML
+- [docs/video/](docs/video/): the 30-second tour video, its voice-over script, and how to remake both
