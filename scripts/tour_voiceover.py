@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Add the voice-over to the tour video: docs/video/tour.webm becomes docs/video/tour.mp4.
+"""Add the voice-over to the tour video: docs/video/tour.webm becomes frontend/public/tour.mp4.
+
+The app serves the MP4 at /tour.mp4, and the README links there: GitHub does not play videos
+kept in a repository.
 
 Each row of the cue table in docs/video/tour-voiceover.md is spoken by Kokoro, an open-source
 neural voice (Apache 2.0) that runs offline, and placed at its time. The script also saves a
@@ -34,7 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FOLDER = ROOT / "docs" / "video"
 SILENT = FOLDER / "tour.webm"
-NARRATED = FOLDER / "tour.mp4"
+NARRATED = ROOT / "frontend" / "public" / "tour.mp4"
 POSTER = FOLDER / "tour-poster.png"
 SCRIPT = FOLDER / "tour-voiceover.md"
 VOICE = "af_heart"  # Kokoro's warm American English voice

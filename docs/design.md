@@ -294,6 +294,8 @@ A short guided tour explains the room to whoever opens it, and the settings page
 
 The pictures in the user and admin guides (`docs/images/`) are screenshots taken by `scripts/guide_pictures.py`, which runs the app with the fake sign-in, the fake Jira and the fake backlog and drives it with Playwright. Run it again when a screen changes. The pictures show only the fakes' made-up people and tickets.
 
+The 30-second tour video is recorded the same way (`scripts/tour_video.py`) and narrated from `docs/video/tour-voiceover.md` (`scripts/tour_voiceover.py`). GitHub does not play videos kept in a repository, so the MP4 sits in `frontend/public/` and the app serves it at `/tour.mp4`, with byte ranges for Safari; the README's poster links there.
+
 ## HTTPS
 
 The app is served over HTTPS only, and room connections use secure WebSockets. Local development on `localhost` is the one exception.

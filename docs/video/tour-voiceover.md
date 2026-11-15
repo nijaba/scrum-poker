@@ -1,6 +1,6 @@
 # Room tour video: voice-over script
 
-For [`tour.mp4`](tour.mp4), the narrated video, and [`tour.webm`](tour.webm), the silent
+For [`tour.mp4`](../../frontend/public/tour.mp4), the narrated video (online at <https://poker.nijalabs.com/tour.mp4>), and [`tour.webm`](tour.webm), the silent
 recording it is made from: 30 seconds, 1280 × 720. It follows the room's
 guided tour as a facilitator (and room owner) sees it, while four teammates vote and the cards
 are revealed. Everything on screen comes from the app's fakes: made-up people and tickets.
@@ -8,7 +8,7 @@ are revealed. Everything on screen comes from the app's fakes: made-up people an
 `scripts/tour_video.py` records the silent video again after a screen changes, and prints the
 time each step starts. Keep the cues below in line with those times. `scripts/tour_voiceover.py`
 then speaks each line of the table below at its cue, in Kokoro's open-source neural voice
-`af_heart`, and makes `tour.mp4`; its docstring says how to set Kokoro up. A voice actor can
+`af_heart`, and makes `frontend/public/tour.mp4`; its docstring says how to set Kokoro up. A voice actor can
 read the same lines to the same cues instead.
 
 **Pace:** about 2.5 words a second, calm and friendly. Each line fits inside its step with a

@@ -317,6 +317,7 @@ The always-on-top window is checked by hand. Its content is automated through th
 | --- | --- | --- | --- |
 | GP-01 | Every picture the user and admin guides show | Exists in `docs/images/` and has alt text | Unit |
 | GP-02 | Every picture in `docs/images/` | Is shown by a guide and made by `scripts/guide_pictures.py` | Unit |
+| GP-03 | Request `/tour.mp4`, whole and as a byte range | `video/mp4` with a cache time; a range gets 206 with only those bytes; 404 when the build has no video | Integration |
 
 ## HTTPS
 
