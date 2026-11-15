@@ -237,6 +237,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | UM-05 | Someone signed in who is not the owner logs out from the menu | The menu offers Your rooms and Log out; they leave the table, are signed out and land on the home page | E2E |
 | UM-06 | Player logs out from the menu | The menu offers Log out alone; they leave the table and the name form shows, empty, even after a reload | E2E |
 | UM-07 | A player who is not signed in clicks the room name in the header | The home page opens, with the sign-in buttons | E2E |
+| UM-08 | A player logs out while the room's connection is down, then `POST /api/rooms/<slug>/leave` with no cookie, for a room with no live session, and from another site | The seat leaves every screen anyway; the others do nothing (204), an unknown room is 404, another site is refused (403) | Integration, E2E |
 
 ## Demo rooms
 

@@ -36,6 +36,12 @@ export async function getPlayer(): Promise<Player | null> {
 }
 
 /** Forget this browser's player: the next name is a new player. */
+/** Take this browser's player off the room's table. A web request, so it works even when
+ * the room's socket has dropped (design.md, "The menu behind your name"). */
+export function leaveRoom(slug: string): Promise<void> {
+  return call("POST", `/api/rooms/${encodeURIComponent(slug)}/leave`, {});
+}
+
 export function forgetPlayer(): Promise<void> {
   return call("DELETE", "/api/player");
 }
