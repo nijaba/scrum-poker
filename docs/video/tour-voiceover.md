@@ -16,9 +16,9 @@ breath to spare; start each one on its cue rather than running lines together.
 
 | Time | On screen | Voice-over |
 | --- | --- | --- |
-| 0:00.0 | The room opens; a note under the header offers the tour | New to scrum poker? Take the tour. |
-| 0:02.1 | **The ticket** outlined | Here's the ticket to estimate, from your Jira backlog. |
-| 0:05.2 | **The table** outlined; three cards land face down | Your team sits here. Votes land face down. |
+| 0:00.0 | The room opens; a note under the header offers the tour | New to scrum poker? Here is a quick tour. |
+| 0:02.4 | **The ticket** outlined | Here's the ticket to estimate, from your Jira backlog. |
+| 0:05.4 | **The table** outlined; three cards land face down | Your team sits here. Votes land face down. |
 | 0:08.4 | **Your cards** outlined; a 5 is picked | Pick your card. You can change it until the reveal. |
 | 0:11.5 | **The reveal** step; the last vote arrives | When everyone's in, the cards turn over together. |
 | 0:14.5 | **Reveal cards** outlined in the facilitator controls | As facilitator, you decide when to reveal. |
@@ -30,7 +30,7 @@ breath to spare; start each one on its cue rather than running lines together.
 
 ## Whole script
 
-New to scrum poker? Take the tour.
+New to scrum poker? Here is a quick tour.
 Here's the ticket to estimate, from your Jira backlog.
 Your team sits here. Votes land face down.
 Pick your card. You can change it until the reveal.
