@@ -23,7 +23,7 @@
 
 <svelte:window onresize={() => !expanded && measure()} />
 
-<section class="panel ticket" aria-label="Current ticket">
+<section class="panel ticket" aria-label="Current ticket" data-tour="ticket">
   <div class="chips">
     {#if ticket.url}
       <a class="key" href={ticket.url} target="_blank" rel="noopener noreferrer">{ticket.key}</a>

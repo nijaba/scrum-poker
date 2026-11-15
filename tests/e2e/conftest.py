@@ -147,12 +147,23 @@ def connect_jira(page: Page, base: str, slug: str, board: str = "SHOP board") ->
     expect(page.get_by_text("Saved.")).to_be_visible()
 
 
-class Table:
-    """Opens browsers on one fresh room, created by the signed-in owner."""
+# Marks both tours as already offered, so the offer note stays out of tests about other things.
+TOURS_SEEN = """try {
+  localStorage.setItem("scrum-poker-tour-room", "seen");
+  localStorage.setItem("scrum-poker-tour-settings", "seen");
+} catch (e) {}"""
 
-    def __init__(self, browser: Browser, base: str) -> None:
+
+class Table:
+    """Opens browsers on one fresh room, created by the signed-in owner.
+
+    Its browsers have seen the tours unless `tours_seen` is False.
+    """
+
+    def __init__(self, browser: Browser, base: str, tours_seen: bool = True) -> None:
         self.browser = browser
         self.base = base
+        self.tours_seen = tours_seen
         self.database: Path | None = getattr(base, "database", None)
         self.slug = f"e2e-{uuid.uuid4().hex[:8]}"
         self.url = f"{base}/r/{self.slug}"
@@ -167,6 +178,8 @@ class Table:
 
     def new_context(self) -> BrowserContext:
         context = self.browser.new_context()
+        if self.tours_seen:
+            context.add_init_script(TOURS_SEEN)
         self.contexts.append(context)
         return context
 
@@ -202,3 +215,11 @@ def table(browser: Browser, server: str) -> Iterator[Table]:
 
 def players(page: Page):
     return page.locator("[data-player]")
+
+
+@pytest.fixture
+def fresh_table(browser: Browser, server: str) -> Iterator[Table]:
+    """A table whose browsers have never been offered the tours."""
+    t = Table(browser, server, tours_seen=False)
+    yield t
+    t.close()

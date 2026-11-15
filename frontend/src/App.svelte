@@ -3,6 +3,7 @@
   import Home from "./components/Home.svelte";
   import Room from "./components/Room.svelte";
   import Settings from "./components/Settings.svelte";
+  import Tour from "./components/Tour.svelte";
   import { onMount } from "svelte";
   import { listenForCode } from "./lib/deck";
 
@@ -33,6 +34,7 @@
     {/if}
   </div>
   <Footer />
+  <Tour />
   <p class="deck-note" class:shown={deckNote} role="status">{deckNote}</p>
 </div>
 

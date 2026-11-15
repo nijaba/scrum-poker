@@ -18,6 +18,7 @@
     onmute,
     remote = null,
     onremote,
+    ontour,
   }: {
     name: string;
     role: string;
@@ -32,6 +33,8 @@
     /** On a phone, for a player: Remote view on or off. */
     remote?: boolean | null;
     onremote?: () => void;
+    /** Start the room's tour. */
+    ontour?: () => void;
   } = $props();
 
   let open = $state(false);
@@ -94,7 +97,7 @@
 
 <svelte:window onpointerdown={onWindowPointer} />
 
-<div class="user-menu" bind:this={root}>
+<div class="user-menu" bind:this={root} data-tour="menu">
   <button
     bind:this={button}
     class="who-btn"
@@ -165,6 +168,17 @@
           >
         {/each}
       </div>
+      {#if ontour}
+        <button
+          class="item"
+          role="menuitem"
+          type="button"
+          onclick={() => {
+            hide();
+            ontour();
+          }}>Tour</button
+        >
+      {/if}
       <button class="item" role="menuitem" type="button" onclick={logOut}>Log out</button>
     </div>
   {/if}
@@ -264,6 +278,10 @@
     padding: 4px 0;
     border-top: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
+  }
+  .group:first-child {
+    margin-top: 0;
+    border-top: none;
   }
   .group-label {
     padding: 4px 12px 0;

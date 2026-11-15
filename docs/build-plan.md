@@ -125,3 +125,13 @@ Design: "Phones" and "Dark mode". Decided by the owner on 2026-11-14 from the mo
 - [x] Remote view for players
 
 Cases: PH-01 to PH-05, RV-01 to RV-03, TH-01 to TH-03. Manual: PH-06, TH-04.
+
+## After step 6: tour and guide pictures
+
+Design: "Tour" and "Guide pictures". Decided by the owner on 2026-11-15: a tour offered once on first visit, then on demand from the menu and the footer, with steps by role, and scripted screenshots in the guides.
+
+- [x] Tour of the room by role, offered once, Tour in the menu and the footer
+- [x] Tour of the settings page for owners
+- [x] `scripts/guide_pictures.py` and pictures in the user and admin guides
+
+Cases: TR-01 to TR-06, GP-01 and GP-02. Manual: TR-07.

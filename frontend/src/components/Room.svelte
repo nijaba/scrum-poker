@@ -14,6 +14,8 @@
     unlockAudio,
   } from "../lib/sound";
   import type { Me, Player } from "../lib/types";
+  import { roomTour } from "../lib/tours";
+  import { offerTour, startTour } from "../lib/tour.svelte";
   import { remote, setRemote, viewport } from "../lib/viewport.svelte";
   import FacilitatorPanel from "./FacilitatorPanel.svelte";
   import FinalPoints from "./FinalPoints.svelte";
@@ -22,6 +24,7 @@
   import RemoteView from "./RemoteView.svelte";
   import Table from "./Table.svelte";
   import TicketCard from "./TicketCard.svelte";
+  import TourOffer from "./TourOffer.svelte";
   import UserMenu from "./UserMenu.svelte";
 
   let { slug }: { slug: string } = $props();
@@ -68,6 +71,20 @@
   );
 
   let ticker: ReturnType<typeof setInterval>;
+
+  // The tour, by role, once the room is on screen (design.md, "Tour").
+  const inRoom = $derived(!!snap && !room?.ended);
+  $effect(() => {
+    if (!inRoom) return;
+    return offerTour("room", () =>
+      roomTour({
+        facilitator: isFacilitator,
+        owner: snap?.you.access === "owner",
+        phone,
+        remote: remoteView,
+      }),
+    );
+  });
 
   onMount(async () => {
     ticker = setInterval(() => (now = performance.now()), 100);
@@ -211,6 +228,7 @@
     type="button"
     aria-label="More controls"
     aria-haspopup="dialog"
+    data-tour="more"
     onclick={() => sheet?.showModal()}
   >
     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>
@@ -263,6 +281,7 @@
             onmute={toggleMute}
             remote={isFacilitator ? null : remote.on}
             onremote={() => setRemote(!remote.on)}
+            ontour={() => startTour()}
           />
         </div>
       {:else if snap}
@@ -297,6 +316,7 @@
             signedIn={!!me?.signed_in}
             settingsHref={snap.you.access === "owner" ? `/r/${currentSlug}/settings` : null}
             onlogout={logOut}
+            ontour={() => startTour()}
           />
         </div>
       {/if}
@@ -312,6 +332,9 @@
         <button class="btn" type="button" onclick={moreBots}>Add a bot</button>
         {#if botError}<span class="bot-error" role="alert">{botError}</span>{/if}
       </p>
+    {/if}
+    {#if snap && !room?.ended}
+      <TourOffer text="New here? A short tour shows how the room works." />
     {/if}
     {#if room?.ended}
       <p class="banner banner-error" role="alert">
@@ -354,7 +377,7 @@
     {:else if snap && room && !room.ended && phone}
       <main class="phone">
         {#if snap.backlog.state !== "ready"}
-          <section class="panel" aria-label="Backlog" aria-live="polite">
+          <section class="panel" aria-label="Backlog" aria-live="polite" data-tour="ticket">
             <h1 class="done">
               {snap.backlog.state === "loading"
                 ? "Loading the backlog from Jira…"
@@ -365,7 +388,7 @@
         {:else if snap.ticket}
           <TicketCard ticket={snap.ticket} queue={snap.queue} />
         {:else}
-          <section class="panel" aria-label="Current ticket">
+          <section class="panel" aria-label="Current ticket" data-tour="ticket">
             <h1 class="done">All tickets in the queue are done.</h1>
           </section>
         {/if}
@@ -393,7 +416,7 @@
           {#if snap.ticket && snap.round.state !== "voting"}
             <FinalPoints {snap} send={(m) => room?.send(m)} docked lead={moreButton} />
           {:else}
-            <div class="dock-actions">
+            <div class="dock-actions" data-tour="reveal">
               {@render moreButton()}
               {#if snap.ticket}
                 <button class="btn-primary" type="button" onclick={() => room?.send({ type: "reveal" })}
@@ -420,7 +443,7 @@
       <main>
         <div class="main-column">
           {#if snap.backlog.state !== "ready"}
-            <section class="panel" aria-label="Backlog" aria-live="polite">
+            <section class="panel" aria-label="Backlog" aria-live="polite" data-tour="ticket">
               {#if snap.backlog.state === "loading"}
                 <h1 class="done">Loading the backlog from Jira…</h1>
               {:else}
@@ -443,7 +466,7 @@
           {:else if snap.ticket}
             <TicketCard ticket={snap.ticket} queue={snap.queue} />
           {:else}
-            <section class="panel" aria-label="Current ticket">
+            <section class="panel" aria-label="Current ticket" data-tour="ticket">
               <h1 class="done">All tickets in the queue are done.</h1>
               <p class="note">The facilitator can rewind to revisit one.</p>
             </section>

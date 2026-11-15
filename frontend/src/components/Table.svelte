@@ -77,6 +77,7 @@
   class:revealed
   class:perfect={revealed && results?.perfect}
   aria-label={revealed ? "Players and results" : "Players"}
+  data-tour="table"
 >
   <div class="head">
     <span class="state">{revealed ? "Cards revealed" : "Voting open"}</span>

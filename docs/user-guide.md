@@ -35,6 +35,8 @@ facilitators at once.
 1. Open the room link your facilitator shared, such as `https://poker.example.com/r/team-a`.
 2. Type your name (up to 40 characters) and choose **Join room**.
 
+![The join page: a Your name field and a Join room button](images/join.png)
+
 Each name can be used once per table. If someone there already has your name, in any mix of
 capitals, the room says so: add an initial or pick another name.
 
@@ -46,6 +48,21 @@ To leave for good, or to use another name, click your name at the top right and 
 **Log out**. You leave the table and the browser forgets your name; the room then asks for a
 name again. On a shared computer, log out when you're done.
 
+### The tour
+
+The first time you're in a room, a note under the header offers a short tour. Choose **Take
+the tour** and it outlines each part of the room in turn, with a sentence or two on what it's
+for: the ticket, the table, your cards, the reveal and your menu. Facilitators also see their
+controls. **Next** and **Back** move through it, and **Done**, **×** or Escape ends it.
+
+![The tour offer under the room header, with Take the tour and No thanks](images/tour-offer.png)
+
+![A tour step outlining the player's cards, with its caption: Step 3 of 5, Your cards](images/tour.png)
+
+Choose **No thanks** if you'd rather explore alone; your browser remembers either answer, so
+the note doesn't come back. You can take the tour any time from **Tour** in the menu behind
+your name or at the foot of the page.
+
 ### Voting
 
 The top of the room shows the ticket being estimated: its key (a link to Jira), type,
@@ -56,6 +73,8 @@ priority, epic, labels and description. Choose **Show more** to read a long desc
 
 Until the reveal, everyone sees only *that* you voted, never what. The table shows each person
 as **Thinking**, **Voted** or **Away**, and how many have voted, such as "3 of 5 voted".
+
+![A player's view while voting: the ticket, the table with three cards face down, and the player's hand of cards](images/room-player.png)
 
 Need a pause? Choose **☕ Coffee break** next to your cards. Everyone sees a cup by your name
 (and hears a short gurgle if the room's sound is on). It isn't a vote, so the round still
@@ -86,6 +105,8 @@ A few things to look out for on the reveal:
   a bow, and a short chord plays when the room's sound is on.
 
 Voting stays closed until the facilitator restarts the vote or moves to the next ticket.
+
+![The room after the reveal: every card face up, the average, median and most-chosen card, and the spread of votes](images/room-revealed.png)
 
 Bored of the classic deck? Try typing ↑ ↑ ↓ ↓ ← → ← → B A. Only your screen changes, and
 typing it again changes it back.
@@ -123,16 +144,25 @@ ticket and the table sit above them, with each player shown as a small chip that
 they vote. The counters and **Mute** are in the menu behind your name. Mini mode isn't
 offered on phones.
 
+![A player's phone while voting: the ticket, the table as small chips and the cards docked at the bottom](images/phone-player.png)
+
 If the session is on a shared screen, choose **Remote view** in that menu. Your phone then
 shows only the ticket title, how many have voted, and large cards to tap. After the reveal it
 shows your card beside the most-chosen one, with the average and median. **Full room** switches
 back. Your phone remembers the choice.
+
+![Remote view while voting: large cards in three rows, with the voted count above](images/phone-remote.png)
+![Remote view after the reveal: the player's card beside the most-chosen card, with the average and median](images/phone-remote-revealed.png)
 
 ### Light or dark
 
 The app follows your device's light or dark setting. To pick one yourself, choose **Theme**
 (System, Light or Dark) in the menu behind your name or at the foot of any page. Your browser
 remembers the choice.
+
+![The menu behind a player's name: Theme with System, Light and Dark, then Tour and Log out](images/menu.png)
+
+![The room in the dark theme: dark page and panels around the same green table and light cards](images/dark-mode.png)
 
 ### Messages you might see
 
@@ -157,12 +187,17 @@ Click your name for a menu: **Your rooms** goes back to the list of rooms you ow
 **Room settings** (owners only) opens this room's settings, and **Log out** leaves the table,
 signs you out and returns you to the home page. The room name at the top left also goes back to the home page.
 
+![A facilitator's view while voting: the ticket and table on the left, the countdown and facilitator controls on the right](images/room-facilitator.png)
+
 ### Running a session from a phone
 
 On a phone, the next step sits under your cards at the bottom of the screen: **Reveal cards**
 with the voted count while voting, then the final points and **Confirm** after the reveal. The
 **⋯** button beside it opens the other controls (countdown, Restart vote, Skip, Rewind, Reset
 room, auto-reveal, Up next and the session summary); close them with **Close**. Touch the **×** on a player's chip to remove them.
+
+![A facilitator's phone while voting, with Reveal cards and the voted count in the dock](images/phone-facilitator.png)
+![A facilitator's phone after the reveal, with the final points and Confirm in the dock](images/phone-revealed.png)
 
 ### Starting a session
 
@@ -293,6 +328,8 @@ can still run sessions in rooms where you are a delegate.
 
 **Your rooms** on the home page lists every room you own or help run.
 
+![The home page signed in: Your rooms lists team-a, and Create a room takes a short name](images/home-rooms.png)
+
 ### Connecting Jira
 
 Each room has one Jira connection, set up by its owner. The room reads its backlog and writes
@@ -306,6 +343,8 @@ The settings show "Connected as" with your Atlassian email. Use **Reconnect** if
 loses access, and **Disconnect** to remove the connection; sessions can't load a backlog until
 you connect again.
 
+![The Jira Cloud section of the settings, connected, with the site and board chosen](images/settings-jira.png)
+
 The queue is the board's backlog: by default tickets with no estimate yet, in the backlog's
 order, which you can rearrange in Jira as usual. Changing the board during a session reloads
 the queue.
@@ -318,6 +357,9 @@ Atlassian accounts.
 The settings page is only for the owner: click your name in the room header and choose
 **Room settings**. Choose
 **Save changes** after changing anything.
+
+The first time you open the settings, a note offers a short tour of the page; **Tour** at the
+foot of the page starts it again.
 
 | Section | Settings |
 | --- | --- |
@@ -363,6 +405,8 @@ queue, and lists the first 50. It doesn't save anything, so try settings freely,
 **Save changes**. A saved filter applies when a session next loads the backlog, or when a
 facilitator chooses **Reload backlog**.
 
+![The Queue filter section with Also include options, Extra JQL, and a preview listing the 8 tickets the queue would hold](images/settings-queue-filter.png)
+
 The backlog counter in the room counts the same tickets as the queue filter.
 
 ### Delegates
@@ -376,6 +420,8 @@ connect Jira or delete the room.
 
 They are recognised by their verified Google email or their GitHub username, never by display
 name. A Google entry only matches a Google sign-in, and a GitHub entry only a GitHub sign-in.
+
+![The Delegates section listing one Google delegate, with the field and Add delegate button below](images/settings-delegates.png)
 
 ### What is kept
 

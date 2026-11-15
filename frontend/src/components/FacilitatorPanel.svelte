@@ -57,7 +57,7 @@
 </script>
 
 <aside class="facilitator" aria-label="Facilitator panel">
-  <section class="panel" aria-label="Countdown">
+  <section class="panel" aria-label="Countdown" data-tour="countdown">
     <div class="head">
       <span class="panel-title">Countdown</span>
       <span class="note"
@@ -108,7 +108,7 @@
     <FinalPoints {snap} {send} />
   {/if}
 
-  <section class="panel" aria-label="Facilitator controls">
+  <section class="panel" aria-label="Facilitator controls" data-tour="reveal">
     <span class="panel-title">Facilitator controls</span>
     {#if voting && !docked}
       <button
@@ -188,7 +188,7 @@
     </section>
   {/if}
 
-  <section class="panel" aria-label="Session summary">
+  <section class="panel" aria-label="Session summary" data-tour="summary">
     <div class="head">
       <span class="panel-title">Session summary</span>
       <span class="note">
