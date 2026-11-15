@@ -44,6 +44,17 @@
   }
 
   let demoBusy = $state(false);
+
+  // The 30-second tour video, in a player over the page (design.md, "Demo rooms").
+  let player = $state<HTMLDialogElement | null>(null);
+  let video = $state<HTMLVideoElement | null>(null);
+  function watch() {
+    player?.showModal();
+    video?.play().catch(() => {}); // a browser may refuse; the controls are there
+  }
+  function stopVideo() {
+    video?.pause();
+  }
   let demoError = $state<string | null>(null);
   let demoFull = $state<string | null>(null);
   async function tryDemo() {
@@ -163,6 +174,10 @@
       </p>
       <div class="buttons">
         <button class="btn" type="button" disabled={demoBusy} onclick={tryDemo}>Try a demo</button>
+        <button class="btn" type="button" aria-haspopup="dialog" onclick={watch}>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"></path></svg>
+          Watch the video
+        </button>
       </div>
       {#if demoFull}
         <p class="full" role="status"><span class="cup" aria-hidden="true">☕</span> {demoFull}</p>
@@ -171,6 +186,21 @@
     </section>
   {/if}
 </main>
+
+<dialog class="player" bind:this={player} aria-labelledby="player-title" onclose={stopVideo}>
+  <div class="player-head">
+    <h2 id="player-title">Scrum poker in 30 seconds</h2>
+    <button class="btn close" type="button" aria-label="Close" onclick={() => {
+        stopVideo();
+        player?.close();
+      }}>
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+    </button>
+  </div>
+  <!-- The narration is the tour's captions read aloud: the same words are on screen. -->
+  <!-- svelte-ignore a11y_media_has_caption -->
+  <video bind:this={video} src="/tour.mp4" controls preload="none" playsinline></video>
+</dialog>
 
 <style>
   .right {
@@ -183,6 +213,51 @@
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+  }
+  .buttons .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .player {
+    width: min(960px, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 12px 16px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .player::backdrop {
+    background: rgb(8 12 10 / 70%);
+  }
+  .player-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 10px;
+  }
+  .player-head h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 18px;
+  }
+  .close {
+    width: 44px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+  }
+  .player video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    background: #000;
   }
   .link-btn {
     display: inline-flex;

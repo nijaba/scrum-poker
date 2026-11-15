@@ -329,11 +329,16 @@
           reaches Jira. The room ends after {duration(snap.demo_idle_seconds ?? 1800)} with
           nobody here.</span
         >
-        <button class="btn" type="button" onclick={moreBots}>Add a bot</button>
+        <span class="demo-actions">
+          <button class="btn" type="button" onclick={(e) => startTour(e.currentTarget)}
+            >Take the tour</button
+          >
+          <button class="btn" type="button" onclick={moreBots}>Add a bot</button>
+        </span>
         {#if botError}<span class="bot-error" role="alert">{botError}</span>{/if}
       </p>
     {/if}
-    {#if snap && !room?.ended}
+    {#if snap && !room?.ended && !snap.demo}
       <TourOffer text="New here? A short tour shows how the room works." />
     {/if}
     {#if room?.ended}
@@ -583,6 +588,11 @@
   .banner.demo {
     border: 1px dashed var(--accent);
     background: var(--surface);
+  }
+  .demo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .bot-error {
     color: var(--danger);

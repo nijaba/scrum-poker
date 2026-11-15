@@ -256,6 +256,8 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | DR-12 | `DEMO_MAX_ROOMS` and `DEMO_IDLE_SECONDS` set, unset, or not a whole number of at least 1 | Read as given; 20 and 1800 when unset; refused at start-up, naming the variable, otherwise | Unit |
 | DR-13 | Try a demo when every demo room is taken | The home page shows the server's come-back-later message beside a coffee cup, as a status note, not an error; the page stays put and Try a demo can be pressed again | E2E |
 | DR-14 | A visitor is in a demo room, with `DEMO_IDLE_SECONDS` at its default or set | The room's state carries the idle time, and the demo banner gives it ("ends after 45 minutes with nobody here" for 2700) | Integration, E2E |
+| DR-15 | A visitor joins a demo room for the first time, and again later | No once-only tour offer; the demo banner's Take the tour starts the facilitator's tour each time | E2E |
+| DR-16 | Choose Watch the video on the home page | A player opens over the page with `/tour.mp4` and its controls; Close and Escape close it and stop the video | E2E |
 
 ## Mini mode
 
