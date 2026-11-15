@@ -1,8 +1,10 @@
-"""Demo rooms in a real browser. Cases DR-11, DR-13 to DR-16."""
+"""Demo rooms in a real browser. Cases DR-11, DR-13 to DR-17."""
 
 import re
 
 from playwright.sync_api import expect
+
+from tests.e2e.conftest import serve
 
 BOT_WAIT = 20_000  # bots play a few seconds after a round opens
 
@@ -108,3 +110,24 @@ def test_dr16_watch_the_video_from_the_home_page(browser, server):
     expect(player).to_be_hidden()
     page.wait_for_function("document.querySelector('video').paused")
     context.close()
+
+
+def test_dr17_the_video_button_follows_its_setting(browser, tmp_path):
+    # Demo rooms off: the button stands on its own.
+    (tmp_path / "solo").mkdir()
+    with serve(tmp_path / "solo", extra={"DEMO_ROOMS": "0"}) as base:
+        page = browser.new_page()
+        page.goto(base)
+        expect(page.get_by_role("button", name="Try a demo")).to_have_count(0)
+        section = page.get_by_role("region", name="Watch the video")
+        section.get_by_role("button", name="Watch the video").click()
+        expect(page.get_by_role("dialog", name="Scrum poker in 30 seconds")).to_be_visible()
+        page.close()
+    # Turned off: no button, with or without demo rooms.
+    (tmp_path / "off").mkdir()
+    with serve(tmp_path / "off", extra={"TOUR_VIDEO": "0"}) as base:
+        page = browser.new_page()
+        page.goto(base)
+        expect(page.get_by_role("button", name="Try a demo")).to_be_visible()
+        expect(page.get_by_role("button", name="Watch the video")).to_have_count(0)
+        page.close()

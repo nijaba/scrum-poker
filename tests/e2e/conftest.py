@@ -50,7 +50,9 @@ class Server(str):
 
 
 @contextmanager
-def serve(folder: Path, tls: tuple[Path, Path] | None = None) -> Iterator[str]:
+def serve(
+    folder: Path, tls: tuple[Path, Path] | None = None, extra: dict[str, str] | None = None
+) -> Iterator[str]:
     """Run the app on a free port with the fake sign-in and the fake Jira; yield its address.
 
     With `tls` (a certificate and key file), uvicorn serves HTTPS itself, as the proxy
@@ -72,6 +74,7 @@ def serve(folder: Path, tls: tuple[Path, Path] | None = None) -> Iterator[str]:
         "ROOM_CREATOR_ALLOWLIST": "owner@example.com",
         "DATABASE_PATH": str(base.database),
         "SESSION_SECRET": "e2e-secret-" + "x" * 32,
+        **(extra or {}),
     }
     command = [sys.executable, "-m", "uvicorn", "app.main:app", "--port", str(port)]
     command += ["--workers", "1"]

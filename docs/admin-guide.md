@@ -106,6 +106,7 @@ The app reads its settings from environment variables. With Docker Compose, put 
 | `DEMO_ROOMS` | No | `1` offers **Try a demo** on the home page: anyone, with no sign-in, gets a private practice room with bots and a made-up backlog, in memory only and never connected to Jira. Off by default. |
 | `DEMO_MAX_ROOMS` | No | How many demo rooms may run at once. Past that, visitors are asked to come back later. Default 20; each takes about 100 KiB. |
 | `DEMO_IDLE_SECONDS` | No | How long a demo room lasts with no person in it, in seconds; bots don't count. Default 1800 (30 minutes). |
+| `TOUR_VIDEO` | No | `0` hides **Watch the video**, the 30-second tour, from the home page. On by default: beside **Try a demo** with demo rooms on, in a section of its own otherwise. The video stays at `/tour.mp4` either way. |
 | `DATABASE_PATH` | No | The SQLite file. The image and compose file use `/data/scrum-poker.sqlite3`. |
 | `FORWARDED_ALLOW_IPS` | No | Proxies whose `X-Forwarded-Proto` the app believes, comma-separated, or `*`. Default `127.0.0.1`. The compose file sets `*`. |
 | `PORT` | No | The port the container listens on. Default 8000. |

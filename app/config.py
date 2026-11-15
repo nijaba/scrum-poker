@@ -12,6 +12,7 @@ SCRUM_POKER_FAKE_JIRA   1 to use the built-in fake Jira Cloud (localhost only)
 DEMO_ROOMS              1 to offer Try a demo on the home page
 DEMO_MAX_ROOMS          how many demo rooms may run at once (default 20)
 DEMO_IDLE_SECONDS       how long a demo room lasts with no person in it (default 1800)
+TOUR_VIDEO              0 to hide Watch the video on the home page (shown by default)
 """
 
 from __future__ import annotations
@@ -187,6 +188,8 @@ class Settings:
     demo_rooms: bool = False
     demo_max_rooms: int = DEFAULT_DEMO_MAX_ROOMS
     demo_idle_seconds: int = DEFAULT_DEMO_IDLE_SECONDS
+    # Watch the video on the home page (design.md, "Demo rooms"). /tour.mp4 is served either way.
+    tour_video: bool = True
     # Proxies whose X-Forwarded-Proto and X-Forwarded-For the app believes; "*" for any.
     forwarded_allow_ips: str = DEFAULT_FORWARDED_ALLOW_IPS
 
@@ -271,10 +274,23 @@ class Settings:
             demo_rooms=env.get("DEMO_ROOMS", "").strip() in ("1", "true", "yes"),
             demo_max_rooms=_positive(env, "DEMO_MAX_ROOMS", DEFAULT_DEMO_MAX_ROOMS),
             demo_idle_seconds=_positive(env, "DEMO_IDLE_SECONDS", DEFAULT_DEMO_IDLE_SECONDS),
+            tour_video=_switch(env, "TOUR_VIDEO", default=True),
             forwarded_allow_ips=(
                 env.get("FORWARDED_ALLOW_IPS") or DEFAULT_FORWARDED_ALLOW_IPS
             ).strip(),
         )
+
+
+def _switch(env: Mapping[str, str], name: str, *, default: bool) -> bool:
+    """An on/off setting: 1, true or yes; 0, false or no; the default when unset."""
+    text = env.get(name, "").strip().lower()
+    if not text:
+        return default
+    if text in ("1", "true", "yes"):
+        return True
+    if text in ("0", "false", "no"):
+        return False
+    raise ConfigError(f"{name} must be 1 or 0 (or true/false, yes/no), not {text!r}.")
 
 
 def _positive(env: Mapping[str, str], name: str, default: int) -> int:

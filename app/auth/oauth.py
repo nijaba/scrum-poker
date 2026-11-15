@@ -164,10 +164,17 @@ async def me(request: Request) -> dict[str, Any]:
     providers = list(auth.settings.providers)
     identity = auth.identity(request.cookies)
     demo = auth.settings.demo_rooms
+    video = auth.settings.tour_video
     if identity is None:
-        return {"signed_in": False, "providers": providers, "demo_rooms": demo}
+        return {
+            "signed_in": False,
+            "providers": providers,
+            "demo_rooms": demo,
+            "tour_video": video,
+        }
     return {
         "demo_rooms": demo,
+        "tour_video": video,
         "signed_in": True,
         "provider": identity.provider,
         "name": identity.name,

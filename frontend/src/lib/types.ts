@@ -134,6 +134,7 @@ export interface Me {
   label?: string;
   can_create?: boolean;
   demo_rooms: boolean; // the server offers demo rooms
+  tour_video: boolean; // the home page offers Watch the video (TOUR_VIDEO)
 }
 
 export type Access = "owner" | "delegate" | null;

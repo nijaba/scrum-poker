@@ -259,6 +259,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | DR-14 | A visitor is in a demo room, with `DEMO_IDLE_SECONDS` at its default or set | The room's state carries the idle time, and the demo banner gives it ("ends after 45 minutes with nobody here" for 2700) | Integration, E2E |
 | DR-15 | A visitor joins a demo room for the first time, and again later | No once-only tour offer; the demo banner's Take the tour starts the facilitator's tour each time | E2E |
 | DR-16 | Choose Watch the video on the home page | A player opens over the page with `/tour.mp4` and its controls; Close and Escape close it and stop the video | E2E |
+| DR-17 | `TOUR_VIDEO` unset, on, off or not a switch; the home page with demo rooms off, and with the video off | On unless 0, false or no; anything else refused at start-up, naming it; `/api/me` says which; with demo rooms off the button has its own section; with the video off there is no button | Unit, Integration, E2E |
 
 ## Mini mode
 
