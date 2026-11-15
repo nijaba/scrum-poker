@@ -23,10 +23,11 @@
   const last = $derived(!!steps && tour.at === steps.length - 1);
 
   /** The first part of the page with this name that is drawn (a closed sheet is not). */
-  function find(target: string | undefined): HTMLElement | null {
-    if (!target) return null;
-    for (const el of document.querySelectorAll<HTMLElement>(`[data-tour="${target}"]`)) {
-      if (el.getClientRects().length && !el.closest("dialog:not([open])")) return el;
+  function find(target: string | string[] | undefined): HTMLElement | null {
+    for (const name of [target ?? []].flat()) {
+      for (const el of document.querySelectorAll<HTMLElement>(`[data-tour="${name}"]`)) {
+        if (el.getClientRects().length && !el.closest("dialog:not([open])")) return el;
+      }
     }
     return null;
   }

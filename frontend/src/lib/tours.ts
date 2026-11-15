@@ -39,7 +39,7 @@ export function roomTour(who: {
           : "Reveal cards turns everyone's cards over, even if someone has not voted yet. Below it: Restart vote, Skip, Rewind, Reset room, and Auto-reveal to reveal on the last vote.",
       },
       {
-        target: "reveal",
+        target: ["final", "reveal"], // the final points once revealed; until then, where they come
         title: "Final points and Confirm",
         text: "After the reveal, the final points appear here. Pick the points the team agreed and Confirm: they are written to Jira and the room moves to the next ticket.",
       },

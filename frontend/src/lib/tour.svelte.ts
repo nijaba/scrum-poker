@@ -5,8 +5,9 @@
  */
 
 export type TourStep = {
-  /** The `data-tour` value of the part of the page the step explains; none for a caption alone. */
-  target?: string;
+  /** The `data-tour` value of the part of the page the step explains, or several to try in
+   * turn; none for a caption alone. */
+  target?: string | string[];
   title: string;
   text: string;
 };

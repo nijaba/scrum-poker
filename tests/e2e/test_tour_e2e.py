@@ -143,6 +143,15 @@ def test_tr03_a_facilitator_tour_adds_the_controls(table):
     ana.page.get_by_role("contentinfo").get_by_role("button", name="Tour").click()
     walk(ana.page, PLAYER_STEPS)
 
+    # Once the cards are revealed, the final points step outlines the final points.
+    fay.press("Reveal cards")
+    expect(page.get_by_role("region", name="Final points")).to_be_visible()
+    page.get_by_role("contentinfo").get_by_role("button", name="Tour").click()
+    for _ in range(FACILITATOR_STEPS.index("Final points and Confirm")):
+        caption(page).get_by_role("button", name="Next").click()
+    expect(caption(page).get_by_role("heading")).to_have_text("Final points and Confirm")
+    outlined(page, "final")
+
 
 def test_tr04_a_facilitator_on_a_phone_tours_the_dock(table):
     fay, ana, ben = seat_three(table)
