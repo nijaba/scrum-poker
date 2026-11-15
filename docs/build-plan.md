@@ -127,7 +127,7 @@ Design: "Phones" and "Dark mode". Decided by the owner on 2026-11-14 from the mo
 - [x] Phone layout: one-row header, compact table, docked hand and facilitator actions, more-controls sheet
 - [x] Remote view for players
 
-Cases: PH-01 to PH-05, RV-01 to RV-03, TH-01 to TH-03. Manual: PH-06, TH-04.
+Cases: PH-01 to PH-05, RV-01 to RV-03, TH-01 to TH-03. Manual: PH-06 and TH-04, run by the owner on 2026-11-15: passed.
 
 ## After step 6: tour and guide pictures
 
@@ -138,4 +138,4 @@ Design: "Tour" and "Guide pictures". Decided by the owner on 2026-11-15: a tour 
 - [x] `scripts/guide_pictures.py` and pictures in the user and admin guides
 - [x] The narrated tour video, served by the app at `/tour.mp4` for the README
 
-Cases: TR-01 to TR-06, GP-01 to GP-03. Manual: TR-07.
+Cases: TR-01 to TR-06, GP-01 to GP-03. Manual: TR-07, run by the owner on 2026-11-15: passed.
