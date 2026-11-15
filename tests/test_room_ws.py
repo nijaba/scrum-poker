@@ -194,7 +194,7 @@ def test_rx01_reset_reseats_only_players_who_check_in(client, clock, facilitator
 
             clock.advance(5)
             snap = until(host, state(lambda s: not s["check_in_open"]))
-            assert sorted(p["id"] for p in snap["players"]) == ["p1", "p2", "p3"]
+            assert sorted(p["name"] for p in snap["players"]) == ["P1", "P2", "P3"]
             assert all(p["connected"] for p in snap["players"])
 
 

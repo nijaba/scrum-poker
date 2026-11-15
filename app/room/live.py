@@ -311,7 +311,12 @@ class LiveRoom:
             raise CommandError("forbidden", "Only a facilitator can do that.")
 
         if kind == "join":
-            seat = room.join(data.get("player_id", conn.player_id), data.get("name", conn.name))
+            # Identity comes from the player cookie this connection carries, never from
+            # the message: a client cannot seat as another player by sending their id.
+            # A cookieless connection (which the browser never opens) may name itself once.
+            pid = conn.player_id if conn.player_id is not None else data.get("player_id")
+            name = conn.name if conn.name is not None else data.get("name")
+            seat = room.join(pid, name)
             conn.player_id, conn.name = seat.player_id, seat.name
         elif kind == "check_in":
             if conn.player_id is None or conn.name is None:

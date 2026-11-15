@@ -118,7 +118,8 @@ def test_websocket_seats_the_player_from_the_cookie(client):
 
     with connect(client) as ws:  # reconnect: the same seat
         snap = state(ws, lambda s: s["you"]["seated"])
-        assert [p["id"] for p in snap["players"]] == [player["id"]]
+        assert snap["you"]["player_id"] == player["id"]
+        assert [p["name"] for p in snap["players"]] == ["Ana"]
 
 
 def test_websocket_without_a_cookie_watches_until_it_joins(client):
