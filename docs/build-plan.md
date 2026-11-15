@@ -133,5 +133,6 @@ Design: "Tour" and "Guide pictures". Decided by the owner on 2026-11-15: a tour 
 - [x] Tour of the room by role, offered once, Tour in the menu and the footer
 - [x] Tour of the settings page for owners
 - [x] `scripts/guide_pictures.py` and pictures in the user and admin guides
+- [x] The narrated tour video, served by the app at `/tour.mp4` for the README
 
-Cases: TR-01 to TR-06, GP-01 and GP-02. Manual: TR-07.
+Cases: TR-01 to TR-06, GP-01 to GP-03. Manual: TR-07.

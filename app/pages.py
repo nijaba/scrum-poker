@@ -1,4 +1,5 @@
-"""Serves the built single-page app: `/`, `/r/<slug>`, `/r/<slug>/settings`, its assets and icons.
+"""Serves the built single-page app: `/`, `/r/<slug>`, `/r/<slug>/settings`, its assets, icons
+and the tour video.
 
 A retired room name redirects to the room's current one. An unknown room gets the
 page with a 404 status, and the page explains.
@@ -17,9 +18,11 @@ from app.room.ws import SLUG
 
 DEFAULT_STATIC_DIR = Path(__file__).resolve().parents[1] / "frontend" / "dist"
 
-# Icons Vite copies from frontend/public to the root of the build.
-ICONS = ("favicon.svg", "favicon.ico", "apple-touch-icon.png")
-ICON_CACHE = "public, max-age=86400"
+# Files Vite copies from frontend/public to the root of the build: the icons, and the tour
+# video the README links to (design.md, "Guide pictures"). FileResponse answers byte-range
+# requests, which Safari needs to play a video.
+PUBLIC_FILES = ("favicon.svg", "favicon.ico", "apple-touch-icon.png", "tour.mp4")
+PUBLIC_CACHE = "public, max-age=86400"
 
 NOT_BUILT = """<!doctype html><title>Scrum poker</title>
 <p>The front end is not built. Run <code>npm run build</code> in <code>frontend/</code>.</p>
@@ -64,16 +67,16 @@ def mount_pages(app: FastAPI, static_dir: Path) -> None:
     async def settings(slug: str, request: Request) -> Response:
         return await room_page(slug, request, "/settings")
 
-    def icon_route(name: str) -> None:
+    def public_route(name: str) -> None:
         path = static_dir / name
 
         @router.get(f"/{name}", include_in_schema=False)
-        async def icon() -> Response:
+        async def public_file() -> Response:
             if not path.is_file():
                 return Response(status_code=404)
-            return FileResponse(path, headers={"Cache-Control": ICON_CACHE})
+            return FileResponse(path, headers={"Cache-Control": PUBLIC_CACHE})
 
-    for name in ICONS:
-        icon_route(name)
+    for name in PUBLIC_FILES:
+        public_route(name)
 
     app.include_router(router)

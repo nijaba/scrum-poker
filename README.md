@@ -15,11 +15,11 @@ How to use it: the [user guide](docs/user-guide.md). How to run it: the
 
 ### The tour in 30 seconds
 
-[![A facilitator's tour of a room: the cards are revealed and the final points are outlined, with the step's caption beside them](docs/video/tour-poster.png)](docs/video/tour.mp4)
+[![A facilitator's tour of a room: the cards are revealed and the final points are outlined, with the step's caption beside them](docs/video/tour-poster.png)](https://poker.nijalabs.com/tour.mp4)
 
 A facilitator's walk through the room's built-in tour while the team votes, with a voice-over.
-Click the picture to [play the video](docs/video/tour.mp4) (MP4, 30 seconds, with sound). The
-narration is in [docs/video/tour-voiceover.md](docs/video/tour-voiceover.md).
+Click the picture to [play the video](https://poker.nijalabs.com/tour.mp4) (MP4, 30 seconds, with sound), served by the
+online demo, since GitHub does not play videos kept in a repository. The narration is in [docs/video/tour-voiceover.md](docs/video/tour-voiceover.md).
 
 ## Quick start (local development)
 

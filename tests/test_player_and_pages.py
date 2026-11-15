@@ -181,6 +181,29 @@ def test_favicons_are_served_from_the_built_front_end(settings, tmp_path, name, 
     assert "max-age" in response.headers["cache-control"]
 
 
+def test_gp03_the_tour_video_is_served_with_byte_ranges(settings, tmp_path):
+    static = tmp_path / "built"
+    static.mkdir()
+    (static / "tour.mp4").write_bytes(b"0123456789")
+    client = TestClient(create_app(settings=settings, static_dir=static))
+
+    whole = client.get("/tour.mp4")
+    assert whole.status_code == 200
+    assert whole.headers["content-type"] == "video/mp4"
+    assert "max-age" in whole.headers["cache-control"]
+    # Safari asks for byte ranges before it plays a video.
+    part = client.get("/tour.mp4", headers={"Range": "bytes=0-3"})
+    assert part.status_code == 206
+    assert part.content == b"0123"
+    assert part.headers["content-range"] == "bytes 0-3/10"
+
+
+def test_gp03_no_video_is_a_404(settings, tmp_path):
+    client = TestClient(create_app(settings=settings, static_dir=tmp_path))
+
+    assert client.get("/tour.mp4").status_code == 404
+
+
 def test_missing_favicon_is_a_404(settings, tmp_path):
     client = TestClient(create_app(settings=settings, static_dir=tmp_path))
 
