@@ -85,6 +85,13 @@ class _Disconnect:
 
 
 @dataclass
+class _Leave:
+    """A player leaves by a web request, whatever state their socket is in."""
+
+    player_id: str
+
+
+@dataclass
 class _Message:
     conn: Connection
     data: dict[str, Any]
@@ -190,6 +197,11 @@ class LiveRoom:
     def disconnect(self, conn: Connection) -> None:
         self._inbox.put_nowait(_Disconnect(conn))
 
+    def leave(self, player_id: str) -> None:
+        """Take a player off the table, as Log out does (design.md, "The menu behind your
+        name"). It needs no open socket, so a dropped connection cannot leave the seat behind."""
+        self._inbox.put_nowait(_Leave(player_id))
+
     def update(self, record: RoomRecord, moved_from: str | None = None) -> None:
         self.slug = record.slug
         self._inbox.put_nowait(_Update(record, moved_from))
@@ -257,6 +269,10 @@ class LiveRoom:
                     return True
             conn.send(self._snapshot(conn))
             return False
+        if isinstance(command, _Leave):
+            seated = room.is_seated(command.player_id)
+            room.leave(command.player_id)
+            return seated
         if isinstance(command, _Disconnect):
             conn = command.conn
             if conn in self._conns:
@@ -494,6 +510,11 @@ class RoomRegistry:
                 self._rooms[record.slug] = live
                 live.start()
             return live
+
+    def running(self, slug: str) -> LiveRoom | None:
+        """The room's live session if one is running; never starts one."""
+        live = self._rooms.get(slug)
+        return None if live is None or live.closed else live
 
     def _end(self, live: LiveRoom) -> None:
         """Forget an idle session. Safe to call twice."""

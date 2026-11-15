@@ -1,4 +1,4 @@
-"""The menu behind your name in the room header, in a real browser: cases UM-04 to UM-07."""
+"""The menu behind your name in the room header, in a real browser: cases UM-04 to UM-08."""
 
 from playwright.sync_api import expect
 
@@ -102,3 +102,37 @@ def test_menu_closes_on_a_click_outside(table):
     fay.page.get_by_role("main").click(position={"x": 5, "y": 5})
 
     expect(menu).to_have_count(0)
+
+
+# Wraps WebSocket so a test can cut the room's connection and keep it from coming back,
+# as when a phone wakes up with a dead socket.
+CUTTABLE_SOCKETS = """(() => {
+  const Real = window.WebSocket;
+  window.__sockets = [];
+  window.WebSocket = function (url, protocols) {
+    const socket = new Real(window.__blocked ? "ws://127.0.0.1:9/" : url, protocols);
+    window.__sockets.push(socket);
+    return socket;
+  };
+  window.WebSocket.prototype = Real.prototype;
+  Object.assign(window.WebSocket, { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 });
+})();"""
+
+
+def test_um08_logging_out_with_the_connection_down_still_leaves_the_table(table):
+    fay = table.join("Fay", facilitator=True)
+    context = table.new_context()
+    context.add_init_script(CUTTABLE_SOCKETS)
+    ana_page = table.open(context)
+    ana_page.get_by_label("Your name").fill("Ana")
+    ana_page.get_by_role("button", name="Join room").click()
+    expect(players(fay.page)).to_have_count(2)
+
+    ana_page.evaluate("window.__blocked = true; window.__sockets.forEach(s => s.close())")
+    expect(ana_page.get_by_text("Connection lost. Reconnecting…")).to_be_visible()
+    ana_page.get_by_role("banner").get_by_role("button", name="Ana").click()
+    ana_page.get_by_role("menuitem", name="Log out").click()
+
+    expect(ana_page.get_by_label("Your name")).to_have_value("")
+    expect(players(fay.page)).to_have_count(1)
+    expect(fay.page.locator('[data-player="Ana"]')).to_have_count(0)

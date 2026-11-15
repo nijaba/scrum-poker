@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { addBot, forgetPlayer, getMe, getPlayer, getRoom, signOut } from "../lib/api";
+  import { addBot, forgetPlayer, getMe, getPlayer, getRoom, leaveRoom, signOut } from "../lib/api";
   import { duration, plural, points, remainingAt } from "../lib/format";
   import { RoomConnection } from "../lib/room.svelte";
   import { openMini } from "../lib/mini";
@@ -114,7 +114,13 @@
 
   /** Leave the table, then sign out and go home, or forget the player's name. */
   async function logOut() {
-    room?.send({ type: "leave" });
+    // By web request first: the socket may have dropped (a phone waking up), and a leave
+    // sent on it would be lost while the name below is forgotten, stranding the seat.
+    try {
+      await leaveRoom(currentSlug);
+    } catch {
+      room?.send({ type: "leave" }); // the request failed: the socket is the next best way
+    }
     room?.close();
     room = null;
     try {

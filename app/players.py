@@ -6,9 +6,11 @@ place: on whenever APP_BASE_URL is not localhost.
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import binascii
 import json
+import re
 import secrets
 from dataclasses import dataclass
 from typing import Any
@@ -101,3 +103,30 @@ async def forget_player(request: Request) -> Response:
         COOKIE, httponly=True, samesite="lax", secure=request.app.state.settings.secure_cookies
     )
     return response
+
+
+SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,39}$")
+
+
+@router.post("/api/rooms/{slug}/leave", status_code=204)
+async def leave_room(slug: str, request: Request) -> Response:
+    """Take this browser's player off the room's table, as Log out does.
+
+    A web request, not a socket message, so it works when the room's socket has dropped
+    (a phone waking up, a network blip). Nothing to do without a player cookie or a
+    running session; a session is never started just to leave it.
+    """
+    check_write(request)
+    app = request.app
+    demo = app.state.demo
+    live = demo.get(slug) if demo is not None else None
+    if live is None:
+        store = app.state.store
+        current = await asyncio.to_thread(store.resolve, slug) if SLUG.match(slug) else None
+        if current is None:
+            raise HTTPException(404, "There is no room with that name.")
+        live = app.state.rooms.running(current)
+    player = decode_player(request.cookies.get(COOKIE))
+    if live is not None and player is not None:
+        live.leave(player.id)
+    return Response(status_code=204)

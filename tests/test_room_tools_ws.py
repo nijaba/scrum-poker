@@ -225,6 +225,46 @@ def test_um02_leaving_over_the_socket_updates_every_screen(client):
         assert mine["you"]["removed"] is False
 
 
+def test_um08_leaving_by_request_works_when_the_socket_is_down(client):
+    with open_ws(client, ROOM, OWNER) as fay:
+        join(fay, "f1", "Fay")
+        with open_ws(client, ROOM, player=("p1", "Ana")) as ana:
+            until(ana, state(lambda s: s["you"]["seated"]))
+            until(fay, seated(2))
+        # Ana's connection is gone (a phone asleep, a network blip): she shows as away.
+        until(fay, state(lambda s: any(not p["connected"] for p in s["players"])))
+
+        response = client.post(
+            "/api/rooms/team-a/leave", json={}, headers=headers(client.app, player=("p1", "Ana"))
+        )
+
+        assert response.status_code == 204
+        snap = until(fay, seated(1))
+        assert [p["name"] for p in snap["players"]] == ["Fay"]
+
+
+def test_um08_leaving_without_a_seat_or_a_live_room_is_harmless(client):
+    browser = headers(client.app, player=("p9", "Zed"))
+    # No live session yet: nothing is started just to leave it.
+    assert client.post("/api/rooms/team-a/leave", json={}, headers=browser).status_code == 204
+    assert client.app.state.rooms.running("team-a") is None
+    # No player cookie.
+    assert (
+        client.post("/api/rooms/team-a/leave", json={}, headers=headers(client.app)).status_code
+        == 204
+    )
+    assert client.post("/api/rooms/no-such-room/leave", json={}, headers=browser).status_code == 404
+
+
+def test_um08_leaving_refuses_other_sites(client):
+    response = client.post(
+        "/api/rooms/team-a/leave",
+        json={},
+        headers={**headers(client.app, player=("p1", "Ana")), "origin": "https://evil.example.org"},
+    )
+    assert response.status_code == 403
+
+
 def test_ar18_a_taken_name_is_refused_over_the_socket(client):
     with client.websocket_connect(ROOM) as ana:
         join(ana, "p1", "Ana")
