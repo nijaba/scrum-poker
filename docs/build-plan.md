@@ -170,3 +170,13 @@ Decided by the owner on 2026-11-16: run a short CI for documentation-only change
 - [x] A dependency audit workflow: pip-audit and npm audit
 
 Cases: DC-01 to DC-03.
+
+## After step 6: a fuller tour and owner onboarding
+
+Design: "Tour". Decided by the owner on 2026-11-16: explain more in the room tour, and help owners set a room up.
+
+- [x] Show me more: a second part of the room tour, by role
+- [x] A richer settings tour
+- [x] The setup checklist on a room's settings page
+
+Cases: TR-08 to TR-10, GS-01, GS-02.
