@@ -2,8 +2,8 @@
 # plus the image cases (PK-01 to PK-03, PK-02 in a browser) since the runner has Docker.
 # Sandbox (a real Jira Cloud site) and Manual cases stay out: they run before each release.
 #
-# A change that touches only documentation runs a short version: the guide pictures test
-# (GP-01, GP-02, which read the guides and docs/images) and nothing else. The other jobs
+# A change that touches only documentation runs a short version: the tests that read the
+# documentation (guide pictures, links, the project page build) and nothing else. The other jobs
 # still report, as Skipped, so the checks the main branch requires are always there.
 name: CI
 
@@ -81,9 +81,9 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
       - run: pip install -e ".[dev]"
-      - name: Documentation only, so just the guide pictures test
+      - name: Documentation only, so just the tests that read it
         if: env.CODE == 'false'
-        run: pytest -rs tests/test_guide_pictures.py
+        run: pytest -rs tests/test_guide_pictures.py tests/test_docs.py
       - uses: actions/setup-node@v4
         if: env.CODE != 'false'
         with:

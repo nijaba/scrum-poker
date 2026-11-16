@@ -1,0 +1,56 @@
+# Known vulnerabilities in the Python and front-end dependencies, through pip-audit (the
+# Python Packaging Authority's tool, using the PyPI advisory database) and npm audit.
+# Runs when the dependencies change, every Monday, and by hand. It is not a required check,
+# so a new advisory flags the dependencies without blocking unrelated pull requests.
+name: Dependency audit
+
+on:
+  pull_request:
+    paths:
+      - pyproject.toml
+      - frontend/package.json
+      - frontend/package-lock.json
+      - .github/workflows/audit.yml
+  push:
+    branches: [main]
+    paths:
+      - pyproject.toml
+      - frontend/package.json
+      - frontend/package-lock.json
+      - .github/workflows/audit.yml
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Audit Python dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      # Every installed package, the dev tools included; the app itself is skipped, it is ours.
+      - run: pip-audit --skip-editable
+
+  frontend:
+    name: Audit front-end dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # The full report goes to the log; only moderate or worse fails the job.
+      - run: npm audit || true
+        working-directory: frontend
+      - run: npm audit --audit-level=moderate
+        working-directory: frontend
