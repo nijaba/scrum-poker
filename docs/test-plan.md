@@ -307,7 +307,7 @@ The always-on-top window is checked by hand. Its content is automated through th
 | PH-03 | A facilitator on a phone opens the more-controls sheet | It holds the countdown, Skip and the other controls, and Session summary; Close and Escape close it | E2E |
 | PH-04 | Open the menu on a phone | It shows the session and backlog counters, Mute when the room has sound, and Theme | E2E |
 | PH-05 | The same room in a 1280 px window | No dock and no sheet: the counters and Mini mode are in the header and the facilitator panel sits beside the table, as before | E2E |
-| PH-07 | Every screen at common phone sizes, from 360 × 800 to 430 × 932: home signed out and in, the join form, settings, the room voting and revealed for a player and a facilitator, the more-controls sheet, Remote view | Nothing scrolls sideways and no control runs off the side (a row meant to scroll sideways may); the hand, the ticket title, Reveal cards, Confirm and Remote view's cards are fully in view | E2E |
+| PH-07 | Every screen at common phone sizes, from 360 × 800 to 430 × 932: home signed out and in, the join form, settings, the room voting and revealed for a player and a facilitator, the more-controls sheet, Remote view | Nothing scrolls sideways and no control runs off the side (a row meant to scroll sideways may); the hand, the ticket title, Reveal cards, every final points card, Confirm and Remote view's cards are fully in view | E2E |
 | PH-06 | Use the phone layout on a real iPhone and Android phone | Taps land, the dock clears the home bar, nothing scrolls sideways | Manual |
 
 ## Remote view

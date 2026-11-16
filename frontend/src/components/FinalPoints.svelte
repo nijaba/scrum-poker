@@ -131,11 +131,11 @@
     background: none;
     gap: 10px;
   }
-  /* One row that scrolls sideways if the scale is long, so the dock stays short. */
+  /* Up to two rows, so every card of a usual scale shows without scrolling; a longer custom
+     scale scrolls within them, so the dock never grows taller. */
   .docked .picks {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 2px;
+    max-height: calc(2 * 44px + 8px);
+    overflow-y: auto;
   }
   .docked .pick {
     flex: none;

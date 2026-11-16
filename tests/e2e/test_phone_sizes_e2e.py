@@ -55,13 +55,22 @@ OFF_SCREEN = """() => {
 def check(page: Page, where: str, problems: list[str], in_view=()) -> None:
     """No sideways scrolling or cut-off controls; the given parts fully on screen."""
     problems += [f"{where}: {p}" for p in page.evaluate(OFF_SCREEN)]
-    height = page.viewport_size["height"]
+    width, height = page.viewport_size["width"], page.viewport_size["height"]
     for label, locator in in_view:
         box = locator.bounding_box()
         if box is None:
             problems.append(f"{where}: {label} is not on screen")
-        elif box["y"] < -0.5 or box["y"] + box["height"] > height + 0.5:
+        elif (
+            box["y"] < -0.5
+            or box["y"] + box["height"] > height + 0.5
+            or box["x"] < -0.5
+            or box["x"] + box["width"] > width + 0.5
+        ):
             problems.append(f"{where}: {label} is not fully in view ({box})")
+
+
+def final_picks(page: Page):
+    return page.locator(".dock").get_by_role("region", name="Final points").locator(".pick")
 
 
 def sweep(pages, where, problems, in_view=lambda page: ()):
@@ -128,7 +137,9 @@ def test_ph07_every_screen_fits_common_phones(browser, server, table):
         "facilitator revealed",
         problems,
         lambda p: [
-            ("Confirm", p.locator(".dock").get_by_role("button", name=re.compile("^Confirm")))
+            ("Confirm", p.locator(".dock").get_by_role("button", name=re.compile("^Confirm"))),
+            ("the first final points card", final_picks(p).first),
+            ("the last final points card", final_picks(p).last),
         ],
     )
 
