@@ -5,7 +5,7 @@
    * underneath. Nothing moves, so reduced motion needs nothing extra. design.md, "Tour".
    */
   import { tick } from "svelte";
-  import { endTour, tour } from "../lib/tour.svelte";
+  import { endTour, showMore, tour } from "../lib/tour.svelte";
 
   const PAD = 6;
   const GAP = 12;
@@ -135,7 +135,12 @@
     <p id="tour-text">{step.text}</p>
     <div class="actions">
       <button class="btn" type="button" disabled={tour.at === 0} onclick={() => go(-1)}>Back</button>
-      {#if last}
+      {#if last && tour.more}
+        <button class="btn" type="button" onclick={endTour}>Done</button>
+        <button bind:this={next} class="btn btn-primary" type="button" onclick={showMore}
+          >Show me more</button
+        >
+      {:else if last}
         <button bind:this={next} class="btn btn-primary" type="button" onclick={endTour}>Done</button>
       {:else}
         <button bind:this={next} class="btn btn-primary" type="button" onclick={() => go(1)}>Next</button>

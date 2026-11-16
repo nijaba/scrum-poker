@@ -142,7 +142,7 @@ def sign_in(page: Page, base: str, account: str, next_path: str = "/") -> None:
 def connect_jira(page: Page, base: str, slug: str, board: str = "SHOP board") -> None:
     """The owner connects the room to the fake Jira and picks a board, through the settings page."""
     page.goto(f"{base}/r/{slug}/settings")
-    page.get_by_role("link", name="Connect Jira").click()
+    page.get_by_role("region", name="Jira").get_by_role("link", name="Connect Jira").click()
     page.get_by_role("link", name="Accept").click()
     page.wait_for_url(f"{base}/r/{slug}/settings?jira=connected")
     page.get_by_label("Board").select_option(label=board)

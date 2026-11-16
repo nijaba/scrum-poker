@@ -49,9 +49,6 @@
   const isManager = $derived(!!me?.signed_in && canManage(info?.access));
   // Only the owner deletes the room or hands it over (design.md, "Co-owners and handing a room over").
   const isOwner = $derived(!!me?.signed_in && info?.access === "owner");
-  $effect(() => {
-    if (isManager) return offerTour("settings", settingsTour);
-  });
 
   // The form
   let shortName = $state("");
@@ -97,6 +94,57 @@
   let current = $state(slug); // the room's slug as saved
   const link = $derived(`${location.origin}/r/${current}`);
 
+  $effect(() => {
+    if (!isManager) return;
+    const owner = isOwner;
+    const checklist = showChecklist;
+    return offerTour("settings", () => settingsTour({ owner, checklist }));
+  });
+
+  // The setup checklist (design.md, "Tour"): shown while the room has no Jira connection or no
+  // board, and for the rest of the visit once it becomes ready.
+  const ready = $derived(!!jira?.connected && !!jira?.board);
+  let setting = $state(false);
+  $effect(() => {
+    if (jira?.available && !ready) setting = true;
+  });
+  const showChecklist = $derived(!!jira?.available && setting);
+  let previewed = $state(false);
+  let shared = $state(false);
+  const checklist = $derived([
+    {
+      title: "Connect Jira",
+      text: "Sign in to Atlassian and allow access to your Jira site.",
+      done: !!jira?.connected,
+    },
+    {
+      title: "Choose the board",
+      text: "Pick the site and board under Jira Cloud, then Save changes.",
+      done: !!jira?.board,
+      href: "#jira",
+      go: "Go to Jira Cloud",
+    },
+    {
+      title: "Preview the queue",
+      text: "See which tickets a session would walk through, and adjust the filter if needed.",
+      done: previewed,
+      href: "#queue-filter",
+      go: "Go to the queue filter",
+    },
+    {
+      title: "Add a delegate (optional)",
+      text: "Name the people who run sessions with you, as facilitators or co-owners.",
+      done: savedDelegates.length > 0,
+      href: "#delegates",
+      go: "Go to delegates",
+    },
+    {
+      title: "Share the room link",
+      text: "Send it to your team: players type a name and join, with no account.",
+      done: shared,
+    },
+  ]);
+
   onMount(async () => {
     try {
       me = await getMe();
@@ -135,6 +183,7 @@
     previewError = null;
     try {
       preview = await previewQueue(current, { ...filter, jql: filter.jql.trim() });
+      previewed = true;
     } catch (err) {
       preview = null;
       previewError = err instanceof Error ? err.message : "Could not preview the queue.";
@@ -314,6 +363,7 @@
   }
 
   async function copyLink() {
+    shared = true; // the checklist's last step: the person chose to share it
     try {
       await navigator.clipboard.writeText(link);
       copied = true;
@@ -366,7 +416,39 @@
       <a href="/r/{current}">Back to the room</a>
     </p>
   {:else}
-    <section class="section" aria-label="Room link" data-tour="room-link">
+    {#if showChecklist}
+      <section class="section checklist" aria-label="Get this room ready" data-tour="checklist">
+        <h2>{ready ? "This room is ready to run a session" : "Get this room ready"}</h2>
+        <ol>
+          {#each checklist as item, i (item.title)}
+            <li data-done={item.done ? "true" : "false"}>
+              <span class="mark" aria-hidden="true">{item.done ? "✓" : i + 1}</span>
+              <div class="item">
+                <span class="item-title"
+                  ><span class="visually-hidden">{item.done ? "Done:" : "To do:"}</span>
+                  {item.title}</span
+                >
+                <span class="text-2">{item.text}</span>
+                {#if i === 0 && !item.done}
+                  <a class="btn-primary link-primary" href={connectJiraUrl(current)}>Connect Jira</a>
+                {:else if i === 4}
+                  <div class="row tight">
+                    <button class="btn" type="button" onclick={copyLink}
+                      >{copied ? "Copied" : "Copy link"}</button
+                    >
+                    <a class="btn link-btn" href="/r/{current}">Open the room</a>
+                  </div>
+                {:else if item.href && !item.done}
+                  <a class="go" href={item.href}>{item.go}</a>
+                {/if}
+              </div>
+            </li>
+          {/each}
+        </ol>
+      </section>
+    {/if}
+
+    <section class="section" id="room-link" aria-label="Room link" data-tour="room-link">
       <h2>Room link</h2>
       <div class="row">
         <div class="field grow">
@@ -381,7 +463,7 @@
       </span>
     </section>
 
-    <section class="section" aria-label="Jira" data-tour="jira">
+    <section class="section" id="jira" aria-label="Jira" data-tour="jira">
       <div class="jira-head">
         <h2>Jira Cloud</h2>
         {#if jira?.available && jira.connected}
@@ -445,7 +527,7 @@
       {#if jiraError}<p class="form-error" role="alert">{jiraError}</p>{/if}
     </section>
 
-    <section class="section" aria-label="Queue filter" data-tour="queue-filter">
+    <section class="section" id="queue-filter" aria-label="Queue filter" data-tour="queue-filter">
       <h2>Queue filter</h2>
       <span class="text-2">
         Which backlog tickets a session walks through, in rank order. By default: stories, tasks and
@@ -584,7 +666,7 @@
       <span class="text-2">Facilitators can change these for a running session; these are the defaults.</span>
     </section>
 
-    <section class="section" aria-label="Delegates" data-tour="delegates">
+    <section class="section" id="delegates" aria-label="Delegates" data-tour="delegates">
       <h2>Delegates</h2>
       <span class="text-2">
         Facilitators run sessions in this room. Co-owners can also change these settings and connect
@@ -664,6 +746,55 @@
 </main>
 
 <style>
+  .checklist ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .checklist li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .mark {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-3);
+  }
+  li[data-done="true"] .mark {
+    border-color: var(--table);
+    background: var(--table);
+    color: var(--on-table);
+  }
+  li[data-done="true"] .item-title {
+    color: var(--text-3);
+  }
+  .item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+  }
+  .item-title {
+    font-weight: 600;
+  }
+  .go {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 600;
+  }
   .right {
     display: flex;
     flex-wrap: wrap;

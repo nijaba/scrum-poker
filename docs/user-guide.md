@@ -60,6 +60,11 @@ controls. **Next** and **Back** move through it, and **Done**, **×** or Escape 
 
 ![A tour step outlining the player's cards, with its caption: Step 3 of 5, Your cards](images/tour.png)
 
+At the last step, **Show me more** carries on with the rest of the room: the counters, Copy
+link, Mini mode, what the table shows about each player, and how to read the reveal.
+Facilitators also hear about Restart, Skip and Rewind, Reset room, removing a player,
+auto-reveal and sound, and the session summary.
+
 Choose **No thanks** if you'd rather explore alone; your browser remembers either answer, so
 the note doesn't come back. You can take the tour any time from **Tour** in the menu behind
 your name or at the foot of the page.
@@ -322,7 +327,12 @@ Once it's fixed, choose **Try again** in the room.
 1. Open the app's home page and choose **Sign in with Google** or **Sign in with GitHub**.
 2. Under **Create a room**, type a **Short name**: lowercase letters, digits and hyphens, such
    as `team-a`. It becomes the room's link, `/r/team-a`.
-3. Choose **Create room**. The room's settings open.
+3. Choose **Create room**. The room's settings open, with a **Get this room ready** checklist at
+   the top: connect Jira, choose the board, preview the queue, add delegates if you want them,
+   and share the link. Each step ticks itself off as you do it; once Jira and the board are
+   saved, the room is ready to run a session.
+
+![The Get this room ready checklist, with Connect Jira done and Choose the board next](images/settings-checklist.png)
 
 If the page says your account "cannot create rooms", ask your administrator to add you. You
 can still run sessions in rooms where you are a delegate.
@@ -361,8 +371,8 @@ The settings page is for the owner and co-owners: click your name in the room he
 choose **Room settings**, or **Settings** on the room's card on the home page. Choose
 **Save changes** after changing anything.
 
-The first time you open the settings, a note offers a short tour of the page; **Tour** at the
-foot of the page starts it again.
+The first time you open the settings, a note offers a short tour of the page, a few sentences on
+each section; **Tour** at the foot of the page starts it again.
 
 | Section | Settings |
 | --- | --- |

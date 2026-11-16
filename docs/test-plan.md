@@ -337,6 +337,11 @@ The always-on-top window is checked by hand. Its content is automated through th
 | TR-04 | A facilitator on a phone takes the tour | The steps outline the dock and the **⋯** button, and each outlined part is on screen | E2E |
 | TR-05 | Press Escape during the tour, then choose Tour in the footer | Escape ends the tour and focus goes back; Tour starts it again at step 1 | E2E |
 | TR-06 | The owner opens the settings page for the first time and takes its tour | The offer shows; the steps cover the room link, Jira, the queue filter, the scale, countdown and sound, and delegates | E2E |
+| TR-08 | A player finishes the room tour and chooses Show me more | The tour carries on, numbered on: the counters, Copy link, Mini mode, who has voted, and reading the reveal, each outlining its part; Done ends it | E2E |
+| TR-09 | The owner, as facilitator, chooses Show me more | Their second part adds Restart, Skip and Rewind; Reset room and Reload backlog; removing a player; Auto-reveal and Sound; the session summary; and Room settings, each outlining its part | E2E |
+| TR-10 | The owner opens a new room's settings page and takes its tour | It starts with the setup checklist, then the six sections; the Delegates step covers Make owner… | E2E |
+| GS-01 | The owner sets up a new room from its settings page | The checklist shows Connect Jira, Choose the board, Preview the queue, Add a delegate (optional) and Share the room link; each ticks as it is done, and once Jira and the board are saved it says the room is ready | E2E |
+| GS-02 | Open the settings of a room that already has Jira and a board | No checklist | E2E |
 | TR-07 | Take each tour with a screen reader, in dark mode and with reduced motion | Captions are read, nothing animates, the outline and caption are clear in both themes | Manual |
 
 ## Guide pictures
