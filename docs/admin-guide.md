@@ -13,11 +13,11 @@ The first installation is a step-by-step in the README: [Deploying](../README.md
   process's memory.
 - **One SQLite file** on a volume holds the room definitions: name, owner, delegates, settings,
   and each room's Jira connection with its refresh token encrypted.
-- **A reverse proxy ends HTTPS** in front of the container. The provided setup uses Caddy,
-  which also gets and renews the certificate.
+- **A reverse proxy ends HTTPS** in front of the container. `deploy/` uses Caddy, which also
+  gets and renews the certificate; `deploy/nginx/` fits a server that already runs nginx.
 - **Google and GitHub** sign in room owners and delegates. Players never sign in.
-- **Jira Cloud**, through an Atlassian OAuth app: each room's owner connects their room to a
-  board.
+- **Jira Cloud**, through an Atlassian OAuth app: each room's owner or a co-owner connects the
+  room to a board.
 
 Run exactly one copy of the container with one worker. Two copies would split a room's
 players between processes that can't see each other.
@@ -76,15 +76,15 @@ You can enable Google, GitHub or both. With neither, nobody can sign in.
    The app also requests `offline_access` itself, for refresh tokens.
 3. Under **Authorization**, set the callback URL to
    `https://poker.example.com/auth/atlassian/callback`.
-4. Under **Distribution**, enable sharing if room owners other than the app's creator will
+4. Under **Distribution**, enable sharing if anyone other than the app's creator will
    connect Jira. A private app works only for the account that created it.
 5. Put the client ID and secret in `ATLASSIAN_CLIENT_ID` and `ATLASSIAN_CLIENT_SECRET`, and set
    `TOKEN_ENCRYPTION_KEY`.
 
-Room owners need a Jira account that can see the board and edit the tickets' estimates:
-everything is read and written as them.
+Whoever connects a room to Jira needs a Jira account that can see the board and edit the
+tickets' estimates: everything is read and written as them.
 
-Once the Atlassian app works, a room owner's **Connect Jira** ends with the room's settings
+Once the Atlassian app works, **Connect Jira** in a room's settings ends with the room's settings
 showing the connection:
 
 ![A room's Jira Cloud settings, connected, with its site and board](images/settings-jira.png)
@@ -220,7 +220,7 @@ docker compose cp app:/data/backup.sqlite3 ./scrum-poker-backup.sqlite3
 ```
 
 Keep `TOKEN_ENCRYPTION_KEY` safe and apart from the backups. Without it, the backed-up Jira
-connections can't be decrypted, and every owner has to reconnect Jira.
+connections can't be decrypted, and every room has to reconnect Jira.
 
 To restore, stop the app, copy the file back over `/data/scrum-poker.sqlite3` on the volume,
 and start it again.
@@ -230,14 +230,14 @@ and start it again.
 | Changed | Effect |
 | --- | --- |
 | `SESSION_SECRET` | Everyone is signed out and signs in again. Rooms and Jira connections are unaffected. Do this if the secret may have leaked. |
-| `TOKEN_ENCRYPTION_KEY` | Every room loses its Jira connection, and each owner must choose **Reconnect** in the room's settings. |
+| `TOKEN_ENCRYPTION_KEY` | Every room loses its Jira connection, and its owner or a co-owner must choose **Reconnect** in the room's settings. |
 | The Atlassian client secret | Rotate it in the developer console, update `.env` and restart. Rooms keep their connections. |
 
 ### What the app stores
 
 | Data | Where | Kept |
 | --- | --- | --- |
-| Room name, old names, scale, countdown and sound defaults | SQLite | Until the room is deleted |
+| Room name, old names, scale, queue filter, countdown, sound and auto-reveal defaults | SQLite | Until the room is deleted |
 | Owner's provider account ID and email or GitHub login | SQLite | Until the room is deleted |
 | Delegates' Google emails and GitHub logins, and their roles | SQLite | Until removed or the room is deleted |
 | An open offer of the room to a delegate | SQLite | Until answered, cancelled, or 7 days |
@@ -260,9 +260,9 @@ paths and status codes), including room names in the paths.
 | A signed-in person "cannot create rooms" | They're not on `ROOM_CREATOR_ALLOWLIST`. Add them and restart. For `github-org:`, check the organisation has approved the app. |
 | The home page says "No sign-in provider is configured." | Neither Google nor GitHub is set up. |
 | Room settings say "Jira is not set up on this server." | `ATLASSIAN_CLIENT_ID` and `ATLASSIAN_CLIENT_SECRET` aren't set. |
-| Only you can connect Jira; other owners get an Atlassian error | Enable sharing in the Atlassian app's Distribution settings. |
-| A room says "Jira no longer accepts this room's connection." | The refresh token expired (90 days unused), was revoked in Atlassian, or `TOKEN_ENCRYPTION_KEY` changed. The owner chooses **Reconnect**. |
-| Confirming points fails on one board | The owner's Jira account can't edit that board's estimates, or the board's estimation field isn't set. Check the board's settings in Jira. |
+| Only you can connect Jira; everyone else gets an Atlassian error | Enable sharing in the Atlassian app's Distribution settings. |
+| A room says "Jira no longer accepts this room's connection." | The refresh token expired (90 days unused), was revoked in Atlassian, or `TOKEN_ENCRYPTION_KEY` changed. The room's owner or a co-owner chooses **Reconnect**. |
+| Confirming points fails on one board | The Jira account that connected the room can't edit that board's estimates, or the board's estimation field isn't set. Check the board's settings in Jira. |
 | Pages keep redirecting, or everything shows "Reconnecting…" | The proxy isn't sending `X-Forwarded-Proto`, or `FORWARDED_ALLOW_IPS` doesn't include the proxy. Behind Caddy with the provided compose file both are set. |
 | Players in the same room can't see each other | More than one copy of the app is running. Run one. |
 | Caddy can't get a certificate | DNS for `poker.example.com` must point at the server, and ports 80 and 443 must be open to the internet (or, with other ports set, public port 80 or 443 must still reach Caddy). `docker compose logs caddy` says what failed. |

@@ -1,8 +1,5 @@
 # Scrum poker test plan
 
-> Copied on 2026-11-11 from the Claude doc [Scrum poker test plan](https://claude.ai/artifact/SUNjJfvXDa6aMV6GUCHHB4).
-> If this file and the doc disagree, ask the owner which one is current.
-
 Every requirement in the [Scrum poker design](design.md) has at least one test case here, grouped by area and run at the cheapest level that proves it.
 
 ## Approach
