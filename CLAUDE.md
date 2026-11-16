@@ -33,6 +33,7 @@ SCRUM_POKER_FAKE_BACKLOG=tests/fixtures/fake_backlog.json SCRUM_POKER_FAKE_SSO=1
 (cd frontend && npm run dev)                 # Vite on :5173, proxying /api and /ws to :8000
 (cd frontend && npm run check)               # svelte-check type check
 pytest tests/e2e                             # Playwright E2E tests; they skip if frontend/dist is missing
+pytest -k ph07                               # every screen at common phone sizes, about 10 s
 docker build -t scrum-poker .                # the production image; pytest's image tests skip without Docker
 (cd deploy && docker compose --env-file ../.env up -d --build)  # dedicated host: Caddy in front, see README "Deploying"
 (cd deploy/nginx && docker compose --env-file ../../.env up -d --build)  # production: behind the host's nginx

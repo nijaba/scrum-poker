@@ -286,7 +286,7 @@ The main tab stays open and holds the connection. The countdown sound plays from
 
 ## Phones
 
-A window 640 px wide or narrower gets a phone layout of the room. Wider windows keep the layout above unchanged. The layout changes nothing the server sends or accepts.
+A window 640 px wide or narrower gets a phone layout of the room. Wider windows keep the layout above unchanged. The layout changes nothing the server sends or accepts. Every page fits common phones, 360 to 430 px wide and down to 667 px tall, with nothing scrolling sideways except rows meant to, such as the docked final points.
 
 - **Header.** One row: the room name (still the link home), "Ticket 4 of 8", Copy link as an icon, and the menu. The counters and Mute move into the menu. Mini mode is left out: phones offer no Picture-in-Picture window.
 - **Table.** Each seat is a small chip, three to a row: a card mark (filled when voted, dashed when not) and the name. After reveal the seats show small turned cards, four to a row, above the results and the vote spread.

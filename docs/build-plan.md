@@ -170,3 +170,11 @@ Decided by the owner on 2026-11-16: run a short CI for documentation-only change
 - [x] A dependency audit workflow: pip-audit and npm audit
 
 Cases: DC-01 to DC-03.
+
+## After step 6: common phone sizes
+
+Decided by the owner on 2026-11-16: check every screen at common phone sizes in the local checks and CI, as long as it costs under 30 seconds (it takes about 10).
+
+- [x] Every screen at six common phone sizes, from 360 × 800 to 430 × 932
+
+Cases: PH-07. Manual: PH-06 stays the check on real phones.
