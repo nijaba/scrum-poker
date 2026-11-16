@@ -1,15 +1,12 @@
 # Scrum poker design
 
-> Copied on 2026-11-11 from the Claude doc [Scrum poker design](https://claude.ai/artifact/2NgE8aD1Hme6a5ovuD6AEY).
-> If this file and the doc disagree, ask the owner which one is current.
-
 Scrum poker runs as one Python container: it serves a small web app, keeps live rooms in memory, stores room definitions in a SQLite file, and reads the backlog from and writes story points to Jira Cloud.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  F["Facilitators<br/>owner and delegates, signed in with SSO"]
+  F["Facilitators<br/>owner, co-owners and delegates, signed in with SSO"]
   P["Players<br/>join by room link, name kept in a cookie"]
   M["Mini window<br/>always on top: vote and countdown"]
   subgraph C["App container: Python, one process"]
@@ -32,9 +29,7 @@ Facilitators sign in through Auth and drive the room engine; players only hold a
 
 ## Stack
 
-The app is written in Python: FastAPI on uvicorn for HTTP and WebSockets, Authlib for the OAuth flows, httpx for Jira calls, and the standard library's SQLite driver. The front end is a small single-page app in Svelte with TypeScript, built with Vite and served as static files.
-
-Go is not required. It would give a smaller image (roughly 20 MB instead of around 150 MB) and lower memory use, and neither matters at team scale.
+The app is written in Python: FastAPI on uvicorn for HTTP and WebSockets, Authlib for the OAuth flows, httpx2 (httpx's successor) for Jira calls, nh3 to sanitize ticket descriptions, cryptography (Fernet) for stored tokens, and the standard library's SQLite driver. The front end is a small single-page app in Svelte with TypeScript, built with Vite and served as static files.
 
 Run a single uvicorn worker. Live rooms sit in process memory, so several workers would split one room across processes.
 
@@ -80,7 +75,7 @@ Once the cards have turned over, the seats move into scale order: lowest card fi
 
 ### Auto-reveal
 
-Auto-reveal turns the cards over once every player at the table who is connected has voted. Away players and players sitting out do not hold it up, and it needs at least one vote. It is a room setting, off by default, that the owner saves; facilitators can switch it for the running session only, like the countdown sound. Switching it on when everyone has already voted reveals at once. It never fires on countdown expiry, which still only signals time's up.
+Auto-reveal turns the cards over once every player at the table who is connected has voted. Away players and players sitting out do not hold it up, and it needs at least one vote. It is a room setting, off by default, saved by the owner or a co-owner; facilitators can switch it for the running session only, like the countdown sound. Switching it on when everyone has already voted reveals at once. It never fires on countdown expiry, which still only signals time's up.
 
 ### Sitting out and removing players
 
@@ -94,13 +89,12 @@ Facilitators get a summary of the session: every ticket estimated or skipped so 
 
 ### Little extras
 
-A few small touches, decided by the owner on 2026-11-13:
+A few small touches:
 
 - Coffee break: a player at the table can press ☕ next to their cards to say they need a break. It is a signal, not a vote: it never touches the round's votes, it does not count as voted, and auto-reveal still waits for them. Every screen shows a cup by their name and plays a short gurgle when the break starts, and the break ends when they press ☕ again or vote. Players sitting out cannot take one. A reset clears it with the seats.
 - Splitting hint: when anyone chose the scale's highest numeric card (55 on Fibonacci, XXL on the default T-shirt scale, the top of a custom list), the results add "Have you considered splitting this?". A scale needs at least two numeric values for the hint.
 - Nobody knows: when every vote is a card without a value, such as "?", the consensus figure reads "Nobody knows. Ship it?" instead.
 - Perfect consensus: when at least five players all chose the same numeric card, the results say so, the cards take a bow one after another and a short chord plays. With reduced motion the cards stay still.
-
 - Arcade deck: typing the Konami code (↑ ↑ ↓ ↓ ← → ← → B A) anywhere outside a text field switches your own cards to a neon arcade deck; typing it again brings the classic deck back. It is a browser-only preference, kept in local storage, and also applies in mini mode. Nobody else's screen changes, and the server is not told.
 
 The server works out the hint, "nobody knows" and the perfect consensus with the other results, so every screen agrees. The gurgle and the chord follow the room's sound setting and each player's mute, like the countdown sound.
@@ -119,9 +113,9 @@ Sound is a room setting, off by default: soft ticks for the last five seconds an
 
 ### Scales
 
-The owner picks Fibonacci (1, 2, 3, 5, 8, 13, 21, 34, 55, ?), T-shirt or a custom list per room and can change it between rounds. A change made before anyone has voted applies at once; otherwise it applies from the next round (a restart or the next ticket). Each card has a label and an optional numeric value, because Jira's story points field is a plain numeric field ([source](https://docs.atlassian.com/jira-software/REST/2017-03-08T23:31:28Z/)). Fibonacci is not editable, so a room saved with an older Fibonacci list loads with the current one.
+The owner or a co-owner picks Fibonacci (1, 2, 3, 5, 8, 13, 21, 34, 55, ?), T-shirt or a custom list per room and can change it between rounds. A change made before anyone has voted applies at once; otherwise it applies from the next round (a restart or the next ticket). Each card has a label and an optional numeric value, because Jira's story points field is a plain numeric field ([source](https://docs.atlassian.com/jira-software/REST/2017-03-08T23:31:28Z/)). Fibonacci is not editable, so a room saved with an older Fibonacci list loads with the current one.
 
-T-shirt sizes ship with an editable mapping: XS=1, S=2, M=3, L=5, XL=8, XXL=13. The settings mock-up's example stops at XL; XXL is part of the default. Cards without a value, such as "?", are left out of the statistics.
+T-shirt sizes ship with an editable mapping: XS=1, S=2, M=3, L=5, XL=8, XXL=13. Cards without a value, such as "?", are left out of the statistics.
 
 ## Jira Cloud
 
@@ -137,7 +131,7 @@ The app connects through Atlassian OAuth 2.0, and requests go to `api.atlassian.
 | `read:me` | Showing which Atlassian account the room is connected as |
 | `offline_access` | Getting a refresh token |
 
-The scopes per endpoint come from Atlassian's Jira Software OpenAPI spec, checked on 11 November 2026. The first version of this design listed four; listing boards and reading the estimate field need the two `read:project` and `.admin` scopes, and the settings page shows the account through `read:me`.
+The scopes per endpoint come from Atlassian's Jira Software OpenAPI spec.
 
 Each room has one Jira connection, set up by its owner or a co-owner on the room's settings page. The backlog loads and every confirmed estimate is written through it, whoever confirms, so Jira's history names whoever connected it. Facilitator delegates never connect Jira. An owner with several rooms connects each one, possibly to different Atlassian accounts or sites.
 
@@ -145,13 +139,13 @@ Refresh tokens rotate and expire after 90 days without use, so each room's lates
 
 ### Loading the backlog
 
-On session start the adapter reads the board configuration for the estimate field, then calls `GET /rest/agile/1.0/board/{boardId}/backlog` page by page, which returns issues ordered by rank ([source](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board)). One pass yields the queue (tickets with no estimate, in rank order) and the backlog counters. Epics and sub-tasks are left out of both: epics group tickets and sub-tasks split one, so neither is estimated on its own. Jira gives every issue type a hierarchy level (-1 sub-task, 0 standard, 1 epic) and a sub-task flag, which hold when a type is renamed or translated. Only issues at level 0 and not flagged as sub-tasks enter the queue; without a level, the type names `Epic`, `Sub-task` and `Subtask` are left out. Tickets already started are left out too: an issue must sit in Jira's To Do status category (key `new`), so a status called Backlog, Open or To Do counts, in any language, and In Progress or Done does not. A ticket with a resolution (Done, Won't Do) is left out even in a To Do status, which some workflows allow. Tickets in the active sprint or a future sprint are left out; the backlog endpoint already omits them, and the adapter checks each issue's `sprint` field so the rule holds whatever the endpoint returns. A ticket whose only sprint has closed is back in the backlog and counts. A room with no board chosen, or whose backlog cannot load, says why, and facilitators can retry once the owner has fixed it.
+On session start the adapter reads the board configuration for the estimate field, then calls `GET /rest/agile/1.0/board/{boardId}/backlog` page by page, which returns issues ordered by rank ([source](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board)). One pass yields the queue (tickets with no estimate, in rank order) and the backlog counters. Epics and sub-tasks are left out of both: epics group tickets and sub-tasks split one, so neither is estimated on its own. Jira gives every issue type a hierarchy level (-1 sub-task, 0 standard, 1 epic) and a sub-task flag, which hold when a type is renamed or translated. Only issues at level 0 and not flagged as sub-tasks enter the queue; without a level, the type names `Epic`, `Sub-task` and `Subtask` are left out. Tickets already started are left out too: an issue must sit in Jira's To Do status category (key `new`), so a status called Backlog, Open or To Do counts, in any language, and In Progress or Done does not. A ticket with a resolution (Done, Won't Do) is left out even in a To Do status, which some workflows allow. Tickets in the active sprint or a future sprint are left out; the backlog endpoint already omits them, and the adapter checks each issue's `sprint` field so the rule holds whatever the endpoint returns. A ticket whose only sprint has closed is back in the backlog and counts. A room with no board chosen, or whose backlog cannot load, says why, and facilitators can retry once the owner or a co-owner has fixed it.
 
 A session ends when nobody has been connected to the room for 15 minutes. The next visit starts a new session: the backlog loads again and the session counters start at zero. A short drop-out or a page reload keeps the session.
 
 ### Queue filter
 
-The owner decided on 2026-11-14 that the rules above are a default the room's owner can change, on the settings page. Each room stores its filter with its settings; a room that never changed it uses the default, which is the behaviour described in "Loading the backlog".
+The rules above are a default that the room's owner or a co-owner can change, on the settings page. Each room stores its filter with its settings; a room that never changed it uses the default, which is the behaviour described in "Loading the backlog".
 
 | Setting | Default | The other choice |
 | --- | --- | --- |
@@ -164,9 +158,9 @@ The owner decided on 2026-11-14 that the rules above are a default the room's ow
 - **Sprints.** Tickets in an active or future sprint always stay out. The backlog endpoint never returns them, and fetching them separately would mix in a second rank order.
 - **The counters** use the same filter as the queue, so "5 of 12 tickets estimated" counts the same tickets the session walks through.
 - **Re-estimation.** With tickets that have an estimate included, the queue holds every ticket the filter takes, estimated or not, in rank order. The ticket card shows the estimate already in Jira once the cards are revealed, never before, so it cannot sway the vote. Confirming writes the new value through the estimation endpoint, replacing the old one; Jira keeps the old value in the ticket's history. Skipping leaves it alone. In the backlog counter a ticket counts once, estimated before or during the session, with its latest points. The session counters count every confirm.
-- **A JQL error.** If Jira refuses the extra JQL, the room shows Jira's message where it shows any backlog error, with the code `jira_bad_filter`, and the owner fixes the filter in the settings.
+- **A JQL error.** If Jira refuses the extra JQL, the room shows Jira's message where it shows any backlog error, with the code `jira_bad_filter`, and the owner or a co-owner fixes the filter in the settings.
 - **Preview.** The settings page shows how many tickets the filter, as currently set in the form and not yet saved, would put in the queue, and lists the first 50 in rank order with their key, summary, type, status and estimate. It runs only when the owner or a co-owner presses **Preview queue**, through `POST /api/rooms/{slug}/queue-preview`, which only the owner and co-owners may call because it uses the room's Jira connection. It calls the same backlog code the room uses, so the preview and the session cannot disagree.
-- **When a change applies.** A saved filter applies the next time the backlog loads: in a new session, or when a facilitator presses **Reload backlog**. Reload works between tickets, while nobody has voted on the current one, as well as after a failed load. When the owner saves a filter that differs from the one the session loaded with, facilitators see "The queue filter changed. Reload the backlog to apply it." next to **Reload backlog**, until a reload applies it. A reload keeps the session's results: confirmed and skipped tickets keep counting and stay in the session summary, and the queue starts at the first ticket that has no result this session.
+- **When a change applies.** A saved filter applies the next time the backlog loads: in a new session, or when a facilitator presses **Reload backlog**. Reload works between tickets, while nobody has voted on the current one, as well as after a failed load. When someone saves a filter that differs from the one the session loaded with, facilitators see "The queue filter changed. Reload the backlog to apply it." next to **Reload backlog**, until a reload applies it. A reload keeps the session's results: confirmed and skipped tickets keep counting and stay in the session summary, and the queue starts at the first ticket that has no result this session.
 
 ### Writing points
 
@@ -189,13 +183,13 @@ Names at a table are unique, so everyone can tell who played what. The room refu
 | Delegate | Google or GitHub | Run sessions in the rooms where they are listed |
 | Player | Nothing | Vote |
 
-Facilitator sessions live in a signed cookie, and an environment allowlist controls who may create rooms. The owner lists delegates per room by Google email or GitHub username. Matching uses the verified email or GitHub login, not the display name, which anyone can change.
+Facilitator sessions live in a signed cookie, and an environment allowlist controls who may create rooms. The owner and co-owners list delegates per room by Google email or GitHub username. Matching uses the verified email or GitHub login, not the display name, which anyone can change.
 
 ### Co-owners and handing a room over
 
-Decided by the owner on 2026-11-16. Each delegate entry has a role, set in the settings page's Delegates section: **Facilitator** (the default, and what every delegate was before) runs sessions; **Co-owner** also manages the room. A co-owner can open Room settings and change every setting, including the queue filter and its preview; add and remove delegates and change their roles; rename the room; and connect, reconnect or disconnect Jira and choose the board. Only the owner can delete the room and offer it to someone else, so there is always exactly one person who can delete it. The owner is not in the delegates list, so nobody else can remove or demote them. Co-owners are matched like any delegate, by verified email or GitHub login, so the owner can name someone who has never signed in. A role change reaches a live room at once, like any delegate change: Room settings appears in, or leaves, that person's menu.
+Each delegate entry has a role, set in the settings page's Delegates section: **Facilitator** (the default) runs sessions; **Co-owner** also manages the room. A co-owner can open Room settings and change every setting, including the queue filter and its preview; add and remove delegates and change their roles; rename the room; and connect, reconnect or disconnect Jira and choose the board. Only the owner can delete the room and offer it to someone else, so there is always exactly one person who can delete it. The owner is not in the delegates list, so nobody else can remove or demote them. Co-owners are matched like any delegate, by verified email or GitHub login, so the owner can name someone who has never signed in. A role change reaches a live room at once, like any delegate change: Room settings appears in, or leaves, that person's menu.
 
-The room's Jira connection records who connected it (their email or GitHub login). Settings show it as "Connected by …", and when that is not the person looking, they add that Jira records estimates under that account and that Reconnect switches it to their own. Rooms connected before co-owners existed were connected by their owner.
+The room's Jira connection records who connected it (their email or GitHub login). Settings show it as "Connected by …", and when that is not the person looking, they add that Jira records estimates under that account and that Reconnect switches it to their own. Rooms connected before this was recorded count as connected by their owner.
 
 The owner hands the room over in two steps, because a delegate is known only by email or login and the owner is matched on a stable account ID:
 
@@ -247,9 +241,9 @@ A `github-org:` entry makes GitHub sign-in ask for the `read:org` scope. Members
 
 ### Rooms
 
-The rooms page at `/` offers sign-in when signed out. Signed in, it lists the rooms the account owns or is a delegate of, with their role, and allowlisted owners can create one there. Decided by the owner on 2026-11-16, it opens with a hero in the green of the table. Signed out, the hero carries the headline, a fanned hand of cards (left out on phones), Try a demo and Watch the video; below it come Run a session with the sign-in buttons and the four steps of a session. Signed in, the hero says "Welcome back" with the first name, and the rooms are cards in a grid: the short name, its role, Open room and, for managers, Settings, with any ownership offer inside the card; the whole card opens the room. Create a room is the last card of the grid, and Practise first (Try a demo and Watch the video) follows the grid. Each room's settings page is at `/r/<slug>/settings` and only the owner and co-owners can use it; only the owner sees Delete room.
+The rooms page at `/` offers sign-in when signed out. Signed in, it lists the rooms the account owns or is a delegate of, with their role, and allowlisted owners can create one there. It opens with a hero in the green of the table. Signed out, the hero carries the headline, a fanned hand of cards (left out on phones), Try a demo and Watch the video; below it come Run a session with the sign-in buttons and the four steps of a session. Signed in, the hero says "Welcome back" with the first name, and the rooms are cards in a grid: the short name, its role, Open room and, for managers, Settings, with any ownership offer inside the card; the whole card opens the room. Create a room is the last card of the grid, and Practise first (Try a demo and Watch the video) follows the grid. Each room's settings page is at `/r/<slug>/settings` and only the owner and co-owners can use it; only the owner sees Delete room.
 
-The owner can rename a room. The old short name keeps redirecting to the new one, also for room sockets, and no other room can take it. Deleting a room frees all its names and ends its live session on every screen.
+The owner or a co-owner can rename a room. The old short name keeps redirecting to the new one, also for room sockets, and no other room can take it. Deleting a room frees all its names and ends its live session on every screen.
 
 Saved settings reach a live room through its command queue: a new scale from the next round, the timer default, sound and auto-reveal at once, and a queue filter the next time the backlog loads. In the facilitator panel, the Seconds field and the Sound and Auto-reveal toggles change the running session only, and never the saved defaults.
 
@@ -266,14 +260,14 @@ Room definitions persist, so the link `/r/<slug>` survives restarts. Nothing abo
 | Data | Lives in | Survives a restart |
 | --- | --- | --- |
 | Room slug, owner, delegates and their roles, an open ownership offer, Jira site and board, queue filter, scale, timer default, sound and auto-reveal settings | SQLite file | Yes |
-| Each room's Jira connection: refresh token (encrypted), account email, site and board | SQLite file | Yes |
+| Each room's Jira connection: refresh token (encrypted), account email, who connected it, site and board | SQLite file | Yes |
 | Confirmed story points | Jira | Yes |
 | Player name and ID | The player's cookie | Yes |
 | Votes, results, session counters | Memory | No |
 
 ## Demo rooms
 
-Demo rooms let anyone practise, as a player or a facilitator, with no sign-in and no Jira. The owner decided on 2026-11-13 that each visitor gets a private room of their own, with a team of bots and a made-up backlog. They are off unless `DEMO_ROOMS=1`.
+Demo rooms let anyone practise, as a player or a facilitator, with no sign-in and no Jira. Each visitor gets a private room of their own, with a team of bots and a made-up backlog. They are off unless `DEMO_ROOMS=1`.
 
 - **Starting one.** With demo rooms on, the home page offers **Try a demo**. It asks the server for a new room, `demo-` and eight random letters and digits, and opens it. Short names starting with `demo-` are reserved, so a stored room can never take one.
 - **Memory only.** A demo room never reaches SQLite. It lives as long as its live session: it ends, and its name stops working, after its idle time with no person connected, or on a restart. At most 20 run at once (`DEMO_MAX_ROOMS`), and the idle time is 30 minutes (`DEMO_IDLE_SECONDS`, in seconds). The room's state carries that idle time (`demo_idle_seconds`), and the demo banner gives it, so it always matches the setting. Past the limit, the server refuses a new one (503) with a light-hearted message: the bots are busy estimating someone else's backlog, so grab a coffee and come back in a few minutes. The home page shows it as a calm note with a steaming cup, not as an error, and **Try a demo** stays available to try again.
@@ -286,7 +280,7 @@ Demo rooms let anyone practise, as a player or a facilitator, with no sign-in an
 
 ## Mini mode
 
-Mini mode is a small always-on-top window with the ticket key, the countdown, the card row and the voted count. It uses the Document Picture-in-Picture API, which works on desktop Chrome and Edge 116+ and Firefox 151+, but not Safari ([source](https://www.rabbitpair.com/en/products/dualpip/faqs/document-pip-browser-limits)). Safari falls back to a normal small popup, which does not stay on top.
+Mini mode is a small always-on-top window with the ticket key, the countdown, the card row and the voted count. It uses the Document Picture-in-Picture API, which works on desktop Chrome and Edge 116+ and Firefox 151+, but not Safari ([source](https://developer.mozilla.org/docs/Web/API/Document_Picture-in-Picture_API#browser_compatibility)). Safari falls back to a normal small popup, which does not stay on top.
 
 The main tab stays open and holds the connection. The countdown sound plays from it, so sound works in mini mode too. The mini view is drawn by the main tab into the mini window, so votes go through the main tab's connection. While the mini window is open, its timer also keeps the main tab's countdown and sound on time, because browsers slow the timers of hidden tabs. A popup closes when the main tab closes; a Picture-in-Picture window does so by itself.
 
@@ -305,9 +299,9 @@ Every page has a light and a dark palette. By default the app follows the device
 
 ## Tour
 
-A short guided tour explains the room to whoever opens it, and the settings page to the owner. Decided by the owner on 2026-11-15.
+A short guided tour explains the room to whoever opens it, and the settings page to the owner and co-owners.
 
-- **Offered once.** The first time someone is in a room, a note under the header offers **Take the tour** or **No thanks**. Either answer is kept in the browser (`localStorage`), so the note does not come back. The owner's first visit to the settings page offers that page's tour the same way, kept separately.
+- **Offered once.** The first time someone is in a room, a note under the header offers **Take the tour** or **No thanks**. Either answer is kept in the browser (`localStorage`), so the note does not come back. A first visit to the settings page offers that page's tour the same way, kept separately.
 - **In demo rooms**, the demo banner offers **Take the tour** every time instead (see "Demo rooms").
 - **On demand.** **Tour** in the room menu and in the footer of the room and settings pages starts the tour again at any time.
 - **By role.** Everyone sees the ticket, the table, their cards, what the reveal shows, and the menu. A facilitator also sees Reveal cards with the other controls, the final points and Confirm, the countdown, and Up next with the session summary; on a phone the dock and the **⋯** sheet stand in for the panel. The owner and co-owners also hear where Room settings is. The settings tour walks through the room link, Jira, the queue filter and its preview, the scale, the countdown, sound and reveal settings, and delegates.
@@ -330,47 +324,29 @@ The app is served over HTTPS only, and room connections use secure WebSockets. L
 - The session cookie and the player cookie are marked Secure
 - Google, GitHub and Atlassian sign-in return to `https://` callback addresses
 
-Production runs at `https://poker.example.com`, behind the nginx that already serves other sites on that host; nginx ends TLS with a certbot certificate and reaches the app on `127.0.0.1:8100` (`deploy/nginx/`). For a host of its own, `deploy/` puts [Caddy](https://caddyserver.com) in front of the container to end TLS and renew the certificate.
+Two setups ship with the app. `deploy/` puts [Caddy](https://caddyserver.com) in front of the container to end TLS and renew the certificate, for a host of its own. `deploy/nginx/` fits a host whose nginx already serves other sites: nginx ends TLS with a certbot certificate and reaches the app on `127.0.0.1:8100`.
 
 Mini mode depends on this too: the Document Picture-in-Picture API is only available on pages served over HTTPS ([source](https://developer.mozilla.org/docs/Web/API/Document_Picture-in-Picture_API)).
 
-## Packaging and build order
+## Packaging
 
 A multi-stage Docker build compiles the single-page app in a Node stage, then copies it into a slim Python image that serves both the page and the API. Configuration comes from environment variables, the SQLite file sits on one mounted volume, and the app runs as a single replica. The image runs one uvicorn worker as a non-root user, keeps the SQLite file at `/data/scrum-poker.sqlite3`, listens on `PORT` (default 8000) and has a health check on `/healthz`. The app reads the proxy's headers itself, so uvicorn's own proxy-header handling is off.
 
-The build goes in six steps:
+## Related open-source projects
 
-1. Room engine against a fake backlog, with tests for scales, timer and sound cues
-2. Room UI: ticket card, cards, facilitator controls, counters
-3. SSO, persistent rooms and delegates
-4. Jira: read the backlog, then write points
-5. Mini window
-6. Dockerfile and deployment notes
+No existing project is a self-contained container with a Jira-driven queue, so the app is built rather than forked. These open-source projects gave ideas:
 
-## Prior art
-
-No existing project is a self-contained container with a Jira-driven queue, so the app is built rather than forked.
-
-[scrumpoker-online.org](https://www.scrumpoker-online.org/en/) covers the participant flow well: no signup, just a shared room ID, link or QR code. It has no Jira sync, by design.
-
-The three most-starred healthy open-source projects, with GitHub stars as of 11 November 2026:
-
-| Project | Stars | Stack | Worth borrowing |
-| --- | --- | --- | --- |
-| [Thunderdome](https://github.com/StevenWeathers/thunderdome-planning-poker) | 500 | Go, Svelte, Postgres | Leader role, spectators, auto-finish voting |
-| [planning-poker](https://github.com/hellomuthu23/planning-poker) | 351 | React, Firestore | Scale presets, voted/not-voted status |
-| [AgileKit](https://github.com/spokvulcan/poker-planning) | 116 | Next.js, Convex | Two-way Jira Cloud sync over OAuth |
-
-Three projects with more stars than AgileKit were skipped as inactive: scrumonline (407, no pushes since April 2023), poinz (159, quiet since May 2025) and self-host-planning-poker (132, archived).
+| Project | Stack | Idea taken |
+| --- | --- | --- |
+| [Thunderdome](https://github.com/StevenWeathers/thunderdome-planning-poker) | Go, Svelte, Postgres | Leader role, spectators, auto-finish voting |
+| [planning-poker](https://github.com/hellomuthu23/planning-poker) | React, Firestore | Scale presets, voted/not-voted status |
+| [AgileKit](https://github.com/spokvulcan/poker-planning) | Next.js, Convex | Two-way Jira Cloud sync over OAuth |
 
 ## Sources
 
-- [Scrum Poker Online](https://www.scrumpoker-online.org/en/): room flow, sign-in options, no Jira sync
 - [Jira Software Cloud REST API, board group](https://developer.atlassian.com/cloud/jira/software/rest/api-group-board): backlog endpoint and rank order
 - [Jira Software scopes for OAuth 2.0 (3LO)](https://developer.atlassian.com/cloud/jira/software/scopes-for-oauth-2-3LO-and-forge-apps/): granular scopes
 - [OAuth 2.0 authorization code grants (3LO) for apps](https://developer.atlassian.com/cloud/jira/software/oauth-2-authorization-code-grants-3lo-for-apps/): the estimate scope
 - [Jira Software REST API reference](https://docs.atlassian.com/jira-software/REST/2017-09-06T07:06:51Z/): estimation field and board configuration
 - [jira.js OAuth 2.0 guide](https://mrrefactoring.github.io/jira.js/guide/oauth2-authentication): API routing and rotating refresh tokens
-- [Document Picture-in-Picture browser limits](https://www.rabbitpair.com/en/products/dualpip/faqs/document-pip-browser-limits) and [web.dev, May 2026](https://web.dev/blog/web-platform-05-2026): browser support
-- [MDN, Document Picture-in-Picture API](https://developer.mozilla.org/docs/Web/API/Document_Picture-in-Picture_API): the HTTPS requirement for mini mode
-- GitHub API, queried 11 November 2026: star counts and last-push dates
+- [MDN, Document Picture-in-Picture API](https://developer.mozilla.org/docs/Web/API/Document_Picture-in-Picture_API): browser support and the HTTPS requirement for mini mode

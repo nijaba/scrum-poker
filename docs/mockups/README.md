@@ -1,7 +1,6 @@
 # Mock-ups
 
-Static HTML copies of the four screens in the Claude design canvas
-[Scrum poker UI mock-up](https://claude.ai/artifact/4UNXp1rViwcrJTdVyrozR4). Open them in a browser.
+Static HTML mock-ups of the four screens. Open them in a browser.
 They are pictures of the target UI, not working code: nothing is clickable and the data is sample data.
 
 | File | Screen |

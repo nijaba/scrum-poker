@@ -185,7 +185,7 @@ open the app's home page (from a room, click the room name at the top left), cho
 your role, **Owner**, **Co-owner** or **Delegate**, under your name.
 
 Click your name for a menu: **Your rooms** goes back to the list of rooms you own or help run,
-**Room settings** (owners only) opens this room's settings, and **Log out** leaves the table,
+**Room settings** (owners and co-owners) opens this room's settings, and **Log out** leaves the table,
 signs you out and returns you to the home page. The room name at the top left also goes back to the home page.
 
 ![A facilitator's view while voting: the ticket and table on the left, the countdown and facilitator controls on the right](images/room-facilitator.png)
@@ -244,8 +244,8 @@ for your card.
 If Jira refuses or can't be reached, the room stays on the ticket and shows why, so nothing is
 lost. Try again, or skip the ticket.
 
-Points are written through the room's Jira connection, so Jira's history shows the room
-owner's account as the one who set them, whoever pressed **Confirm**.
+Points are written through the room's Jira connection, so Jira's history shows the account
+that connected it as the one who set them, whoever pressed **Confirm**.
 
 ### Skipping and rewinding
 
@@ -301,17 +301,17 @@ A short drop-out or a page reload doesn't end the session.
 
 ### When the backlog doesn't load
 
-The room says "The backlog did not load" and why. Most causes are fixed by the owner in the
-room's settings:
+The room says "The backlog did not load" and why. Most causes are fixed by the owner or a
+co-owner in the room's settings:
 
 | Message | Fix |
 | --- | --- |
-| The room's owner needs to connect Jira in the room settings. | The owner connects Jira. |
-| The room's owner needs to choose a Jira board in the room settings. | The owner picks a board. |
-| Jira no longer accepts this room's connection. … | The owner chooses **Reconnect**. This happens after 90 days without use, or if access was revoked in Atlassian. |
-| Jira cannot find the room's board. … | The board was deleted or the owner lost access. The owner picks another board. |
+| The room's owner needs to connect Jira in the room settings. | The owner or a co-owner connects Jira. |
+| The room's owner needs to choose a Jira board in the room settings. | The owner or a co-owner picks a board. |
+| Jira no longer accepts this room's connection. … | The owner or a co-owner chooses **Reconnect**. This happens after 90 days without use, or if access was revoked in Atlassian. |
+| Jira cannot find the room's board. … | The board was deleted, or the account that connected Jira lost access. The owner or a co-owner picks another board. |
 | Could not reach Jira. Try again. | A network or Jira problem. Choose **Try again**. |
-| Jira did not accept the queue filter's JQL … | The owner fixes the **Extra JQL** in the queue filter. **Preview queue** shows whether Jira accepts it. |
+| Jira did not accept the queue filter's JQL … | The owner or a co-owner fixes the **Extra JQL** in the queue filter. **Preview queue** shows whether Jira accepts it. |
 
 Once it's fixed, choose **Try again** in the room.
 
@@ -335,14 +335,14 @@ last card.
 
 ### Connecting Jira
 
-Each room has one Jira connection, set up by its owner. The room reads its backlog and writes
+Each room has one Jira connection, set up by its owner or a co-owner. The room reads its backlog and writes
 every confirmed estimate through it.
 
 1. In the room's settings, under **Jira Cloud**, choose **Connect Jira**.
 2. Atlassian asks you to allow access. Choose your Jira site and accept.
 3. Back in the settings, pick the **Site** and the **Board**, then **Save changes**.
 
-The settings show "Connected as" with your Atlassian email. Use **Reconnect** if the room
+The settings show "Connected as" with the Atlassian email, and who connected it. Use **Reconnect** if the room
 loses access, and **Disconnect** to remove the connection; sessions can't load a backlog until
 you connect again.
 
@@ -357,8 +357,8 @@ Atlassian accounts.
 
 ### Settings
 
-The settings page is only for the owner: click your name in the room header and choose
-**Room settings**. Choose
+The settings page is for the owner and co-owners: click your name in the room header and
+choose **Room settings**, or **Settings** on the room's card on the home page. Choose
 **Save changes** after changing anything.
 
 The first time you open the settings, a note offers a short tour of the page; **Tour** at the
@@ -372,7 +372,7 @@ foot of the page starts it again.
 | **Scale** | The cards players vote with: **Fibonacci** (1, 2, 3, 5, 8, 13, 21, 34, 55, ?), **T-shirt** (XS to XXL, with the points each size confirms as, XS=1 to XXL=13) or a **Custom list** of your own cards, separated by commas. |
 | **Countdown, sound and reveal** | **Default seconds** for the countdown, whether the room's sounds play, and whether cards reveal by themselves once everyone has voted. Facilitators can change these for a running session; these are the defaults. |
 | **Delegates** | People who can run sessions in this room. |
-| **Delete room** | Removes the room for good. Everyone in it sees that it was deleted. |
+| **Delete room** | Owner only. Removes the room for good. Everyone in it sees that it was deleted. |
 
 About scales:
 

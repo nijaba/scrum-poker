@@ -11,7 +11,8 @@ Try it online, with no sign-in: <https://poker.nijalabs.com/> offers **Try a dem
 private practice room with bot players and a made-up backlog. Nothing there reaches Jira.
 
 How to use it: the [user guide](docs/user-guide.md). How to run it: the
-[admin guide](docs/admin-guide.md).
+[admin guide](docs/admin-guide.md). An overview with screenshots: the
+[project page](https://nijaba.github.io/scrum-poker/).
 
 ### The tour in 30 seconds
 
@@ -70,8 +71,8 @@ Each needs a callback address on the public hostname. Plain `http://` callbacks 
 | Atlassian | [Atlassian developer console](https://developer.atlassian.com/console/myapps/), OAuth 2.0 (3LO) integration | `https://poker.example.com/auth/atlassian/callback` |
 
 Google and GitHub are for owners and delegates; you can enable just one. Players never sign
-in. In the Atlassian app, add the Jira API permissions listed in `.env.example` (seven
-scopes, as granular scopes) and set the callback under Authorization.
+in. In the Atlassian app, add the six Jira API scopes listed in `.env.example`, as granular
+scopes, and set the callback under Authorization. The admin guide has the details.
 
 ### 2. Write the configuration
 
@@ -94,6 +95,9 @@ python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 | `ATLASSIAN_CLIENT_ID`, `ATLASSIAN_CLIENT_SECRET` | from the Atlassian app |
 | `DEMO_ROOMS` | optional: `1` offers **Try a demo** on the home page, a private practice room with bots and a made-up backlog for anyone, no sign-in |
 | `DEMO_MAX_ROOMS`, `DEMO_IDLE_SECONDS` | optional: how many demo rooms may run at once (default 20), and how long one lasts with nobody in it (default 1800 seconds) |
+| `TOUR_VIDEO` | optional: `0` hides **Watch the video** on the home page |
+
+The [admin guide](docs/admin-guide.md#settings) lists every setting.
 
 Leave the development-only `SCRUM_POKER_FAKE_*` variables unset: the app refuses them
 outside localhost. The compose file sets `DATABASE_PATH` and `FORWARDED_ALLOW_IPS` itself.
@@ -142,8 +146,8 @@ container's port 8000 (or `PORT`), and set `X-Forwarded-Proto`. Run exactly one 
 
 ### Behind an existing nginx
 
-Production runs this way: the server already has nginx on ports 80 and 443 for other sites,
-so Caddy can't run there. `deploy/nginx/` starts the app alone, published on
+Use this when the server already has nginx on ports 80 and 443 for other sites, so Caddy
+can't run there. `deploy/nginx/` starts the app alone, published on
 `127.0.0.1:8100`, and holds an nginx site for it. Register the OAuth apps and write `.env`
 as in steps 1 and 2, then from `deploy/nginx/`:
 
@@ -215,7 +219,6 @@ apart from the backup.
 
 Open this folder in Claude Code. `CLAUDE.md` gives it the constraints, commands and rules.
 
-- Run `/next-step` to start the next unfinished step of the build plan.
 - `.claude/settings.json` lets it run `pytest` and `ruff` without asking each time.
 - `.claude/rules/` holds extra rules that load when it works on the room engine or the front end.
 
