@@ -15,7 +15,7 @@ from app.config import FAKE_JIRA_PATH, Settings, atlassian_config
 from app.jira.fake_atlassian import ACCOUNT, CLOUD_ID, SITE, FakeAtlassian, _issue
 from app.jira.html import clean
 from app.main import create_app
-from app.store.rooms import RoomRecord
+from app.store.rooms import Delegate, RoomRecord
 from tests.fakes import FlakyTransport
 from tests.identities import BASE, DELEGATE, OWNER, headers, open_ws
 
@@ -437,6 +437,7 @@ def test_owner_connects_jira_and_picks_a_board(japp, atlassian):
         "available": True,
         "connected": True,
         "email": "owner@example.com",
+        "connected_by": "owner@example.com",
         "site": None,
         "board": None,
     }
@@ -473,6 +474,53 @@ def test_jc13_refresh_tokens_are_stored_encrypted(japp, atlassian, jira_settings
     for token in atlassian.refresh_tokens:
         assert token not in dump
     assert japp.state.jira.cipher.open(stored) in atlassian.refresh_tokens
+
+
+def test_co02_a_co_owner_connects_jira_chooses_a_board_and_previews(japp, atlassian):
+    japp.state.store.update(
+        "team-a", delegates=[Delegate("google", "delegate@example.com", "co_owner")]
+    )
+    browser = TestClient(japp, base_url=BASE)
+    browser.cookies.set("sp_session", japp.state.auth.session_value(DELEGATE))
+
+    assert connect_through_consent(browser).status_code == 303
+    chosen = browser.put(
+        "/api/rooms/team-a/jira/board",
+        json={"cloud_id": CLOUD_ID, "board_id": 1},
+        headers={"origin": BASE},
+    )
+    assert chosen.status_code == 200, chosen.text
+    assert chosen.json()["access"] == "co_owner"
+    assert chosen.json()["settings"]["jira"]["connected_by"] == "delegate@example.com"
+    preview = browser.post(
+        "/api/rooms/team-a/queue-preview", json={"queue_filter": {}}, headers={"origin": BASE}
+    )
+    assert preview.status_code == 200, preview.text
+    # The owner sees who connected it.
+    owner_view = owner_browser(japp).get("/api/rooms/team-a").json()
+    assert owner_view["settings"]["jira"]["connected_by"] == "delegate@example.com"
+    assert browser.delete("/api/rooms/team-a/jira", headers={"origin": BASE}).status_code == 204
+
+
+def test_ot02_handing_the_room_over_keeps_the_jira_connection(japp, atlassian):
+    browser = owner_browser(japp)
+    connect_through_consent(browser)
+    japp.state.store.update("team-a", delegates=[Delegate("google", "delegate@example.com")])
+    assert (
+        browser.post(
+            "/api/rooms/team-a/ownership",
+            json={"provider": "google", "identifier": "delegate@example.com"},
+            headers={"origin": BASE},
+        ).status_code
+        == 200
+    )
+    dee = TestClient(japp, base_url=BASE)
+    dee.cookies.set("sp_session", japp.state.auth.session_value(DELEGATE))
+    accepted = dee.post("/api/rooms/team-a/ownership/accept", json={}, headers={"origin": BASE})
+    assert accepted.status_code == 200, accepted.text
+    jira = accepted.json()["settings"]["jira"]
+    assert jira["connected"] is True
+    assert jira["connected_by"] == "owner@example.com"
 
 
 def test_cancelled_consent_returns_to_settings(japp):

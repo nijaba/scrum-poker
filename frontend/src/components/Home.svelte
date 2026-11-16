@@ -3,6 +3,7 @@
   import {
     ApiError,
     PROVIDER_NAMES,
+    answerOwnershipOffer,
     createDemo,
     createRoom,
     getMe,
@@ -10,10 +11,24 @@
     signInUrl,
     signOut,
   } from "../lib/api";
-  import type { Me } from "../lib/types";
+  import { ACCESS_NAMES, canManage } from "../lib/types";
+  import type { Me, RoomListing } from "../lib/types";
 
   let me = $state<Me | null>(null);
-  let rooms = $state<{ slug: string; access: "owner" | "delegate" }[]>([]);
+  let rooms = $state<RoomListing[]>([]);
+  let offerError = $state<string | null>(null);
+
+  // An owner's offer of a room to this account (design.md, "Co-owners and handing a room over").
+  async function answer(slug: string, accept: boolean) {
+    offerError = null;
+    try {
+      await answerOwnershipOffer(slug, accept);
+      rooms = await listRooms();
+    } catch (err) {
+      offerError = err instanceof Error ? err.message : "Could not answer the offer.";
+      rooms = await listRooms().catch(() => rooms);
+    }
+  }
   let slug = $state("");
   let error = $state<string | null>(null);
   let loadError = $state<string | null>(null);
@@ -124,14 +139,26 @@
           {#each rooms as room (room.slug)}
             <li>
               <a class="slug" href="/r/{room.slug}">{room.slug}</a>
-              <span class="chip">{room.access === "owner" ? "Owner" : "Delegate"}</span>
-              {#if room.access === "owner"}
+              <span class="chip">{ACCESS_NAMES[room.access]}</span>
+              {#if canManage(room.access)}
                 <a class="settings" href="/r/{room.slug}/settings">Settings</a>
+              {/if}
+              {#if room.offer}
+                <div class="offer" role="group" aria-label="Ownership offer for {room.slug}">
+                  <span>{room.offer.from} offered you ownership of {room.slug}.</span>
+                  <button class="btn btn-primary" type="button" onclick={() => answer(room.slug, true)}
+                    >Accept</button
+                  >
+                  <button class="btn" type="button" onclick={() => answer(room.slug, false)}
+                    >Decline</button
+                  >
+                </div>
               {/if}
             </li>
           {/each}
         </ul>
       {/if}
+      {#if offerError}<p class="form-error" role="alert">{offerError}</p>{/if}
     </section>
 
     {#if me.can_create}
@@ -320,6 +347,17 @@
   }
   .rooms li:last-child {
     border-bottom: none;
+  }
+  .offer {
+    flex-basis: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 8px 0 4px;
+  }
+  .offer span {
+    flex: 1 1 220px;
   }
   .slug {
     font-weight: 600;

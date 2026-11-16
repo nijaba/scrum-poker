@@ -72,8 +72,8 @@ class JiraService:
 
     # Tokens
 
-    async def connect(self, slug: str, code: str) -> RoomRecord:
-        """Finish the owner's consent: exchange the code, then save the room's connection."""
+    async def connect(self, slug: str, code: str, connected_by: str | None = None) -> RoomRecord:
+        """Finish the consent: exchange the code, then save the connection and who made it."""
         data = await self._token_request(
             {
                 "grant_type": "authorization_code",
@@ -92,7 +92,9 @@ class JiraService:
         if me.status_code == 200:
             email = me.json().get("email")
         sealed = self.cipher.seal(data["refresh_token"])
-        record = await asyncio.to_thread(self.store.set_jira_connection, slug, sealed, email)
+        record = await asyncio.to_thread(
+            self.store.set_jira_connection, slug, sealed, email, connected_by
+        )
         self._tokens[slug] = (access, self._expiry(data), sealed)
         return record
 

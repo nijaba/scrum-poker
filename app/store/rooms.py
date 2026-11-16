@@ -1,5 +1,6 @@
-"""Room definitions in one SQLite file: slug, owner, delegates, scale, timer default, sound,
-auto-reveal, and the room's Jira connection (refresh token encrypted by the caller, site and board).
+"""Room definitions in one SQLite file: slug, owner, delegates and their roles, an open
+ownership offer, scale, timer default, sound, auto-reveal, and the room's Jira connection
+(refresh token encrypted by the caller, who connected it, site and board).
 
 The file never holds votes, results or session counters. Calls are short and
 synchronous; async callers run them with `asyncio.to_thread`.
@@ -12,16 +13,17 @@ import sqlite3
 import threading
 from collections.abc import Iterable
 from dataclasses import dataclass, field, replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from app.auth.access import access_for
+from app.auth.access import CO_OWNER_ROLE, FACILITATOR_ROLE, access_for, matches
 from app.auth.identity import Identity
 from app.room.queue_filter import QueueFilter
 from app.room.room import DEFAULT_TIMER
 from app.room.scales import Card, Scale, fibonacci, validated
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
+OFFER_LIFETIME = timedelta(days=7)
 
 SCHEMA = """
 CREATE TABLE rooms (
@@ -64,6 +66,14 @@ ALTER TABLE rooms ADD COLUMN auto_reveal INTEGER NOT NULL DEFAULT 0;
     4: """
 ALTER TABLE rooms ADD COLUMN queue_filter TEXT;
 """,
+    5: """
+ALTER TABLE delegates ADD COLUMN role TEXT NOT NULL DEFAULT 'facilitator';
+ALTER TABLE rooms ADD COLUMN jira_connected_by TEXT;
+UPDATE rooms SET jira_connected_by = owner_label WHERE jira_token IS NOT NULL;
+ALTER TABLE rooms ADD COLUMN offer_provider TEXT;
+ALTER TABLE rooms ADD COLUMN offer_identifier TEXT;
+ALTER TABLE rooms ADD COLUMN offer_at TEXT;
+""",
 }
 
 JIRA_COLUMNS = (
@@ -74,6 +84,7 @@ JIRA_COLUMNS = (
     "jira_site_name",
     "jira_board_id",
     "jira_board_name",
+    "jira_connected_by",
 )
 
 
@@ -81,13 +92,35 @@ class SlugTaken(Exception):
     """The short name belongs to another room, or is a retired name kept as a redirect."""
 
 
+class NoOffer(Exception):
+    """The room has no open ownership offer, or it lapsed."""
+
+
+class NotOffered(Exception):
+    """The open ownership offer is for another account."""
+
+
 @dataclass(frozen=True, order=True)
 class Delegate:
     provider: str  # "google" or "github"
     identifier: str  # Google email or GitHub login, lowercased
+    role: str = FACILITATOR_ROLE  # or CO_OWNER_ROLE
 
     def to_dict(self) -> dict[str, str]:
-        return {"provider": self.provider, "identifier": self.identifier}
+        return {"provider": self.provider, "identifier": self.identifier, "role": self.role}
+
+
+@dataclass(frozen=True)
+class Offer:
+    """The owner's open offer of the room to one delegate."""
+
+    provider: str
+    identifier: str
+    made_at: datetime
+
+    @property
+    def expires_at(self) -> datetime:
+        return self.made_at + OFFER_LIFETIME
 
 
 @dataclass(frozen=True)
@@ -101,6 +134,7 @@ class JiraLink:
     site_name: str | None = None
     board_id: int | None = None
     board_name: str | None = None
+    connected_by: str | None = None  # the email or GitHub login of whoever connected it
 
     @property
     def connected(self) -> bool:
@@ -123,9 +157,14 @@ class RoomRecord:
     delegates: tuple[Delegate, ...] = ()
     jira: JiraLink = field(default_factory=JiraLink)
     queue_filter: QueueFilter = field(default_factory=QueueFilter)
+    offer: Offer | None = None  # open and not lapsed
 
     def access(self, identity: Identity | None) -> str | None:
         return access_for(identity, self.owner, self.delegates)
+
+    def offered_to(self, identity: Identity | None) -> bool:
+        offer = self.offer
+        return bool(identity and offer and matches(identity, offer.provider, offer.identifier))
 
 
 class RoomStore:
@@ -250,8 +289,15 @@ class RoomStore:
                 ),
             )
             if delegates is not None:
+                delegates = list(delegates)
                 self._db.execute("DELETE FROM delegates WHERE room = ?", (slug,))
                 self._set_delegates(slug, delegates)
+                offer = current.offer
+                if offer and not any(
+                    (d.provider, d.identifier.lower()) == (offer.provider, offer.identifier)
+                    for d in delegates
+                ):
+                    self._clear_offer(slug)
             return self._get(slug)
 
     def rename(self, old: str, new: str) -> RoomRecord:
@@ -268,9 +314,11 @@ class RoomStore:
             self._db.execute("INSERT INTO slug_aliases VALUES (?, ?)", (old, new))
             return self._get(new)
 
-    def set_jira_connection(self, slug: str, token: str, email: str | None) -> RoomRecord:
+    def set_jira_connection(
+        self, slug: str, token: str, email: str | None, connected_by: str | None = None
+    ) -> RoomRecord:
         """Connect (or reconnect) the room. A chosen board stays."""
-        return self._set(slug, jira_token=token, jira_email=email)
+        return self._set(slug, jira_token=token, jira_email=email, jira_connected_by=connected_by)
 
     def set_jira_token(self, slug: str, token: str) -> None:
         """Replace the refresh token after a rotation."""
@@ -296,6 +344,67 @@ class RoomStore:
 
     def clear_jira(self, slug: str) -> RoomRecord:
         return self._set(slug, **dict.fromkeys(JIRA_COLUMNS))
+
+    # Handing the room over
+
+    def offer_ownership(
+        self, slug: str, delegate: Delegate, now: datetime | None = None
+    ) -> RoomRecord:
+        """Offer the room to one of its delegates, replacing any open offer."""
+        made = (now or datetime.now(UTC)).isoformat(timespec="seconds")
+        with self._lock, self._transaction():
+            listed = self._db.execute(
+                "SELECT 1 FROM delegates WHERE room = ? AND provider = ? AND identifier = ?",
+                (slug, delegate.provider, delegate.identifier),
+            ).fetchone()
+            if listed is None:
+                raise KeyError(delegate.identifier)
+            self._db.execute(
+                "UPDATE rooms SET offer_provider = ?, offer_identifier = ?, offer_at = ?"
+                " WHERE slug = ?",
+                (delegate.provider, delegate.identifier, made, slug),
+            )
+            return self._get(slug)
+
+    def cancel_offer(self, slug: str) -> RoomRecord:
+        with self._lock, self._transaction():
+            self._clear_offer(slug)
+            return self._get(slug)
+
+    def accept_offer(self, slug: str, identity: Identity) -> RoomRecord:
+        """Make the offered account the owner. The old owner stays on as a co-owner."""
+        with self._lock, self._transaction():
+            current = self._get(slug)
+            if current is None or current.offer is None:
+                raise NoOffer(slug)
+            if not current.offered_to(identity):
+                raise NotOffered(slug)
+            offer = current.offer
+            self._db.execute(
+                "DELETE FROM delegates WHERE room = ? AND provider = ? AND identifier = ?",
+                (slug, offer.provider, offer.identifier),
+            )
+            self._db.execute(
+                "INSERT OR REPLACE INTO delegates VALUES (?, ?, ?, ?)",
+                (slug, current.owner[0], current.owner_label.lower(), CO_OWNER_ROLE),
+            )
+            self._db.execute(
+                "UPDATE rooms SET owner_provider = ?, owner_subject = ?, owner_label = ?"
+                " WHERE slug = ?",
+                (*identity.key, identity.label, slug),
+            )
+            self._clear_offer(slug)
+            return self._get(slug)
+
+    def decline_offer(self, slug: str, identity: Identity) -> RoomRecord:
+        with self._lock, self._transaction():
+            current = self._get(slug)
+            if current is None or current.offer is None:
+                raise NoOffer(slug)
+            if not current.offered_to(identity):
+                raise NotOffered(slug)
+            self._clear_offer(slug)
+            return self._get(slug)
 
     def delete(self, slug: str) -> None:
         """Delete the room. Its delegates and retired names go with it."""
@@ -345,25 +454,37 @@ class RoomStore:
 
     def _set_delegates(self, slug: str, delegates: Iterable[Delegate]) -> None:
         self._db.executemany(
-            "INSERT OR IGNORE INTO delegates VALUES (?, ?, ?)",
-            [(slug, d.provider, d.identifier.lower()) for d in delegates],
+            "INSERT OR IGNORE INTO delegates VALUES (?, ?, ?, ?)",
+            [(slug, d.provider, d.identifier.lower(), d.role) for d in delegates],
+        )
+
+    def _clear_offer(self, slug: str) -> None:
+        self._db.execute(
+            "UPDATE rooms SET offer_provider = NULL, offer_identifier = NULL, offer_at = NULL"
+            " WHERE slug = ?",
+            (slug,),
         )
 
     def _get(self, slug: str) -> RoomRecord | None:
         row = self._db.execute(
             "SELECT slug, owner_provider, owner_subject, owner_label, scale, timer_seconds, sound, "
             + ", ".join(JIRA_COLUMNS)
-            + ", auto_reveal, queue_filter"
+            + ", auto_reveal, queue_filter, offer_provider, offer_identifier, offer_at"
             + " FROM rooms WHERE slug = ?",
             (slug,),
         ).fetchone()
         if row is None:
             return None
         delegates = self._db.execute(
-            "SELECT provider, identifier FROM delegates WHERE room = ?"
+            "SELECT provider, identifier, role FROM delegates WHERE room = ?"
             " ORDER BY provider, identifier",
             (slug,),
         ).fetchall()
+        offer = None
+        if row[17] and row[18] and row[19]:
+            offer = Offer(row[17], row[18], datetime.fromisoformat(row[19]))
+            if datetime.now(UTC) >= offer.expires_at:
+                offer = None
         return RoomRecord(
             slug=row[0],
             owner=(row[1], row[2]),
@@ -371,10 +492,11 @@ class RoomStore:
             scale=_scale_from_json(row[4]),
             timer_seconds=row[5],
             sound=bool(row[6]),
-            delegates=tuple(Delegate(p, i) for p, i in delegates),
-            jira=JiraLink(*row[7:14]),
-            auto_reveal=bool(row[14]),
-            queue_filter=_filter_from_json(row[15]),
+            delegates=tuple(Delegate(p, i, r) for p, i, r in delegates),
+            jira=JiraLink(*row[7:15]),
+            auto_reveal=bool(row[15]),
+            queue_filter=_filter_from_json(row[16]),
+            offer=offer,
         )
 
 

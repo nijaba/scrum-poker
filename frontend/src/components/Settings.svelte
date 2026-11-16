@@ -6,6 +6,7 @@
   import TourOffer from "./TourOffer.svelte";
   import {
     PROVIDER_NAMES,
+    cancelOwnershipOffer,
     chooseJiraBoard,
     connectJiraUrl,
     deleteRoom,
@@ -14,10 +15,12 @@
     getRoom,
     jiraBoards,
     jiraSites,
+    offerOwnership,
     previewQueue,
     signInUrl,
     updateRoom,
   } from "../lib/api";
+  import { ACCESS_NAMES, canManage } from "../lib/types";
   import type {
     Delegate,
     JiraBoard,
@@ -31,6 +34,8 @@
     Scale,
   } from "../lib/types";
 
+  const ROLE_NAMES = { facilitator: "Facilitator", co_owner: "Co-owner" } as const;
+
   let { slug }: { slug: string } = $props();
 
   const JQL_DOCS =
@@ -40,10 +45,12 @@
   let info = $state<RoomInfo | null | undefined>(undefined); // undefined while loading
   let loadError = $state<string | null>(null);
 
-  // The owner's tour of this page (design.md, "Tour").
+  // The tour of this page, for whoever manages the room (design.md, "Tour").
+  const isManager = $derived(!!me?.signed_in && canManage(info?.access));
+  // Only the owner deletes the room or hands it over (design.md, "Co-owners and handing a room over").
   const isOwner = $derived(!!me?.signed_in && info?.access === "owner");
   $effect(() => {
-    if (isOwner) return offerTour("settings", settingsTour);
+    if (isManager) return offerTour("settings", settingsTour);
   });
 
   // The form
@@ -55,6 +62,10 @@
   let sound = $state(false);
   let autoReveal = $state(false);
   let delegates = $state<Delegate[]>([]);
+  let savedDelegates = $state<Delegate[]>([]); // only a saved delegate can be offered the room
+  let owner = $state("");
+  let offer = $state<RoomSettings["offer"]>(null);
+  let offerError = $state<string | null>(null);
   let newDelegate = $state("");
   let newProvider = $state<Delegate["provider"]>("google");
   let filter = $state<QueueFilter>({
@@ -112,7 +123,10 @@
     timer = s.timer_seconds;
     sound = s.sound;
     autoReveal = s.auto_reveal;
-    delegates = s.delegates;
+    delegates = s.delegates.map((d) => ({ ...d }));
+    savedDelegates = s.delegates;
+    owner = s.owner;
+    offer = s.offer;
     filter = { ...s.queue_filter };
   }
 
@@ -194,7 +208,11 @@
   function addDelegate() {
     const identifier = newDelegate.trim();
     if (!identifier) return;
-    const entry = { provider: newProvider, identifier: identifier.toLowerCase() };
+    const entry: Delegate = {
+      provider: newProvider,
+      identifier: identifier.toLowerCase(),
+      role: "facilitator",
+    };
     if (!delegates.some((d) => d.provider === entry.provider && d.identifier === entry.identifier)) {
       delegates = [...delegates, entry];
     }
@@ -205,6 +223,42 @@
   function removeDelegate(d: Delegate) {
     delegates = delegates.filter((x) => x !== d);
     saved = false;
+  }
+
+  function isSaved(d: Delegate): boolean {
+    return savedDelegates.some((x) => x.provider === d.provider && x.identifier === d.identifier);
+  }
+
+  function isOffered(d: Delegate): boolean {
+    return !!offer && offer.provider === d.provider && offer.identifier === d.identifier;
+  }
+
+  async function makeOwner(d: Delegate) {
+    const question =
+      `Offer ${current} to ${d.identifier}? Once they accept, they own the room and you stay on ` +
+      "as a co-owner. Only the owner can delete the room or hand it over.";
+    if (!confirm(question)) return;
+    offerError = null;
+    try {
+      const updated = await offerOwnership(current, d);
+      offer = updated.settings?.offer ?? null;
+    } catch (err) {
+      offerError = err instanceof Error ? err.message : "Could not make the offer.";
+    }
+  }
+
+  async function cancelOffer() {
+    offerError = null;
+    try {
+      await cancelOwnershipOffer(current);
+      offer = null;
+    } catch (err) {
+      offerError = err instanceof Error ? err.message : "Could not cancel the offer.";
+    }
+  }
+
+  function until(iso: string): string {
+    return new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "long" });
   }
 
   async function save() {
@@ -279,14 +333,14 @@
       <div class="who">
         <span class="who-name">{me.name}</span>
         <span class="who-role"
-          >{info?.access === "owner" ? "Owner" : info?.access === "delegate" ? "Delegate" : me.label}</span
+          >{info?.access ? ACCESS_NAMES[info.access] : me.label}</span
         >
       </div>
     {/if}
   </div>
 </header>
 
-{#if isOwner}
+{#if isManager}
   <TourOffer text="First time here? A short tour walks through these settings." />
 {/if}
 
@@ -306,8 +360,11 @@
         {/each}
       </div>
     </section>
-  {:else if info.access !== "owner"}
-    <p>Only the room's owner can change its settings. <a href="/r/{current}">Back to the room</a></p>
+  {:else if !canManage(info.access)}
+    <p>
+      Only the room's owner or a co-owner can change its settings.
+      <a href="/r/{current}">Back to the room</a>
+    </p>
   {:else}
     <section class="section" aria-label="Room link" data-tour="room-link">
       <h2>Room link</h2>
@@ -329,12 +386,21 @@
         <h2>Jira Cloud</h2>
         {#if jira?.available && jira.connected}
           <div class="row tight">
-            <span class="text-2">Connected as {jira.email ?? "your Atlassian account"}</span>
+            <span class="text-2">
+              Connected as {jira.email ?? "an Atlassian account"}{#if jira.connected_by}, by
+                {jira.connected_by}{/if}
+            </span>
             <a class="btn link-btn" href={connectJiraUrl(current)}>Reconnect</a>
             <button class="btn" type="button" onclick={disconnect}>Disconnect</button>
           </div>
         {/if}
       </div>
+      {#if jira?.available && jira.connected && jira.connected_by && jira.connected_by !== me.label}
+        <p class="note" role="note">
+          Jira records estimates under the account {jira.connected_by} connected. Reconnect to use your
+          own.
+        </p>
+      {/if}
       {#if jiraReturn === "connected"}
         <p class="saved" role="status">Jira is connected. Choose the site and board below.</p>
       {:else if jiraReturn === "denied"}
@@ -345,7 +411,8 @@
       {:else if !jira.connected}
         <span class="text-2">
           Connect this room to Jira so sessions can load its backlog and write the agreed points.
-          Every write goes through this connection, so Jira's history shows your account.
+          Every write goes through this connection, so Jira's history shows the account that
+          connects it.
         </span>
         <a class="btn-primary link-primary" href={connectJiraUrl(current)}>Connect Jira</a>
       {:else}
@@ -371,7 +438,8 @@
         </div>
         <span class="text-2">
           Sessions score this board's backlog tickets that pass the queue filter below, in rank order.
-          Every write goes through this connection, so Jira's history shows your account.
+          Every write goes through this connection, so Jira's history shows the account that
+          connected it.
         </span>
       {/if}
       {#if jiraError}<p class="form-error" role="alert">{jiraError}</p>{/if}
@@ -518,19 +586,48 @@
 
     <section class="section" aria-label="Delegates" data-tour="delegates">
       <h2>Delegates</h2>
-      <span class="text-2">Delegates can run sessions in this room. They cannot change these settings.</span>
+      <span class="text-2">
+        Facilitators run sessions in this room. Co-owners can also change these settings and connect
+        Jira. Only the owner, {owner}, can delete the room or hand it over.
+      </span>
       {#if delegates.length}
         <ul class="delegates">
           {#each delegates as d (d.provider + d.identifier)}
             <li>
               <span class="who-name">{d.identifier}</span>
               <span class="chip">{PROVIDER_NAMES[d.provider]}</span>
+              {#if isOffered(d)}<span class="chip offered">Offered ownership</span>{/if}
+              <select
+                class="input role"
+                aria-label="Role for {d.identifier}"
+                bind:value={d.role}
+                onchange={() => (saved = false)}
+              >
+                {#each Object.entries(ROLE_NAMES) as [value, name] (value)}
+                  <option {value}>{name}</option>
+                {/each}
+              </select>
+              {#if isOwner && isSaved(d) && !isOffered(d)}
+                <button class="remove" type="button" onclick={() => makeOwner(d)}
+                  aria-label="Make {d.identifier} owner">Make owner…</button>
+              {/if}
               <button class="remove" type="button" onclick={() => removeDelegate(d)}
                 aria-label="Remove {d.identifier}">Remove</button>
             </li>
           {/each}
         </ul>
       {/if}
+      {#if offer}
+        <div class="row tight" role="status">
+          <span class="text-2">
+            {offer.identifier} has until {until(offer.expires_at)} to accept ownership of this room.
+          </span>
+          {#if isOwner}
+            <button class="btn" type="button" onclick={cancelOffer}>Cancel offer</button>
+          {/if}
+        </div>
+      {/if}
+      {#if offerError}<p class="form-error" role="alert">{offerError}</p>{/if}
       <div class="row">
         <div class="field grow">
           <label for="delegate">Google email or GitHub username</label>
@@ -556,7 +653,9 @@
     {#if error}<p class="form-error" role="alert">{error}</p>{/if}
     {#if saved}<p class="saved" role="status">Saved.</p>{/if}
     <div class="actions">
-      <button class="btn danger" type="button" onclick={remove}>Delete room</button>
+      {#if isOwner}
+        <button class="btn danger" type="button" onclick={remove}>Delete room</button>
+      {/if}
       <button class="btn-primary save" type="button" disabled={saving} onclick={save}
         >{saving ? "Saving…" : "Save changes"}</button
       >
@@ -686,6 +785,16 @@
   .delegates li:last-child {
     border-bottom: none;
   }
+  .delegates .who-name {
+    flex: 1 1 180px;
+  }
+  .role {
+    width: auto;
+  }
+  .note {
+    margin: 0;
+    color: var(--text-2);
+  }
   .chip {
     padding: 2px 10px;
     border-radius: 999px;
@@ -755,6 +864,7 @@
     font-weight: 600;
   }
   .save {
+    margin-left: auto;
     min-height: 48px;
     padding: 0 24px;
   }
