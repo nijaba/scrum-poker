@@ -1,6 +1,15 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { addBot, forgetPlayer, getMe, getPlayer, getRoom, leaveRoom, signOut } from "../lib/api";
+  import {
+    addBot,
+    answerOwnershipOffer,
+    forgetPlayer,
+    getMe,
+    getPlayer,
+    getRoom,
+    leaveRoom,
+    signOut,
+  } from "../lib/api";
   import { duration, plural, points, remainingAt } from "../lib/format";
   import { RoomConnection } from "../lib/room.svelte";
   import { openMini } from "../lib/mini";
@@ -13,6 +22,7 @@
     saveMuted,
     unlockAudio,
   } from "../lib/sound";
+  import { ACCESS_NAMES, canManage } from "../lib/types";
   import type { Me, Player } from "../lib/types";
   import { roomTour } from "../lib/tours";
   import { offerTour, startTour } from "../lib/tour.svelte";
@@ -44,14 +54,21 @@
   const isFacilitator = $derived(snap?.you.role === "facilitator");
   const currentSlug = $derived(room?.slug || slug);
   const roleLabel = $derived(
-    snap?.you.access === "owner"
-      ? "Owner"
-      : snap?.you.access === "delegate"
-        ? "Delegate"
-        : isFacilitator
-          ? "Facilitator"
-          : "Player",
+    snap?.you.access ? ACCESS_NAMES[snap.you.access] : isFacilitator ? "Facilitator" : "Player",
   );
+  const settingsHref = $derived(canManage(snap?.you.access) ? `/r/${currentSlug}/settings` : null);
+
+  // The owner's offer of this room to you (design.md, "Co-owners and handing a room over").
+  // The room's next snapshot shows the outcome.
+  let offerError = $state<string | null>(null);
+  async function answerOffer(accept: boolean) {
+    offerError = null;
+    try {
+      await answerOwnershipOffer(currentSlug, accept);
+    } catch (err) {
+      offerError = err instanceof Error ? err.message : "Could not answer the offer.";
+    }
+  }
 
   // Phones get their own arrangement of the same pieces (design.md, "Phones").
   const phone = $derived(viewport.phone);
@@ -79,7 +96,7 @@
     return offerTour("room", () =>
       roomTour({
         facilitator: isFacilitator,
-        owner: snap?.you.access === "owner",
+        owner: canManage(snap?.you.access),
         phone,
         remote: remoteView,
       }),
@@ -280,7 +297,7 @@
             name={snap.you.name ?? player.name}
             role={roleLabel}
             signedIn={!!me?.signed_in}
-            settingsHref={snap.you.access === "owner" ? `/r/${currentSlug}/settings` : null}
+            {settingsHref}
             onlogout={logOut}
             info={phoneInfo}
             muted={snap.sound ? muted : null}
@@ -320,7 +337,7 @@
             name={snap.you.name ?? player.name}
             role={roleLabel}
             signedIn={!!me?.signed_in}
-            settingsHref={snap.you.access === "owner" ? `/r/${currentSlug}/settings` : null}
+            {settingsHref}
             onlogout={logOut}
             ontour={() => startTour()}
           />
@@ -342,6 +359,16 @@
           <button class="btn" type="button" onclick={moreBots}>Add a bot</button>
         </span>
         {#if botError}<span class="bot-error" role="alert">{botError}</span>{/if}
+      </p>
+    {/if}
+    {#if snap?.you.offer && !room?.ended}
+      <p class="banner ownership" role="note" aria-label="Ownership offer">
+        <span>{snap.you.offer.from} offered you ownership of this room.</span>
+        <span class="demo-actions">
+          <button class="btn btn-primary" type="button" onclick={() => answerOffer(true)}>Accept</button>
+          <button class="btn" type="button" onclick={() => answerOffer(false)}>Decline</button>
+        </span>
+        {#if offerError}<span class="bot-error" role="alert">{offerError}</span>{/if}
       </p>
     {/if}
     {#if snap && !room?.ended && !snap.demo}
@@ -466,7 +493,7 @@
                       >Try again</button
                     >
                   {/if}
-                  {#if snap.you.access === "owner"}
+                  {#if settingsHref}
                     <a class="btn icon-btn settings-link" href="/r/{currentSlug}/settings"
                       >Open room settings</a
                     >
@@ -593,6 +620,11 @@
   }
   .banner.demo {
     border: 1px dashed var(--accent);
+    background: var(--surface);
+  }
+  .banner.ownership {
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
     background: var(--surface);
   }
   .demo-actions {

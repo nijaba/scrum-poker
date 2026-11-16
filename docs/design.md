@@ -139,9 +139,9 @@ The app connects through Atlassian OAuth 2.0, and requests go to `api.atlassian.
 
 The scopes per endpoint come from Atlassian's Jira Software OpenAPI spec, checked on 11 November 2026. The first version of this design listed four; listing boards and reading the estimate field need the two `read:project` and `.admin` scopes, and the settings page shows the account through `read:me`.
 
-Each room has one Jira connection, set up by its owner on the room's settings page. The backlog loads and every confirmed estimate is written through it, whoever confirms, so Jira's history names the owner. Delegates never connect Jira. An owner with several rooms connects each one, possibly to different Atlassian accounts or sites.
+Each room has one Jira connection, set up by its owner or a co-owner on the room's settings page. The backlog loads and every confirmed estimate is written through it, whoever confirms, so Jira's history names whoever connected it. Facilitator delegates never connect Jira. An owner with several rooms connects each one, possibly to different Atlassian accounts or sites.
 
-Refresh tokens rotate and expire after 90 days without use, so each room's latest token is stored encrypted (Fernet, with `TOKEN_ENCRYPTION_KEY`) in the SQLite file, and replaced after every refresh ([source](https://mrrefactoring.github.io/jira.js/guide/oauth2-authentication)). Access tokens stay in memory, and refreshes for one room run one at a time. If the connection is missing or Jira refuses the refresh token, facilitators see that the owner must connect or reconnect Jira, and the room stays where it is.
+Refresh tokens rotate and expire after 90 days without use, so each room's latest token is stored encrypted (Fernet, with `TOKEN_ENCRYPTION_KEY`) in the SQLite file, and replaced after every refresh ([source](https://mrrefactoring.github.io/jira.js/guide/oauth2-authentication)). Access tokens stay in memory, and refreshes for one room run one at a time. If the connection is missing or Jira refuses the refresh token, facilitators see that the owner or a co-owner must connect or reconnect Jira, and the room stays where it is.
 
 ### Loading the backlog
 
@@ -165,7 +165,7 @@ The owner decided on 2026-11-14 that the rules above are a default the room's ow
 - **The counters** use the same filter as the queue, so "5 of 12 tickets estimated" counts the same tickets the session walks through.
 - **Re-estimation.** With tickets that have an estimate included, the queue holds every ticket the filter takes, estimated or not, in rank order. The ticket card shows the estimate already in Jira once the cards are revealed, never before, so it cannot sway the vote. Confirming writes the new value through the estimation endpoint, replacing the old one; Jira keeps the old value in the ticket's history. Skipping leaves it alone. In the backlog counter a ticket counts once, estimated before or during the session, with its latest points. The session counters count every confirm.
 - **A JQL error.** If Jira refuses the extra JQL, the room shows Jira's message where it shows any backlog error, with the code `jira_bad_filter`, and the owner fixes the filter in the settings.
-- **Preview.** The settings page shows how many tickets the filter, as currently set in the form and not yet saved, would put in the queue, and lists the first 50 in rank order with their key, summary, type, status and estimate. It runs only when the owner presses **Preview queue**, through `POST /api/rooms/{slug}/queue-preview`, which only the owner may call because it uses the room's Jira connection. It calls the same backlog code the room uses, so the preview and the session cannot disagree.
+- **Preview.** The settings page shows how many tickets the filter, as currently set in the form and not yet saved, would put in the queue, and lists the first 50 in rank order with their key, summary, type, status and estimate. It runs only when the owner or a co-owner presses **Preview queue**, through `POST /api/rooms/{slug}/queue-preview`, which only the owner and co-owners may call because it uses the room's Jira connection. It calls the same backlog code the room uses, so the preview and the session cannot disagree.
 - **When a change applies.** A saved filter applies the next time the backlog loads: in a new session, or when a facilitator presses **Reload backlog**. Reload works between tickets, while nobody has voted on the current one, as well as after a failed load. When the owner saves a filter that differs from the one the session loaded with, facilitators see "The queue filter changed. Reload the backlog to apply it." next to **Reload backlog**, until a reload applies it. A reload keeps the session's results: confirmed and skipped tickets keep counting and stay in the session summary, and the queue starts at the first ticket that has no result this session.
 
 ### Writing points
@@ -184,11 +184,32 @@ Names at a table are unique, so everyone can tell who played what. The room refu
 
 | Role | Signs in with | Can do |
 | --- | --- | --- |
-| Owner | Google or GitHub | Create, configure and delete rooms; name delegates; run sessions |
-| Delegate | Google or GitHub | Run sessions in the rooms where the owner listed them |
+| Owner | Google or GitHub | Create, configure and delete rooms; name delegates; hand the room to someone else; run sessions |
+| Co-owner | Google or GitHub | Everything the owner does except deleting the room and handing it over |
+| Delegate | Google or GitHub | Run sessions in the rooms where they are listed |
 | Player | Nothing | Vote |
 
 Facilitator sessions live in a signed cookie, and an environment allowlist controls who may create rooms. The owner lists delegates per room by Google email or GitHub username. Matching uses the verified email or GitHub login, not the display name, which anyone can change.
+
+### Co-owners and handing a room over
+
+Decided by the owner on 2026-11-16. Each delegate entry has a role, set in the settings page's Delegates section: **Facilitator** (the default, and what every delegate was before) runs sessions; **Co-owner** also manages the room. A co-owner can open Room settings and change every setting, including the queue filter and its preview; add and remove delegates and change their roles; rename the room; and connect, reconnect or disconnect Jira and choose the board. Only the owner can delete the room and offer it to someone else, so there is always exactly one person who can delete it. The owner is not in the delegates list, so nobody else can remove or demote them. Co-owners are matched like any delegate, by verified email or GitHub login, so the owner can name someone who has never signed in. A role change reaches a live room at once, like any delegate change: Room settings appears in, or leaves, that person's menu.
+
+The room's Jira connection records who connected it (their email or GitHub login). Settings show it as "Connected by …", and when that is not the person looking, they add that Jira records estimates under that account and that Reconnect switches it to their own. Rooms connected before co-owners existed were connected by their owner.
+
+The owner hands the room over in two steps, because a delegate is known only by email or login and the owner is matched on a stable account ID:
+
+1. In Delegates, the owner presses **Make owner…** next to a delegate and confirms. That makes an offer. One offer is open at a time; a new one replaces it. The owner can cancel it, and removing that delegate cancels it too. It lapses after 7 days.
+2. The delegate sees "<owner> offered you ownership of <room>" with **Accept** and **Decline**, on the home page beside the room and in the room under the header. Accepting while signed in records their account ID as the owner (`POST /api/rooms/<slug>/ownership/accept`). Their delegate entry goes, and the old owner stays on as a co-owner, by their email or GitHub login, so they do not lose access at once; the new owner can remove them. Declining clears the offer.
+
+The new owner does not need to be on `ROOM_CREATOR_ALLOWLIST`, which only controls who may create rooms. The Jira connection stays as it is, so sessions carry on; the new owner reconnects with their own Atlassian account when it suits them.
+
+| Request | Who | Does |
+| --- | --- | --- |
+| `POST /api/rooms/<slug>/ownership` `{provider, identifier}` | Owner | Offers the room to that delegate |
+| `DELETE /api/rooms/<slug>/ownership` | Owner | Cancels the offer |
+| `POST /api/rooms/<slug>/ownership/accept` | The offered account | Makes them the owner |
+| `POST /api/rooms/<slug>/ownership/decline` | The offered account | Clears the offer |
 
 ### Sign-in
 
@@ -202,7 +223,7 @@ In the room header, your name and role are a button that opens a small menu:
 
 | Who | Menu |
 | --- | --- |
-| Signed in, owner of the room | Your rooms, Room settings, Log out |
+| Signed in, owner or co-owner of the room | Your rooms, Room settings, Log out |
 | Signed in, anyone else (delegate or player) | Your rooms, Log out |
 | Not signed in | Log out |
 
@@ -226,7 +247,7 @@ A `github-org:` entry makes GitHub sign-in ask for the `read:org` scope. Members
 
 ### Rooms
 
-The rooms page at `/` offers sign-in when signed out. Signed in, it lists the rooms the account owns or is a delegate of, and allowlisted owners can create one there. Each room's settings page is at `/r/<slug>/settings` and only the owner can use it.
+The rooms page at `/` offers sign-in when signed out. Signed in, it lists the rooms the account owns or is a delegate of, with their role, and allowlisted owners can create one there. Each room's settings page is at `/r/<slug>/settings` and only the owner and co-owners can use it; only the owner sees Delete room.
 
 The owner can rename a room. The old short name keeps redirecting to the new one, also for room sockets, and no other room can take it. Deleting a room frees all its names and ends its live session on every screen.
 
@@ -244,7 +265,7 @@ Room definitions persist, so the link `/r/<slug>` survives restarts. Nothing abo
 
 | Data | Lives in | Survives a restart |
 | --- | --- | --- |
-| Room slug, owner, delegates, Jira site and board, queue filter, scale, timer default, sound and auto-reveal settings | SQLite file | Yes |
+| Room slug, owner, delegates and their roles, an open ownership offer, Jira site and board, queue filter, scale, timer default, sound and auto-reveal settings | SQLite file | Yes |
 | Each room's Jira connection: refresh token (encrypted), account email, site and board | SQLite file | Yes |
 | Confirmed story points | Jira | Yes |
 | Player name and ID | The player's cookie | Yes |
@@ -289,7 +310,7 @@ A short guided tour explains the room to whoever opens it, and the settings page
 - **Offered once.** The first time someone is in a room, a note under the header offers **Take the tour** or **No thanks**. Either answer is kept in the browser (`localStorage`), so the note does not come back. The owner's first visit to the settings page offers that page's tour the same way, kept separately.
 - **In demo rooms**, the demo banner offers **Take the tour** every time instead (see "Demo rooms").
 - **On demand.** **Tour** in the room menu and in the footer of the room and settings pages starts the tour again at any time.
-- **By role.** Everyone sees the ticket, the table, their cards, what the reveal shows, and the menu. A facilitator also sees Reveal cards with the other controls, the final points and Confirm, the countdown, and Up next with the session summary; on a phone the dock and the **⋯** sheet stand in for the panel. The owner also hears where Room settings is. The settings tour walks through the room link, Jira, the queue filter and its preview, the scale, the countdown, sound and reveal settings, and delegates.
+- **By role.** Everyone sees the ticket, the table, their cards, what the reveal shows, and the menu. A facilitator also sees Reveal cards with the other controls, the final points and Confirm, the countdown, and Up next with the session summary; on a phone the dock and the **⋯** sheet stand in for the panel. The owner and co-owners also hear where Room settings is. The settings tour walks through the room link, Jira, the queue filter and its preview, the scale, the countdown, sound and reveal settings, and delegates.
 - **How a step looks.** The part of the page it explains is outlined and the rest dimmed; a caption beside it gives a title, a sentence or two, "Step 2 of 6", and Back, Next and Done. The page stays usable underneath. Escape or Close ends the tour and returns focus where it was. A step whose part is not on the page (Up next with an empty queue, Remote view's table) shows its caption on its own. The tour follows the theme and respects reduced motion.
 - The tour is drawn by the page alone: no library, nothing sent to the server.
 

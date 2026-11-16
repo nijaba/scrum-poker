@@ -22,9 +22,10 @@ room](#practising-in-a-demo-room).
 | --- | --- | --- |
 | Player | No, just types a name | Vote on each ticket |
 | Delegate | Yes, with Google or GitHub | Everything a player can, plus run the session |
-| Owner | Yes, with Google or GitHub | Everything a delegate can, plus change the room's settings, connect it to Jira and delete it |
+| Co-owner | Yes, with Google or GitHub | Everything a delegate can, plus change the room's settings and connect it to Jira |
+| Owner | Yes, with Google or GitHub | Everything a co-owner can, plus delete the room and hand it to someone else |
 
-Owners and delegates are both *facilitators* while a session runs: they see the facilitator
+Owners, co-owners and delegates are all *facilitators* while a session runs: they see the facilitator
 panel on the right of the room (under the cards on a phone). A room can have several
 facilitators at once.
 
@@ -178,10 +179,10 @@ remembers the choice.
 
 ## Facilitators
 
-You're a facilitator if you own the room, or the owner added you as a delegate. Sign in first:
+You're a facilitator if you own the room, or you were added to it as a delegate or co-owner. Sign in first:
 open the app's home page (from a room, click the room name at the top left), choose
 **Sign in with Google** or **Sign in with GitHub**, then open the room. The header shows
-your role, **Owner** or **Delegate**, under your name.
+your role, **Owner**, **Co-owner** or **Delegate**, under your name.
 
 Click your name for a menu: **Your rooms** goes back to the list of rooms you own or help run,
 **Room settings** (owners only) opens this room's settings, and **Log out** leaves the table,
@@ -411,17 +412,36 @@ The backlog counter in the room counts the same tickets as the queue filter.
 
 ### Delegates
 
-Delegates run sessions with you: they get the facilitator panel but can't change settings,
-connect Jira or delete the room.
+Delegates run sessions with you. Each has a role:
+
+- **Facilitator** gets the facilitator panel but can't change settings, connect Jira or delete
+  the room.
+- **Co-owner** can also open Room settings, change everything on this page, add and remove
+  delegates, and connect Jira. Only the owner can delete the room or hand it over.
 
 1. Under **Delegates**, type their **Google email or GitHub username**.
 2. Under **Signs in with**, choose **Google** or **GitHub**.
-3. Choose **Add delegate**, then **Save changes**.
+3. Choose **Add delegate**, pick their role, then **Save changes**.
 
 They are recognised by their verified Google email or their GitHub username, never by display
 name. A Google entry only matches a Google sign-in, and a GitHub entry only a GitHub sign-in.
 
-![The Delegates section listing one Google delegate, with the field and Add delegate button below](images/settings-delegates.png)
+If Jira was connected by someone else, the Jira section says so: estimates are recorded under
+their Atlassian account until you choose **Reconnect** with your own.
+
+### Handing the room over
+
+The owner can give the room to one of its delegates:
+
+1. Next to a saved delegate, choose **Make owner…** and confirm.
+2. They see the offer on their home page and in the room, with **Accept** and **Decline**. They
+   have 7 days to answer; you can **Cancel offer** until then.
+3. Once they accept, they own the room and you stay on as a co-owner. They can remove you.
+
+The Jira connection stays as it was, so sessions carry on. The new owner can reconnect it with
+their own Atlassian account.
+
+![The Delegates section listing one Google delegate with its role, Make owner… and Remove, and the field and Add delegate button below](images/settings-delegates.png)
 
 ### What is kept
 

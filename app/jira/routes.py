@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
-from app.auth.access import OWNER
+from app.auth.access import MANAGERS
 from app.jira.client import JiraError, JiraService
 from app.rooms_api import json_body, queue_filter, view
 from app.store.rooms import RoomRecord
@@ -37,7 +37,7 @@ def _states(request: Request) -> URLSafeTimedSerializer:
 
 
 async def owner_record(request: Request, slug: str) -> RoomRecord:
-    """The room, if the signed-in account owns it: 401 signed out, 403 not the owner."""
+    """The room, if the signed-in account owns or co-owns it: 401 signed out, 403 otherwise."""
     identity = request.app.state.auth.identity(request.cookies)
     if identity is None:
         raise HTTPException(401, "Sign in first.")
@@ -46,8 +46,10 @@ async def owner_record(request: Request, slug: str) -> RoomRecord:
     record = await asyncio.to_thread(store.get, current) if current else None
     if record is None:
         raise HTTPException(404, "No such room.")
-    if record.access(identity) != OWNER:
-        raise HTTPException(403, "Only the room's owner can change its Jira connection.")
+    if record.access(identity) not in MANAGERS:
+        raise HTTPException(
+            403, "Only the room's owner or a co-owner can change its Jira connection."
+        )
     return record
 
 
@@ -104,7 +106,8 @@ async def callback(
     if error or not code:
         return _done(f"{settings_page}?jira=denied")
     try:
-        record = await _service(request).connect(record.slug, code)
+        identity = request.app.state.auth.identity(request.cookies)
+        record = await _service(request).connect(record.slug, code, identity.label)
     except JiraError as err:
         return _failed(err.message)
     await request.app.state.rooms.update(record)
@@ -184,7 +187,8 @@ async def choose_board(slug: str, request: Request) -> dict[str, Any]:
         board["name"],
     )
     await request.app.state.rooms.update(record)
-    return view(request, record, OWNER)
+    identity = request.app.state.auth.identity(request.cookies)
+    return view(request, record, record.access(identity))
 
 
 @router.post("/api/rooms/{slug}/queue-preview")

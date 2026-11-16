@@ -239,3 +239,34 @@ def test_version_1_files_are_upgraded(path):
     store.set_jira_connection("old", token="t", email="o@x.com")
     assert store.get("old").jira.token == "t"
     store.close()
+
+
+def test_co06_version_4_files_get_roles_and_who_connected_jira(path):
+    import json
+    import sqlite3 as sq
+
+    from app.store.rooms import MIGRATIONS, SCHEMA
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    db = sq.connect(path)
+    db.executescript(
+        SCHEMA + "".join(MIGRATIONS[v] for v in (2, 3, 4)) + "PRAGMA user_version = 4;"
+    )
+    for slug, token in (("linked", "t"), ("plain", None)):
+        db.execute(
+            "INSERT INTO rooms (slug, owner_provider, owner_subject, owner_label, scale,"
+            " timer_seconds, sound, created_at, jira_token)"
+            " VALUES (?, 'google', 'g', 'o@x.com', ?, 30, 0, '2026-01-01', ?)",
+            (slug, json.dumps(fibonacci().to_dict()), token),
+        )
+    db.execute("INSERT INTO delegates VALUES ('linked', 'google', 'd@x.com')")
+    db.commit()
+    db.close()
+
+    store = RoomStore(path)
+    linked = store.get("linked")
+    assert [(d.identifier, d.role) for d in linked.delegates] == [("d@x.com", "facilitator")]
+    assert linked.jira.connected_by == "o@x.com"
+    assert linked.offer is None
+    assert store.get("plain").jira.connected_by is None
+    store.close()

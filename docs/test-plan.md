@@ -226,6 +226,24 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | AR-18 | A taken name arrives over the socket, as a join or from a returning browser's cookie | The browser gets a `name_taken` error and stays unseated; the table is unchanged | Integration |
 | AR-19 | A player types a name already at the table | The name form says who holds it and keeps the name; another name joins, and is remembered | E2E |
 
+### Co-owners and handing a room over
+
+| ID | Scenario | Expected | Level |
+| --- | --- | --- | --- |
+| CO-01 | Owner makes a delegate a co-owner | That account reads and changes the settings, delegates and their roles, and renames the room; a facilitator delegate still cannot | Integration |
+| CO-02 | Co-owner connects Jira, chooses a board and previews the queue | Allowed; the settings say who connected Jira, with the reconnect note for anyone else | Integration |
+| CO-03 | Co-owner tries to delete the room or offer it to someone | Rejected; the room is unchanged | Integration |
+| CO-04 | Owner changes a delegate's role while they are in the room | Their access in the room changes at once; they keep the session controls either way | Integration |
+| CO-05 | A delegate role that is not Facilitator or Co-owner | Rejected; an entry without a role is a facilitator | Integration |
+| CO-06 | A file from before co-owners is opened | Its delegates are facilitators, and a connected room shows the owner as who connected Jira | Unit |
+| CO-07 | Owner makes a delegate a co-owner on the settings page | The co-owner gets Room settings in the room menu and the settings page without Delete room; the home page says Co-owner | E2E |
+| OT-01 | Owner offers the room to a delegate | The offer shows on the settings page, beside the room on the delegate's home page and in their room; a new offer replaces it | Integration |
+| OT-02 | The delegate accepts | They are the owner by account ID; the old owner is a co-owner; the offer is gone; a live room updates both at once; the Jira connection stays | Integration |
+| OT-03 | The delegate declines, or the owner cancels | Nothing else changes; the offer is gone | Integration |
+| OT-04 | The delegate accepts more than 7 days later | Refused; the offer no longer shows | Integration |
+| OT-05 | Someone else tries to make, cancel, accept or decline an offer, an offer names a non-delegate, or the offered delegate is removed | Refused, or the offer is cancelled | Integration |
+| OT-06 | Owner offers on the settings page; the delegate accepts on the home page | The new owner sees Delete room; the old owner sees the room as Co-owner | E2E |
+
 ### The menu behind your name
 
 | ID | Case | Expected | Level |

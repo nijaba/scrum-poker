@@ -119,10 +119,10 @@ def test_rooms_list_shows_owned_and_delegated_rooms(client):
     delegated = api(client, "GET", "/api/rooms", DELEGATE).json()
 
     assert owned == [
-        {"slug": "team-a", "access": "owner"},
-        {"slug": "team-b", "access": "owner"},
+        {"slug": "team-a", "access": "owner", "offer": None},
+        {"slug": "team-b", "access": "owner", "offer": None},
     ]
-    assert delegated == [{"slug": "team-b", "access": "delegate"}]
+    assert delegated == [{"slug": "team-b", "access": "delegate", "offer": None}]
     assert api(client, "GET", "/api/rooms").status_code == 401
 
 
@@ -396,6 +396,11 @@ def test_pk05_the_file_holds_no_votes_results_or_counters(client, settings):
         "jira_board_name",
         "auto_reveal",
         "queue_filter",  # a setting: which tickets the queue takes
+        "jira_connected_by",
+        # An open ownership offer (design: Co-owners and handing a room over).
+        "offer_provider",
+        "offer_identifier",
+        "offer_at",
     }
     dump = "\n".join(db.iterdump())
     db.close()

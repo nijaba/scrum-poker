@@ -1,4 +1,14 @@
-import type { JiraBoard, JiraSite, Me, Player, QueueFilter, QueuePreview, RoomInfo } from "./types";
+import type {
+  Delegate,
+  JiraBoard,
+  JiraSite,
+  Me,
+  Player,
+  QueueFilter,
+  QueuePreview,
+  RoomInfo,
+  RoomListing,
+} from "./types";
 
 /** An HTTP error, with the server's message and status. */
 export class ApiError extends Error {
@@ -63,11 +73,29 @@ export function signInUrl(provider: string, next = location.pathname): string {
   return `/auth/${provider}/login?next=${encodeURIComponent(next)}`;
 }
 
-export function listRooms(): Promise<{ slug: string; access: "owner" | "delegate" }[]> {
+export function listRooms(): Promise<RoomListing[]> {
   return call("GET", "/api/rooms");
 }
 
-/** The queue a session would load with this filter, not yet saved. Owner only. */
+/** Offer the room to one of its delegates. Owner only. */
+export function offerOwnership(slug: string, delegate: Delegate): Promise<RoomInfo> {
+  return call("POST", `/api/rooms/${encodeURIComponent(slug)}/ownership`, {
+    provider: delegate.provider,
+    identifier: delegate.identifier,
+  });
+}
+
+export function cancelOwnershipOffer(slug: string): Promise<void> {
+  return call("DELETE", `/api/rooms/${encodeURIComponent(slug)}/ownership`);
+}
+
+/** Accept or decline the room's offer to the signed-in account. */
+export function answerOwnershipOffer(slug: string, accept: boolean): Promise<RoomInfo | void> {
+  const verb = accept ? "accept" : "decline";
+  return call("POST", `/api/rooms/${encodeURIComponent(slug)}/ownership/${verb}`, {});
+}
+
+/** The queue a session would load with this filter, not yet saved. Owner and co-owners. */
 export function previewQueue(slug: string, queue_filter: QueueFilter): Promise<QueuePreview> {
   return call("POST", `/api/rooms/${encodeURIComponent(slug)}/queue-preview`, { queue_filter });
 }

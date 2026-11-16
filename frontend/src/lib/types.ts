@@ -75,8 +75,10 @@ export interface Snapshot {
     on_break: boolean;
     removed: boolean;
     role: "player" | "facilitator";
-    access: "owner" | "delegate" | null;
+    access: Access;
     account_name: string | null;
+    /** An open offer of this room to the viewer (design.md, "Co-owners and handing a room over"). */
+    offer: OwnershipOffer | null;
   };
   room: { slug: string };
   backlog: {
@@ -137,11 +139,26 @@ export interface Me {
   tour_video: boolean; // the home page offers Watch the video (TOUR_VIDEO)
 }
 
-export type Access = "owner" | "delegate" | null;
+export type Access = "owner" | "co_owner" | "delegate" | null;
+
+/** Who may open Room settings: the owner and co-owners. */
+export function canManage(access: Access | undefined): boolean {
+  return access === "owner" || access === "co_owner";
+}
+
+export const ACCESS_NAMES = { owner: "Owner", co_owner: "Co-owner", delegate: "Delegate" } as const;
+
+export type DelegateRole = "facilitator" | "co_owner";
 
 export interface Delegate {
   provider: "google" | "github";
   identifier: string;
+  role: DelegateRole;
+}
+
+/** What the offered account sees of an open ownership offer. */
+export interface OwnershipOffer {
+  from: string;
 }
 
 export interface JiraSite {
@@ -160,6 +177,7 @@ export interface JiraSettings {
   available: boolean;
   connected: boolean;
   email: string | null;
+  connected_by: string | null;
   site: JiraSite | null;
   board: { id: number; name: string } | null;
 }
@@ -187,6 +205,8 @@ export interface QueuePreview {
 }
 
 export interface RoomSettings {
+  owner: string;
+  offer: { provider: Delegate["provider"]; identifier: string; expires_at: string } | null;
   scale: Scale;
   timer_seconds: number;
   sound: boolean;
@@ -201,4 +221,11 @@ export interface RoomInfo {
   access: Access;
   demo?: boolean;
   settings?: RoomSettings;
+  offer?: OwnershipOffer | null;
+}
+
+export interface RoomListing {
+  slug: string;
+  access: Exclude<Access, null>;
+  offer: OwnershipOffer | null;
 }

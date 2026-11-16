@@ -440,6 +440,8 @@ class LiveRoom:
         snapshot["you"]["role"] = role
         snapshot["you"]["access"] = access
         snapshot["you"]["account_name"] = conn.account.name if conn.account else None
+        offered = not self.demo and self._record.offered_to(conn.account)
+        snapshot["you"]["offer"] = {"from": self._record.owner_label} if offered else None
         snapshot["room"] = {"slug": self._record.slug}
         snapshot["backlog"] = dict(self._backlog_state)
         if self.demo:
