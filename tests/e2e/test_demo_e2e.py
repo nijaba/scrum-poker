@@ -6,7 +6,9 @@ from playwright.sync_api import expect
 
 from tests.e2e.conftest import serve
 
-BOT_WAIT = 20_000  # bots play a few seconds after a round opens
+# Bots play 2 to 7 seconds after a round opens (BOT_DELAY), and one that takes a coffee break
+# first waits up to twice that again: 21 seconds at most. Leave room above it.
+BOT_WAIT = 30_000
 
 
 def test_dr11_try_a_demo_from_the_home_page(browser, server):

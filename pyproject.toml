@@ -9,7 +9,7 @@ description = "Scrum poker for Jira Cloud backlogs: one lightweight container, n
 readme = "README.md"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
@@ -25,6 +25,7 @@ dev = [
     "ruff>=0.6",
     "pytest-playwright>=0.7",
     "playwright>=1.57",
+    "pip-audit>=2.9",
 ]
 
 [tool.setuptools.packages.find]
@@ -35,7 +36,7 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

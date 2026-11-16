@@ -160,6 +160,17 @@ Design: "Rooms". Decided by the owner on 2026-11-16: make the home page more att
 
 Cases: HP-01 to HP-03.
 
+## After step 6: documentation checks and CI
+
+Decided by the owner on 2026-11-16: run a short CI for documentation-only changes, check the documentation's links and the project page build, and audit the dependencies.
+
+- [x] A short CI for documentation-only changes, with the required checks still reported
+- [x] Links in the Markdown files, and the project page build, checked by tests
+- [x] Python 3.13 required, as CI, Docker and development use
+- [x] A dependency audit workflow: pip-audit and npm audit
+
+Cases: DC-01 to DC-03.
+
 ## After step 6: a fuller tour and owner onboarding
 
 Design: "Tour". Decided by the owner on 2026-11-16: explain more in the room tour, and help owners set a room up.

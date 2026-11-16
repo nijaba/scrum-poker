@@ -351,6 +351,14 @@ The always-on-top window is checked by hand. Its content is automated through th
 | GP-02 | Every picture in `docs/images/` | Is shown by a guide and made by `scripts/guide_pictures.py` | Unit |
 | GP-03 | Request `/tour.mp4`, whole and as a byte range | `video/mp4` with a cache time; a range gets 206 with only those bytes; 404 when the build has no video | Integration |
 
+## Documentation and CI
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| DC-01 | Every link in a Markdown file in git | Leads to a file in the repository, and to a heading there when it names one; web links are not followed | Unit |
+| DC-02 | Build the project page with `scripts/build_site.sh` | It builds, and every local file and section the page refers to is in the build | Unit |
+| DC-03 | `scripts/ci_changes.sh` on a pull request or push | Documentation only (`docs/`, Markdown, the project page, `.claude/`, `LICENSE`) gives `code=false`; anything else, a manual run, no earlier commit or a failed comparison gives `code=true` | Unit |
+
 ## HTTPS
 
 | ID | Case | Expected | Level |

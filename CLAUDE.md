@@ -23,6 +23,8 @@ pytest                       # run all tests
 pytest -k re01               # run the tests for one test-plan case
 ruff check .                 # lint
 ruff format .                # format
+pip-audit --skip-editable    # known vulnerabilities in the Python dependencies
+(cd frontend && npm audit)   # and in the front-end packages
 uvicorn app.main:app --reload --port 8000   # dev server, single worker
 SCRUM_POKER_FAKE_BACKLOG=tests/fixtures/fake_backlog.json SCRUM_POKER_FAKE_SSO=1 SCRUM_POKER_FAKE_JIRA=1 \
   ROOM_CREATOR_ALLOWLIST=owner@example.com uvicorn app.main:app --port 8000  # local dev: fake sign-in and fake Jira
@@ -68,7 +70,7 @@ Packages inside `app/`: `room/` (engine), `store/` (SQLite), `auth/` (sign-in, a
 1. Follow `docs/build-plan.md` in order. Finish a step before starting the next.
 2. Read the matching sections of `docs/design.md` before writing code. It is the source of truth for behaviour.
 3. Write tests first. Every case in `docs/test-plan.md` has an ID such as `RE-01`; put the ID in the test name (`test_re01_votes_stay_hidden`) so `pytest -k re01` finds it.
-4. Run `pytest` and `ruff check .` before saying a step is done.
+4. Before saying a step is done, run what CI runs: `pytest`, `ruff check .`, `ruff format --check .` and `(cd frontend && npm run check)`. After front-end changes, also run the browser tests in Firefox and WebKit (`pytest tests/e2e --browser firefox`, then `webkit`).
 5. Tick the boxes in `docs/build-plan.md` as cases pass.
 6. If the design is silent or wrong, stop and ask. When the owner decides, update `docs/design.md` in the same change.
 
