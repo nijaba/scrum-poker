@@ -226,6 +226,14 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | AR-18 | A taken name arrives over the socket, as a join or from a returning browser's cookie | The browser gets a `name_taken` error and stays unseated; the table is unchanged | Integration |
 | AR-19 | A player types a name already at the table | The name form says who holds it and keeps the name; another name joins, and is remembered | E2E |
 
+### Home page
+
+| ID | Scenario | Expected | Level |
+| --- | --- | --- | --- |
+| HP-01 | Open the home page signed out | A green hero with the headline, Try a demo and Watch the video; Run a session with the sign-in buttons; the four steps of a session | E2E |
+| HP-02 | Open the home page signed in, with a room | "Welcome back" with the first name; each room is a card with its role; Settings opens the settings, the rest of the card opens the room; Create a room is a card in the same grid | E2E |
+| HP-03 | Open the home page at phone width, signed out and signed in | No sideways scrolling | E2E |
+
 ### Co-owners and handing a room over
 
 | ID | Scenario | Expected | Level |

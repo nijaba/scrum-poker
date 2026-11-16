@@ -30,7 +30,7 @@ refused outside `localhost`.
 The home page offers a sign-in button for each provider you set up, and **Try a demo** when
 `DEMO_ROOMS=1`:
 
-![The home page before sign-in: Sign in with Google, Sign in with GitHub, and Try a demo](images/home-signed-out.png)
+![The home page before sign-in: a green banner with Try a demo and Watch the video, then Sign in with Google, Sign in with GitHub and the four steps of a session](images/home-signed-out.png)
 
 ### Google
 
@@ -153,7 +153,7 @@ hand their room to one of its delegates, who need not be on the allowlist.
 Someone on the allowlist sees **Create a room** on the home page once signed in; anyone else
 sees only the rooms they help run:
 
-![The home page for someone allowed to create rooms: Your rooms, and Create a room with a Short name field](images/home-rooms.png)
+![The home page for someone allowed to create rooms: the room cards, and a Create a room card with a Short name field](images/home-rooms.png)
 
 GitHub organisation membership is checked at sign-in. Someone who leaves the organisation
 keeps the right to create rooms until they sign out or their 30-day sign-in expires.

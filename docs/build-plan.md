@@ -149,3 +149,13 @@ Design: "Co-owners and handing a room over". Decided by the owner on 2026-11-16:
 - [x] Settings, home page and room show roles and offers
 
 Cases: CO-01 to CO-07, OT-01 to OT-06.
+
+## After step 6: a new home page
+
+Design: "Rooms". Decided by the owner on 2026-11-16: make the home page more attractive.
+
+- [x] A hero in the table's green, with a fanned hand of cards and the demo up front when signed out
+- [x] The four steps of a session under the sign-in
+- [x] Rooms as cards, with Create a room in the same grid
+
+Cases: HP-01 to HP-03.

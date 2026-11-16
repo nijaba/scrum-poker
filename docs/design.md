@@ -247,7 +247,7 @@ A `github-org:` entry makes GitHub sign-in ask for the `read:org` scope. Members
 
 ### Rooms
 
-The rooms page at `/` offers sign-in when signed out. Signed in, it lists the rooms the account owns or is a delegate of, with their role, and allowlisted owners can create one there. Each room's settings page is at `/r/<slug>/settings` and only the owner and co-owners can use it; only the owner sees Delete room.
+The rooms page at `/` offers sign-in when signed out. Signed in, it lists the rooms the account owns or is a delegate of, with their role, and allowlisted owners can create one there. Decided by the owner on 2026-11-16, it opens with a hero in the green of the table. Signed out, the hero carries the headline, a fanned hand of cards (left out on phones), Try a demo and Watch the video; below it come Run a session with the sign-in buttons and the four steps of a session. Signed in, the hero says "Welcome back" with the first name, and the rooms are cards in a grid: the short name, its role, Open room and, for managers, Settings, with any ownership offer inside the card; the whole card opens the room. Create a room is the last card of the grid, and Practise first (Try a demo and Watch the video) follows the grid. Each room's settings page is at `/r/<slug>/settings` and only the owner and co-owners can use it; only the owner sees Delete room.
 
 The owner can rename a room. The old short name keeps redirecting to the new one, also for room sockets, and no other room can take it. Deleting a room frees all its names and ends its live session on every screen.
 

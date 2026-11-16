@@ -327,9 +327,11 @@ Once it's fixed, choose **Try again** in the room.
 If the page says your account "cannot create rooms", ask your administrator to add you. You
 can still run sessions in rooms where you are a delegate.
 
-**Your rooms** on the home page lists every room you own or help run.
+**Your rooms** on the home page shows every room you own or help run as a card, with your role.
+Click a card to open the room, or **Settings** on it to change the room. **Create a room** is the
+last card.
 
-![The home page signed in: Your rooms lists team-a, and Create a room takes a short name](images/home-rooms.png)
+![The home page signed in: Welcome back, the team-a room card with Open room and Settings, and the Create a room card with a short name field](images/home-rooms.png)
 
 ### Connecting Jira
 
