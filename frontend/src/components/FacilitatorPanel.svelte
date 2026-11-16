@@ -118,7 +118,7 @@
         onclick={() => send({ type: "reveal" })}>Reveal cards</button
       >
     {/if}
-    <div class="grid">
+    <div class="grid" data-tour="round">
       <button class="btn" type="button" onclick={() => send({ type: "restart" })}
         >Restart vote</button
       >
@@ -155,6 +155,7 @@
     <button
       class="btn toggle"
       type="button"
+      data-tour="auto-reveal"
       aria-pressed={snap.auto_reveal}
       onclick={() => send({ type: "set_auto_reveal", on: !snap.auto_reveal })}
     >

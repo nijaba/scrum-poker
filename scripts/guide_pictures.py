@@ -81,7 +81,7 @@ def start_server(folder: Path) -> tuple[subprocess.Popen, str]:
 class Session:
     """One room with an owner who facilitates and four players, each in their own browser."""
 
-    def __init__(self, browser: Browser, base: str) -> None:
+    def __init__(self, browser: Browser, base: str, checklist: bool = False) -> None:
         self.browser = browser
         self.base = base
         self.url = f"{base}/r/{SLUG}"
@@ -92,9 +92,12 @@ class Session:
         page.wait_for_url(f"{base}/")
         assert self.owner.request.post(f"{base}/api/rooms", data={"slug": SLUG}).status == 201
         page.goto(f"{self.url}/settings")
-        page.get_by_role("link", name="Connect Jira").click()
+        page.get_by_role("region", name="Jira").get_by_role("link", name="Connect Jira").click()
         page.get_by_role("link", name="Accept").click()
         page.wait_for_url(f"{self.url}/settings?jira=connected")
+        if checklist:  # half way through setting the room up: Jira connected, no board yet
+            ready = page.get_by_role("region", name="Get this room ready")
+            shot(page, "settings-checklist.png", ready)
         page.get_by_label("Board").select_option(label="SHOP board")
         page.get_by_role("button", name="Save changes").click()
         expect(page.get_by_text("Saved.")).to_be_visible()
@@ -156,7 +159,7 @@ def take(browser: Browser, base: str, wanted: set[str]) -> None:
         shot(page, "home-signed-out.png")
     visitor.close()
 
-    s = Session(browser, base)
+    s = Session(browser, base, checklist=want("settings-checklist.png"))
     owner = s.owner_page
 
     if want("home-rooms.png"):

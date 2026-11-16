@@ -159,3 +159,13 @@ Design: "Rooms". Decided by the owner on 2026-11-16: make the home page more att
 - [x] Rooms as cards, with Create a room in the same grid
 
 Cases: HP-01 to HP-03.
+
+## After step 6: a fuller tour and owner onboarding
+
+Design: "Tour". Decided by the owner on 2026-11-16: explain more in the room tour, and help owners set a room up.
+
+- [x] Show me more: a second part of the room tour, by role
+- [x] A richer settings tour
+- [x] The setup checklist on a room's settings page
+
+Cases: TR-08 to TR-10, GS-01, GS-02.

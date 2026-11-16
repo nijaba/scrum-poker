@@ -99,6 +99,7 @@
         owner: canManage(snap?.you.access),
         phone,
         remote: remoteView,
+        demo: !!snap?.demo,
       }),
     );
   });
@@ -281,6 +282,7 @@
         <button
           class="btn icon-btn copy"
           type="button"
+          data-tour="copy-link"
           aria-label={phone ? (copied ? "Copied" : "Copy link") : undefined}
           onclick={copyLink}
         >
@@ -309,6 +311,7 @@
         </div>
       {:else if snap}
         <div class="meta">
+          <div class="counters" data-tour="counters">
           <div class="counter" aria-label="Session counter">
             <span class="counter-label">Session</span>
             <span class="counter-value"
@@ -324,12 +327,13 @@
               · {points(snap.counters.backlog.points)}</span
             >
           </div>
+          </div>
           {#if snap.sound}
             <button class="btn icon-btn" type="button" aria-pressed={muted} onclick={toggleMute}>
               {muted ? "Unmute" : "Mute"}
             </button>
           {/if}
-          <button class="btn icon-btn" type="button" onclick={startMini}>
+          <button class="btn icon-btn" type="button" data-tour="mini" onclick={startMini}>
             <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"></rect><rect x="12" y="12" width="7" height="6" rx="1"></rect></svg>
             <span>Mini mode</span>
           </button>
@@ -582,6 +586,11 @@
     align-items: center;
     gap: 10px;
     margin-left: auto;
+  }
+  .counters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .counter {
     display: flex;

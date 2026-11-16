@@ -12,6 +12,9 @@ export type TourStep = {
   text: string;
 };
 
+/** A tour: its steps, and an optional second part that Show me more adds at the end. */
+export type Tour = { steps: TourStep[]; more?: TourStep[] };
+
 export type TourKey = "room" | "settings";
 
 const storageKey = (key: TourKey) => `scrum-poker-tour-${key}`;
@@ -35,16 +38,18 @@ function markSeen(key: TourKey): void {
 export const tour = $state({
   /** The page's tour, or null when the page has none. */
   key: null as TourKey | null,
-  steps: null as (() => TourStep[]) | null,
+  steps: null as (() => Tour) | null,
   /** Show the once-only offer. */
   offered: false,
   /** The steps of the running tour, fixed when it starts; null when it is not running. */
   running: null as TourStep[] | null,
+  /** The second part, while Show me more can still add it. */
+  more: null as TourStep[] | null,
   at: 0,
 });
 
 /** The page has a tour. Returns the function that withdraws it. */
-export function offerTour(key: TourKey, steps: () => TourStep[]): () => void {
+export function offerTour(key: TourKey, steps: () => Tour): () => void {
   tour.key = key;
   tour.steps = steps;
   tour.offered = !seen(key);
@@ -54,6 +59,7 @@ export function offerTour(key: TourKey, steps: () => TourStep[]): () => void {
     tour.steps = null;
     tour.offered = false;
     tour.running = null;
+    tour.more = null;
   };
 }
 
@@ -71,8 +77,18 @@ export function startTour(from?: unknown): void {
       : document.activeElement instanceof HTMLElement
         ? document.activeElement
         : null;
-  tour.running = tour.steps();
+  const chosen = tour.steps();
+  tour.running = chosen.steps;
+  tour.more = chosen.more?.length ? chosen.more : null;
   tour.at = 0;
+}
+
+/** Show me more: carry on into the second part, numbered on from the first. */
+export function showMore(): void {
+  if (!tour.running || !tour.more) return;
+  tour.running = [...tour.running, ...tour.more];
+  tour.more = null;
+  tour.at += 1;
 }
 
 export function declineTour(): void {
@@ -82,6 +98,7 @@ export function declineTour(): void {
 
 export function endTour(): void {
   tour.running = null;
+  tour.more = null;
   const back = returnFocus;
   returnFocus = null;
   if (back?.isConnected) back.focus();
