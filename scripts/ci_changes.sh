@@ -5,8 +5,8 @@
 #
 # Documentation is everything below; any other file counts as code and runs the full CI.
 # When in doubt (a manual run, a new branch, a diff that fails) it says code=true.
-# The guides and docs/images are read by tests/test_guide_pictures.py, which CI still runs
-# for a documentation-only change.
+# The documentation is read by tests/test_guide_pictures.py and tests/test_docs.py, which CI
+# still runs for a documentation-only change.
 set -u
 
 DOCS='^(docs/|site/|\.claude/|LICENSE$|scripts/build_site\.sh$|\.github/workflows/pages\.yml$)|\.md$'

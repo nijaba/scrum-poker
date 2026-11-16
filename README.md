@@ -24,7 +24,7 @@ online demo, since GitHub does not play videos kept in a repository. The narrati
 
 ## Quick start (local development)
 
-Requires Python 3.12 or newer and Node 22.
+Requires Python 3.13 or newer and Node 22.
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
@@ -45,8 +45,13 @@ reason, when its tool is missing. Run the browser tests in another engine with
 CI (`.github/workflows/ci.yml`) runs on every pull request and every push to `main`: ruff and
 svelte-check, then all of `pytest` (unit, integration, E2E in Chromium and the Docker image
 cases), then the E2E tests again in Firefox and WebKit. A change that touches only
-documentation (`docs/`, Markdown files, the project page) runs just the guide pictures test;
-the other checks report as skipped. `scripts/ci_changes.sh` decides which. The Sandbox and Manual cases of the
+documentation (`docs/`, Markdown files, the project page) runs just the tests that read it
+(guide pictures, links, the project page build); the other checks report as skipped. `scripts/ci_changes.sh` decides which.
+
+The Dependency audit workflow (`.github/workflows/audit.yml`) runs `pip-audit` and
+`npm audit` when the dependencies change, every Monday, and by hand. It fails on a known
+vulnerability (moderate or worse for npm) but is not a required check. Run the same locally
+with `pip-audit --skip-editable` and `(cd frontend && npm audit)`. The Sandbox and Manual cases of the
 test plan stay outside CI and run before each release.
 
 ## Deploying
