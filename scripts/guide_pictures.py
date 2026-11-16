@@ -150,6 +150,8 @@ def take(browser: Browser, base: str, wanted: set[str]) -> None:
     page = visitor.new_page()
     page.goto(base)
     expect(page.get_by_role("heading", name="Run a session")).to_be_visible()
+    # Let the hand of cards finish dealing.
+    page.wait_for_timeout(1200)
     if want("home-signed-out.png"):
         shot(page, "home-signed-out.png")
     visitor.close()
