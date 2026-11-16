@@ -1,6 +1,10 @@
 # Continuous integration: the Unit, Integration and E2E levels of docs/test-plan.md,
 # plus the image cases (PK-01 to PK-03, PK-02 in a browser) since the runner has Docker.
 # Sandbox (a real Jira Cloud site) and Manual cases stay out: they run before each release.
+#
+# A change that touches only documentation runs a short version: the guide pictures test
+# (GP-01, GP-02, which read the guides and docs/images) and nothing else. The other jobs
+# still report, as Skipped, so the checks the main branch requires are always there.
 name: CI
 
 on:
@@ -17,8 +21,28 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.detect.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: scripts/ci_changes.sh "$EVENT" "$BASE" "$HEAD" >> "$GITHUB_OUTPUT"
+
   lint:
     name: Lint and type check
+    needs: changes
+    # Anything but an explicit "false", a failed detection included, runs the job.
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -43,8 +67,12 @@ jobs:
 
   tests:
     name: Tests (unit, integration, E2E in Chromium, image)
+    needs: changes
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      CODE: ${{ needs.changes.outputs.code }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -52,27 +80,35 @@ jobs:
           python-version: "3.13"
           cache: pip
           cache-dependency-path: pyproject.toml
+      - run: pip install -e ".[dev]"
+      - name: Documentation only, so just the guide pictures test
+        if: env.CODE == 'false'
+        run: pytest -rs tests/test_guide_pictures.py
       - uses: actions/setup-node@v4
+        if: env.CODE != 'false'
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: pip install -e ".[dev]"
       - name: Build the front end (E2E tests skip without it)
+        if: env.CODE != 'false'
         run: npm ci && npm run build
         working-directory: frontend
-      - run: playwright install --with-deps chromium
+      - if: env.CODE != 'false'
+        run: playwright install --with-deps chromium
       # -rs lists every skipped test with its reason, so a silent skip shows in the log.
-      - run: pytest -rs
+      - if: env.CODE != 'false'
+        run: pytest -rs
 
-  browsers:
-    name: E2E in ${{ matrix.browser }}
+  # Two jobs rather than a matrix: a skipped matrix job reports under its unexpanded name,
+  # and the main branch requires "E2E in firefox" and "E2E in webkit" by name.
+  firefox:
+    name: E2E in firefox
+    needs: changes
+    # Anything but an explicit "false", a failed detection included, runs the job.
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        browser: [firefox, webkit]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -88,5 +124,30 @@ jobs:
       - run: pip install -e ".[dev]"
       - run: npm ci && npm run build
         working-directory: frontend
-      - run: playwright install --with-deps ${{ matrix.browser }}
-      - run: pytest tests/e2e -rs --browser ${{ matrix.browser }}
+      - run: playwright install --with-deps firefox
+      - run: pytest tests/e2e -rs --browser firefox
+
+  webkit:
+    name: E2E in webkit
+    needs: changes
+    # Anything but an explicit "false", a failed detection included, runs the job.
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: pip install -e ".[dev]"
+      - run: npm ci && npm run build
+        working-directory: frontend
+      - run: playwright install --with-deps webkit
+      - run: pytest tests/e2e -rs --browser webkit
