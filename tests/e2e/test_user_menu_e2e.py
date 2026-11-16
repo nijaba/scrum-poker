@@ -127,6 +127,9 @@ def test_um08_logging_out_with_the_connection_down_still_leaves_the_table(table)
     ana_page.get_by_label("Your name").fill("Ana")
     ana_page.get_by_role("button", name="Join room").click()
     expect(players(fay.page)).to_have_count(2)
+    # Wait for Ana's own first update too, or the cut can land before her page has a room
+    # to show, and so before her menu exists.
+    expect(ana_page.get_by_role("region", name="Your card")).to_be_visible()
 
     ana_page.evaluate("window.__blocked = true; window.__sockets.forEach(s => s.close())")
     expect(ana_page.get_by_text("Connection lost. Reconnecting…")).to_be_visible()
