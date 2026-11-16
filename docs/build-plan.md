@@ -139,3 +139,13 @@ Design: "Tour" and "Guide pictures". Decided by the owner on 2026-11-15: a tour 
 - [x] The narrated tour video, served by the app at `/tour.mp4` for the README
 
 Cases: TR-01 to TR-06, GP-01 to GP-03. Manual: TR-07, run by the owner on 2026-11-15: passed.
+
+## After step 6: co-owners and handing a room over
+
+Design: "Co-owners and handing a room over". Decided by the owner on 2026-11-16: a delegate can be a co-owner with every right but deleting and handing over the room; the owner offers the room to a delegate, who accepts; the old owner stays as a co-owner; the Jira connection stays, with a note to reconnect.
+
+- [x] Delegate roles: Facilitator and Co-owner; co-owners manage the room and its Jira connection
+- [x] Ownership offers: make, cancel, accept, decline, lapse after 7 days
+- [x] Settings, home page and room show roles and offers
+
+Cases: CO-01 to CO-07, OT-01 to OT-06.

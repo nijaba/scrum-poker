@@ -60,7 +60,9 @@ def test_owner_creates_and_configures_a_room_and_a_delegate_runs_it(browser, ser
     expect(dpage.get_by_role("menuitem", name="Your rooms")).to_be_visible()
     expect(dpage.get_by_role("menuitem", name="Room settings")).to_have_count(0)
     dpage.goto(f"{server}/r/e2e-renamed/settings")
-    expect(dpage.get_by_text("Only the room's owner can change its settings.")).to_be_visible()
+    expect(
+        dpage.get_by_text("Only the room's owner or a co-owner can change its settings.")
+    ).to_be_visible()
 
     # An outsider, signed in, is just a player.
     outsider = browser.new_context()

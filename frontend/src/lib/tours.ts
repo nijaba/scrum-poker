@@ -74,7 +74,7 @@ export function roomTour(who: {
     title: "Your menu",
     text:
       `Your menu holds ${extras.length ? extras.join(", ") + " and " : ""}the light or dark theme.` +
-      (who.owner ? " As the owner you also find Room settings here: Jira, the queue filter, the scale and delegates." : "") +
+      (who.owner ? " You also find Room settings here: Jira, the queue filter, the scale and delegates." : "") +
       " Tour, here or in the footer, starts this tour again.",
   });
   return steps;
@@ -109,6 +109,6 @@ export const settingsTour = (): TourStep[] => [
   {
     target: "delegates",
     title: "Delegates",
-    text: "People who may run sessions in this room as facilitators. They sign in with Google or GitHub; only you change the settings.",
+    text: "People who may run sessions in this room. They sign in with Google or GitHub. A co-owner can also change these settings; only the owner deletes the room or hands it over.",
   },
 ];

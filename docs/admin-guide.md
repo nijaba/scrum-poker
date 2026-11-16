@@ -147,7 +147,8 @@ The app refuses them outside localhost; never set them in production.
 For example: `ROOM_CREATOR_ALLOWLIST=google-domain:example.com,github:ana-dev`
 
 The allowlist only controls creating rooms. Anyone can join a room as a player with its link,
-and an owner can make anyone a delegate of their room.
+and an owner or co-owner can make anyone a delegate or co-owner of their room. An owner can
+hand their room to one of its delegates, who need not be on the allowlist.
 
 Someone on the allowlist sees **Create a room** on the home page once signed in; anyone else
 sees only the rooms they help run:
@@ -238,8 +239,9 @@ and start it again.
 | --- | --- | --- |
 | Room name, old names, scale, countdown and sound defaults | SQLite | Until the room is deleted |
 | Owner's provider account ID and email or GitHub login | SQLite | Until the room is deleted |
-| Delegates' Google emails and GitHub logins | SQLite | Until removed or the room is deleted |
-| Jira refresh token (encrypted), Atlassian account email, site and board | SQLite | Until disconnected or the room is deleted |
+| Delegates' Google emails and GitHub logins, and their roles | SQLite | Until removed or the room is deleted |
+| An open offer of the room to a delegate | SQLite | Until answered, cancelled, or 7 days |
+| Jira refresh token (encrypted), Atlassian account email, who connected it, site and board | SQLite | Until disconnected or the room is deleted |
 | Votes, results, who is in a room, session counters | Memory | Until the session ends or the app restarts |
 | Demo rooms, their bots and their copy of the sample backlog | Memory | `DEMO_IDLE_SECONDS` (30 minutes by default) with nobody in the room, or until the app restarts |
 | A player's name and random player ID | That player's browser cookie | One year |

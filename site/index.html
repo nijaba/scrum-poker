@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scrum poker for Jira Cloud</title>
+    <meta
+      name="description"
+      content="A multiplayer scrum poker app that walks your team through a Jira Cloud backlog in rank order and writes the agreed story points back. Open source, one small container."
+    />
+    <meta property="og:title" content="Scrum poker for Jira Cloud" />
+    <meta
+      property="og:description"
+      content="Estimate your Jira backlog together with hidden cards. The agreed points go straight back to Jira."
+    />
+    <meta property="og:image" content="images/room-revealed.png" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to the content</a>
+
+    <header class="hero">
+      <nav class="bar" aria-label="Site">
+        <span class="brand">Scrum poker</span>
+        <span class="bar-links">
+          <a href="#how">How it works</a>
+          <a href="#features">Features</a>
+          <a href="#run">Run it</a>
+          <a href="https://github.com/nijaba/scrum-poker">GitHub</a>
+        </span>
+      </nav>
+
+      <div class="hero-body">
+        <div class="hero-text">
+          <h1>Estimate your Jira backlog together, with cards face down.</h1>
+          <p class="lead">
+            A multiplayer scrum poker app for Jira Cloud. It walks your team through the tickets
+            that still need an estimate, in your backlog's order. Everyone votes in secret, the
+            cards turn over together, and the agreed story points are written back to Jira.
+          </p>
+          <div class="actions">
+            <a class="btn btn-primary" href="https://poker.nijalabs.com/">Try the demo</a>
+            <a class="btn btn-ghost" href="#tour">Watch the 30-second tour</a>
+          </div>
+          <p class="fine">
+            The demo needs no sign-in: a private room with bot players and a made-up backlog.
+            Nothing reaches Jira.
+          </p>
+        </div>
+
+        <div class="fan" aria-hidden="true">
+          <div class="card c1 back"></div>
+          <div class="card c2"><span>3</span><b>3</b><i>♠</i></div>
+          <div class="card c3 red"><span>5</span><b>5</b><i>♥</i></div>
+          <div class="card c4"><span>8</span><b>8</b><i>♣</i></div>
+          <div class="card c5 red"><span>13</span><b>13</b><i>♦</i></div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="shot-band" aria-label="The room">
+        <figure class="shot">
+          <img
+            src="images/room-revealed.png"
+            width="1280"
+            height="820"
+            alt="A room after the reveal: five players' cards face up on a green table, the average, median and most-chosen card, and the facilitator's final points picker"
+          />
+          <figcaption>
+            After the reveal: every card, the average and median, and the facilitator's pick of
+            the final points.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="how" class="section">
+        <h2>How a session runs</h2>
+        <ol class="steps">
+          <li>
+            <span class="step-n">1</span>
+            <h3>Open the room</h3>
+            <p>
+              A facilitator signs in with Google or GitHub. Their room is connected to a Jira
+              board, and the queue fills with the backlog tickets that have no estimate yet.
+            </p>
+          </li>
+          <li>
+            <span class="step-n">2</span>
+            <h3>Share the link</h3>
+            <p>
+              Players open the room link and type a name. No account, nothing to install, on a
+              laptop or a phone.
+            </p>
+          </li>
+          <li>
+            <span class="step-n">3</span>
+            <h3>Vote in secret</h3>
+            <p>
+              Everyone picks a card. The table shows who has voted, never what: not even the
+              facilitator sees a card before the reveal.
+            </p>
+          </li>
+          <li>
+            <span class="step-n">4</span>
+            <h3>Agree and move on</h3>
+            <p>
+              The cards turn over together. The team talks about the spread, the facilitator
+              confirms the points, and they are written to the ticket in Jira.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section why" aria-labelledby="why-title">
+        <div class="why-text">
+          <h2 id="why-title">Why cards face down?</h2>
+          <p>
+            When people estimate out loud, the first number said pulls every other number
+            towards it. Secret cards let each person commit to their own view first, so the quiet
+            voices count as much as the loud ones.
+          </p>
+          <p>
+            A 2 next to a 13 is the most useful thing a reveal can show: two people picture
+            different work. Talking it through before the sprint is far cheaper than finding out
+            halfway through it.
+            <a href="https://github.com/nijaba/scrum-poker/blob/main/docs/why-scrum-poker.md"
+              >More on why it works</a
+            >
+          </p>
+        </div>
+        <figure class="shot small">
+          <img
+            src="images/room-player.png"
+            width="1280"
+            height="820"
+            alt="A player's view while voting: the ticket, the table showing who has voted with cards face down, and the player's hand of cards"
+            loading="lazy"
+          />
+          <figcaption>A player's view while voting: who has voted shows, what they chose does not.</figcaption>
+        </figure>
+      </section>
+
+      <section id="features" class="section">
+        <h2>What it does</h2>
+        <ul class="features">
+          <li>
+            <h3>Your backlog, in order</h3>
+            <p>
+              Tickets come from the board's backlog in Jira's rank order. Epics, sub-tasks and
+              tickets in a sprint stay out; each room can tune its queue filter and add JQL.
+            </p>
+          </li>
+          <li>
+            <h3>Points go back to Jira</h3>
+            <p>
+              Confirmed estimates are written through the board's own estimation field. The room
+              only moves on once Jira has accepted the write.
+            </p>
+          </li>
+          <li>
+            <h3>Your scale</h3>
+            <p>Fibonacci, T-shirt sizes mapped to points, or your own list of cards.</p>
+          </li>
+          <li>
+            <h3>A countdown that keeps it moving</h3>
+            <p>
+              An optional timer, with a soft tick at the end. It signals time's up and never
+              reveals on its own. Auto-reveal turns the cards once everyone has voted.
+            </p>
+          </li>
+          <li>
+            <h3>Phones and dark mode</h3>
+            <p>
+              A compact phone layout with the hand docked at the bottom, a remote view for players
+              who watch a shared screen, and a dark palette that follows the device.
+            </p>
+          </li>
+          <li>
+            <h3>Facilitators you choose</h3>
+            <p>
+              The owner names delegates who can run sessions, by Google email or GitHub login,
+              never by display name.
+            </p>
+          </li>
+          <li>
+            <h3>A guided tour</h3>
+            <p>
+              First-timers are offered a short tour of the room, shaped by their role. It is
+              always one click away in the menu.
+            </p>
+          </li>
+          <li>
+            <h3>A summary of the session</h3>
+            <p>
+              Facilitators see what was estimated or skipped, with how the votes fell for each
+              ticket.
+            </p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="section gallery" aria-label="More screens">
+        <figure class="shot phone">
+          <img
+            src="images/phone-player.png"
+            width="880"
+            height="1912"
+            alt="The room on a phone: the ticket at the top, the table, and the hand of cards docked at the bottom"
+            loading="lazy"
+          />
+          <figcaption>On a phone</figcaption>
+        </figure>
+        <figure class="shot">
+          <img
+            src="images/dark-mode.png"
+            width="1280"
+            height="820"
+            alt="The room in dark mode while the team votes"
+            loading="lazy"
+          />
+          <figcaption>Dark mode</figcaption>
+        </figure>
+        <figure class="shot">
+          <img
+            src="images/settings-queue-filter.png"
+            width="872"
+            height="939"
+            alt="The queue filter in the room settings, with its preview listing the tickets a session would load"
+            loading="lazy"
+          />
+          <figcaption>The queue filter and its preview</figcaption>
+        </figure>
+      </section>
+
+      <section id="tour" class="section tour">
+        <h2>The tour in 30 seconds</h2>
+        <div class="video">
+          <video
+            src="https://poker.nijalabs.com/tour.mp4"
+            poster="images/tour-poster.png"
+            controls
+            preload="none"
+            playsinline
+          ></video>
+        </div>
+        <p class="fine">A facilitator's walk through the room while the team votes, with a voice-over.</p>
+      </section>
+
+      <section id="run" class="section run">
+        <div>
+          <h2>Small by design</h2>
+          <ul class="facts">
+            <li><strong>One container, one process.</strong> No database server, cache or queue.</li>
+            <li>
+              <strong>No votes kept.</strong> Votes, results and session counters live in memory
+              only. One SQLite file holds the room definitions.
+            </li>
+            <li>
+              <strong>Python and Svelte.</strong> FastAPI and WebSockets on the server, a small
+              Svelte app in the browser.
+            </li>
+            <li><strong>HTTPS only,</strong> behind your own reverse proxy.</li>
+            <li><strong>Open source,</strong> under the Apache License 2.0.</li>
+          </ul>
+        </div>
+        <div class="run-box">
+          <h3>Run your own</h3>
+          <pre><code>docker build -t scrum-poker .</code></pre>
+          <p>
+            Then register a Google or GitHub sign-in and an Atlassian app, and set a few
+            environment variables. The admin guide walks through it, with Caddy or nginx in front.
+          </p>
+          <div class="actions">
+            <a class="btn btn-primary" href="https://github.com/nijaba/scrum-poker/blob/main/docs/admin-guide.md"
+              >Admin guide</a
+            >
+            <a class="btn btn-ghost-dark" href="https://github.com/nijaba/scrum-poker/blob/main/docs/user-guide.md"
+              >User guide</a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span>Scrum poker · Apache License 2.0</span>
+      <span class="foot-links">
+        <a href="https://github.com/nijaba/scrum-poker">Source on GitHub</a>
+        <a href="https://poker.nijalabs.com/">Live demo</a>
+      </span>
+    </footer>
+  </body>
+</html>
