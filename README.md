@@ -229,6 +229,11 @@ Open this folder in Claude Code. `CLAUDE.md` gives it the constraints, commands 
 - `.claude/settings.json` lets it run `pytest` and `ruff` without asking each time.
 - `.claude/rules/` holds extra rules that load when it works on the room engine or the front end.
 
+## Sponsor
+
+Scrum poker was built for [Tensormesh](https://tensormesh.ai), its first user, which sponsors
+its development.
+
 ## Licence
 
 [Apache License 2.0](LICENSE).
