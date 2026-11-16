@@ -180,3 +180,11 @@ Design: "Tour". Decided by the owner on 2026-11-16: explain more in the room tou
 - [x] The setup checklist on a room's settings page
 
 Cases: TR-08 to TR-10, GS-01, GS-02.
+
+## After step 6: common phone sizes
+
+Decided by the owner on 2026-11-16: check every screen at common phone sizes in the local checks and CI, as long as it costs under 30 seconds (it takes about 10).
+
+- [x] Every screen at six common phone sizes, from 360 × 800 to 430 × 932
+
+Cases: PH-07. Manual: PH-06 stays the check on real phones.
