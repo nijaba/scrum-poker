@@ -99,6 +99,10 @@ A few small touches:
 
 The server works out the hint, "nobody knows" and the perfect consensus with the other results, so every screen agrees. The gurgle and the chord follow the room's sound setting and each player's mute, like the countdown sound.
 
+### Sharing your screen
+
+Someone who shares their screen while the team votes, often the facilitator, would show everyone the card they picked: their hand marks it, and mini mode names it. **Hide my card**, a switch at the top of the hand, keeps their own choice off their screen until the reveal. With it on, the chosen card looks like every other card in the hand and in mini mode, and both say only that a card is chosen; the cards still take a tap to change the vote. Screen readers still hear which card is pressed. The switch is kept in the browser (`localStorage`) and changes nothing the server sends; the reveal shows the card as usual. It is not offered in the phone dock or Remote view, whose screens are not the ones being shared.
+
 ### Room reset
 
 A facilitator can reset the room to clear out players who have left. The server empties the player list and the current cards, then asks every connected browser to check in. Only players who answer within five seconds (a server setting) are seated again, and anyone who joins later is seated as a new player.

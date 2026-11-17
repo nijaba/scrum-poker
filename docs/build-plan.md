@@ -199,3 +199,11 @@ Decided by the owner on 2026-11-16: add a secret scan, an image scan and code sc
 - [x] CodeQL default setup, Dependabot alerts and security updates, secret scanning with push protection
 
 The first scans found a made-up test key (now generated per run) and, in the image, old copies of urllib3, msgpack and setuptools bundled inside pip, plus an outdated zlib. The image now takes Debian's security updates and drops pip after installing the app.
+
+## After step 6: sharing your screen
+
+Design: "Sharing your screen". Decided by the owner on 2026-11-17: a switch on the hand that keeps your own choice off a shared screen until the reveal.
+
+- [x] Hide my card on the hand, kept in the browser; the hand and mini mode stop marking the chosen card
+
+Cases: SS-01 to SS-03.
