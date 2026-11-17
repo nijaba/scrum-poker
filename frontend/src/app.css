@@ -253,7 +253,7 @@ button:disabled {
     0 0 0 1px #0d0b1a,
     0 0 10px rgba(255, 92, 207, 0.45);
 }
-[data-deck="arcade"] .deck-card[aria-pressed="true"] {
+[data-deck="arcade"] .deck-card.shown {
   border-color: #fff36b;
   box-shadow: 0 0 16px rgba(255, 243, 107, 0.7);
 }

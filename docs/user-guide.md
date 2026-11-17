@@ -132,6 +132,14 @@ If you're there to listen rather than estimate, choose **Sit out** under your ca
 the table, your card is dropped, and the voted count stops waiting for you, but you still see
 everything. The table lists you under "Watching". Choose **Join the table** to vote again.
 
+### Sharing your screen
+
+Sharing your screen while the team votes? Your hand would show everyone which card you picked.
+Choose **Hide my card** at the top of your cards first: your chosen card then looks like all the
+others, here and in mini mode, and the hand just says a card is chosen. Tap any card to change
+your vote as usual. Your card turns over with everyone else's at the reveal. Your browser
+remembers the setting; choose **Hide my card** again to turn it off.
+
 ### Mini mode
 
 **Mini mode** in the header opens a small window with the ticket key, the countdown, your cards

@@ -149,6 +149,14 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | EE-11 | A player types the Konami code in the room | Their cards switch to the arcade deck and the page says so; it stays after a reload; other players' screens are unchanged; typing it again brings the classic deck back | E2E |
 | EE-12 | The Konami code typed into the name field | Nothing changes | E2E |
 
+### Sharing your screen
+
+| ID | Case | Expected | Level |
+| --- | --- | --- | --- |
+| SS-01 | A facilitator turns on Hide my card and votes | The chosen card looks exactly like the others and the hand says a card is chosen; it is still pressed for screen readers; the table shows them as voted, and the reveal shows their card | E2E |
+| SS-02 | The same person reloads, then turns Hide my card off | The switch stays on after the reload; turning it off marks the chosen card again | E2E |
+| SS-03 | They vote from mini mode with Hide my card on | The mini view marks no card and does not name the vote; it says a card is chosen | E2E |
+
 ### Session summary
 
 | ID | Case | Expected | Level |

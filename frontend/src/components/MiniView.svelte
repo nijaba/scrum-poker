@@ -3,6 +3,7 @@
   import { clock, remainingAt } from "../lib/format";
   import type { RoomConnection } from "../lib/room.svelte";
   import CardFace from "./CardFace.svelte";
+  import { hideCard } from "../lib/hideCard.svelte";
 
   // Rendered inside the Picture-in-Picture window or the popup, but runs in the
   // main tab: it reads the main tab's room connection and votes through it.
@@ -88,6 +89,7 @@
             type="button"
             class="card deck-card"
             class:red={suit?.red}
+            class:shown={snap.you.vote === card.label && !hideCard.on}
             aria-pressed={snap.you.vote === card.label}
             aria-label={card.label === "?" ? "Not sure" : card.label}
             onclick={() => room.send({ type: "vote", card: card.label })}
@@ -106,7 +108,9 @@
         >{room.status === "open" ? `${voted} of ${snap.players.length} voted` : "Reconnecting…"}</span
       >
       {#if snap.you.vote}
-        <span class="mine">You voted {snap.you.vote}</span>
+        <span class="mine"
+          >{hideCard.on && voting ? "Card chosen" : `You voted ${snap.you.vote}`}</span
+        >
       {/if}
     </div>
   {/if}
@@ -188,7 +192,7 @@
     padding: 0 4px;
     border-radius: 5px;
   }
-  .card[aria-pressed="true"] {
+  .card.shown {
     border: 2px solid var(--accent);
     box-shadow: 0 0 0 2px var(--on-table);
   }
