@@ -51,7 +51,7 @@ Every screen shows two counters: tickets estimated and points assigned in this s
 | Restart vote | Clears the cards and reopens voting |
 | Confirm points | Writes the chosen value to Jira, then moves to the next ticket |
 | Skip | Moves to the next ticket without writing |
-| Rewind | Returns to the previous ticket |
+| Rewind | Returns to the previous ticket. Rewind and Skip sit side by side, « Rewind then Skip », as back and forward through the queue |
 | Reset room | Clears the player list and the current cards, then seats only players who still respond |
 | Auto-reveal | Reveals the cards by itself once every connected player at the table has voted. On or off for this session |
 | Reload backlog | Loads the backlog again with the saved queue filter, between tickets; see "Queue filter" |

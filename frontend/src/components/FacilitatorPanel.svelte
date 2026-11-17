@@ -119,20 +119,27 @@
       >
     {/if}
     <div class="grid" data-tour="round">
-      <button class="btn" type="button" onclick={() => send({ type: "restart" })}
-        >Restart vote</button
-      >
+      <!-- Back and forward through the queue, side by side: « Rewind, Skip ». -->
       <button
-        class="btn"
-        type="button"
-        disabled={!snap.ticket}
-        onclick={() => send({ type: "skip" })}>Skip</button
-      >
-      <button
-        class="btn"
+        class="btn step"
         type="button"
         disabled={snap.queue.length === 0 || (snap.queue.position <= 1 && !snap.queue.finished)}
-        onclick={() => send({ type: "rewind" })}>Rewind</button
+        onclick={() => send({ type: "rewind" })}
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17-5-5 5-5"></path><path d="m18 17-5-5 5-5"></path></svg>
+        Rewind
+      </button>
+      <button
+        class="btn step"
+        type="button"
+        disabled={!snap.ticket}
+        onclick={() => send({ type: "skip" })}
+      >
+        Skip
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="m13 17 5-5-5-5"></path><path d="m6 17 5-5-5-5"></path></svg>
+      </button>
+      <button class="btn" type="button" onclick={() => send({ type: "restart" })}
+        >Restart vote</button
       >
       <button class="btn" type="button" onclick={() => send({ type: "reset" })}>Reset room</button>
       {#if !snap.demo}
@@ -296,6 +303,12 @@
   }
   .grid .btn {
     font-weight: 500;
+  }
+  .step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
   .next {
     list-style: none;

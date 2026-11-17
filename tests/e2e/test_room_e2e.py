@@ -1,6 +1,6 @@
 """Whole room flows in a real browser, one facilitator and several players.
 
-Cases RE-02, RR-06, RQ-07, RC-04, RX-02, AR-14, AR-15, AR-16 and JC-14 (on the fake backlog).
+Cases RE-02, RR-06, RQ-07, RQ-12, RC-04, RX-02, AR-14, AR-15, AR-16 and JC-14 (on the fake backlog).
 """
 
 import re
@@ -90,6 +90,24 @@ def test_rq07_every_screen_follows_a_full_session(table):
 def _seconds(text: str) -> int:
     m, s = re.fullmatch(r"\s*(\d+):(\d\d)\s*", text).groups()
     return int(m) * 60 + int(s)
+
+
+def test_rq12_rewind_and_skip_sit_side_by_side_with_icons(table):
+    fay = table.join("Fay", facilitator=True)
+    controls = fay.page.get_by_role("region", name="Facilitator controls")
+    rewind = controls.get_by_role("button", name="Rewind", exact=True)
+    skip = controls.get_by_role("button", name="Skip", exact=True)
+    expect(skip).to_be_visible()
+    back, ahead = rewind.bounding_box(), skip.bounding_box()
+    assert abs(back["y"] - ahead["y"]) < 2, (back, ahead)  # one line
+    assert back["x"] + back["width"] <= ahead["x"], (back, ahead)  # Rewind first
+    for button in (rewind, skip):
+        expect(button.locator("svg[aria-hidden=true]")).to_have_count(1)
+    # Skip still moves on, and Rewind comes back.
+    fay.press("Skip")
+    expect(fay.page.get_by_text("Ticket 2 of 8")).to_be_visible()
+    fay.press("Rewind")
+    expect(fay.page.get_by_text("Ticket 1 of 8")).to_be_visible()
 
 
 def test_rc04_player_joining_mid_countdown_sees_the_same_time(table):
