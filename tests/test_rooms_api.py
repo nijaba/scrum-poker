@@ -224,6 +224,29 @@ def test_delegate_entries_are_checked(client):
         assert patch(client, "team-a", {"delegates": [entry]}).status_code == 422
 
 
+def test_ar20_an_overlong_delegate_entry_is_refused_at_once(client):
+    import time
+
+    longest = "a" * 64 + "@" + "b" * 185 + ".com"  # 254 characters, the most an address has
+    assert (
+        patch(
+            client, "team-a", {"delegates": [{"provider": "google", "identifier": longest}]}
+        ).status_code
+        == 200
+    )
+    for provider, identifier in (
+        ("google", longest + "x"),
+        ("google", "a@" + "a." * 100_000 + " "),  # slow for a pattern to reject: quadratic
+        ("github", "a" * 100_000),
+    ):
+        started = time.perf_counter()
+        response = patch(
+            client, "team-a", {"delegates": [{"provider": provider, "identifier": identifier}]}
+        )
+        assert response.status_code == 422
+        assert time.perf_counter() - started < 0.5
+
+
 # Settings
 
 
