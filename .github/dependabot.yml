@@ -1,0 +1,10 @@
+# Keeps the pinned GitHub Actions current: each workflow names an action by commit, with its
+# version in a comment, and Dependabot proposes the new commit when a release comes out.
+# Security fixes for the Python and npm dependencies come from Dependabot security updates,
+# which are switched on in the repository settings and need nothing here.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

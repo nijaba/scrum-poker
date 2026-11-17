@@ -17,7 +17,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 COPY pyproject.toml README.md LICENSE ./
 COPY app/ app/
-RUN pip install . && rm -rf build *.egg-info
+# Debian's security updates, then the app; pip goes afterwards, as nothing runs it and the
+# copies of other libraries it bundles would only add to what a scanner reports.
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/* \
+    && pip install . && rm -rf build *.egg-info \
+    && pip uninstall -y pip
 COPY --from=frontend /build/dist/ /app/static/
 
 RUN useradd --system --uid 10001 --home-dir /app poker \

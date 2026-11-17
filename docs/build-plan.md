@@ -188,3 +188,14 @@ Decided by the owner on 2026-11-16: check every screen at common phone sizes in 
 - [x] Every screen at six common phone sizes, from 360 × 800 to 430 × 932
 
 Cases: PH-07. Manual: PH-06 stays the check on real phones.
+
+## After step 6: security scans
+
+Decided by the owner on 2026-11-16: add a secret scan, an image scan and code scanning to CI, next to the dependency audit.
+
+- [x] Secret scan with gitleaks on every change, as a required check
+- [x] Trivy scan of the production image and Dockerfile in the Dependency audit workflow
+- [x] Every GitHub Action pinned to a commit, kept current by Dependabot
+- [x] CodeQL default setup, Dependabot alerts and security updates, secret scanning with push protection
+
+The first scans found a made-up test key (now generated per run) and, in the image, old copies of urllib3, msgpack and setuptools bundled inside pip, plus an outdated zlib. The image now takes Debian's security updates and drops pip after installing the app.

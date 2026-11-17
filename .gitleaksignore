@@ -1,0 +1,5 @@
+# Findings gitleaks may report that are known not to be secrets, one fingerprint per line.
+# Fingerprints come from `gitleaks git --report-format json` ("Fingerprint").
+
+# A made-up Fernet key the Docker image test used before it generated one per run.
+b662e98e7759b72f9df34ff8a9f452f2da156c57:tests/test_image.py:generic-api-key:24

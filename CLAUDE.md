@@ -25,6 +25,8 @@ ruff check .                 # lint
 ruff format .                # format
 pip-audit --skip-editable    # known vulnerabilities in the Python dependencies
 (cd frontend && npm audit)   # and in the front-end packages
+gitleaks git .               # secrets anywhere in the git history; false positives go in .gitleaksignore
+trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed scrum-poker   # the built image
 uvicorn app.main:app --reload --port 8000   # dev server, single worker
 SCRUM_POKER_FAKE_BACKLOG=tests/fixtures/fake_backlog.json SCRUM_POKER_FAKE_SSO=1 SCRUM_POKER_FAKE_JIRA=1 \
   ROOM_CREATOR_ALLOWLIST=owner@example.com uvicorn app.main:app --port 8000  # local dev: fake sign-in and fake Jira
