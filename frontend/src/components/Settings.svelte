@@ -717,6 +717,7 @@
             id="delegate"
             class="input"
             bind:value={newDelegate}
+            maxlength="254"
             autocomplete="off"
             onkeydown={(e) => e.key === "Enter" && (e.preventDefault(), addDelegate())}
           />

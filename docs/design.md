@@ -183,7 +183,7 @@ Names at a table are unique, so everyone can tell who played what. The room refu
 | Delegate | Google or GitHub | Run sessions in the rooms where they are listed |
 | Player | Nothing | Vote |
 
-Facilitator sessions live in a signed cookie, and an environment allowlist controls who may create rooms. The owner and co-owners list delegates per room by Google email or GitHub username. Matching uses the verified email or GitHub login, not the display name, which anyone can change.
+Facilitator sessions live in a signed cookie, and an environment allowlist controls who may create rooms. The owner and co-owners list delegates per room by Google email or GitHub username. An entry is at most 254 characters, the longest an email address can be, and longer ones are refused before any other check. Matching uses the verified email or GitHub login, not the display name, which anyone can change.
 
 ### Co-owners and handing a room over
 

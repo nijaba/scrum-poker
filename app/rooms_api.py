@@ -36,6 +36,9 @@ SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,39}$")
 EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 GITHUB_LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
 MAX_DELEGATES = 100
+# The longest an email address can be (RFC 5321). Checked before the pattern, which would
+# otherwise take quadratic time on a long, crafted entry.
+MAX_IDENTIFIER = 254
 SETTINGS_FIELDS = {"slug", "scale", "timer_seconds", "sound", "auto_reveal", "delegates"}
 SETTINGS_FIELDS |= {"queue_filter"}
 
@@ -328,6 +331,10 @@ def _delegates(value: Any) -> list[Delegate]:
         if not isinstance(identifier, str):
             raise HTTPException(422, "Each delegate needs an email or GitHub username.")
         identifier = identifier.strip()
+        if len(identifier) > MAX_IDENTIFIER:
+            raise HTTPException(
+                422, f"A delegate's email or username is at most {MAX_IDENTIFIER} characters."
+            )
         if provider == "google" and EMAIL.match(identifier):
             found.append(Delegate("google", identifier.lower(), role))
         elif provider == "github" and GITHUB_LOGIN.match(identifier):

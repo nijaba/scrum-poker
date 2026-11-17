@@ -216,6 +216,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | AR-11 | Delegate tries to change the scale, edit delegates or delete the room | Rejected | Integration |
 | AR-12 | Outsider sets a display name equal to a delegate's | Gets no controls | Integration |
 | AR-13 | Owner removes a delegate | That account loses the controls | Integration |
+| AR-20 | Owner adds a delegate entry longer than an email address (254 characters) or a GitHub login can be, including one crafted to be slow to check | Refused (422) at once | Integration |
 | AR-14 | Player opens the room link | Joins after typing a name, with no sign-in | E2E |
 | AR-15 | Player returns later in the same browser | Joins without the name prompt | E2E |
 | AR-16 | Player's connection drops and comes back | The player gets the same seat back | E2E |
