@@ -73,6 +73,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | RQ-09 | Rewind after a jump | The ticket just before it in the queue loads | Unit |
 | RQ-10 | Jump to a key that is not in the queue | Rejected; nothing changes | Unit |
 | RQ-11 | Facilitator chooses a ticket in Up next, in the browser | Every screen moves to that ticket | E2E |
+| RQ-12 | A facilitator looks at the session controls | Rewind and Skip sit side by side on one line, Rewind first, with « and » icons; their names stay Rewind and Skip | E2E |
 
 ### Countdown and sound
 
