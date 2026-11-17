@@ -9,6 +9,7 @@ import subprocess
 import uuid
 
 import pytest
+from cryptography.fernet import Fernet
 
 from tests.container import build_image, container, free_port, get
 
@@ -21,7 +22,7 @@ PRODUCTION = {
     "GOOGLE_CLIENT_SECRET": "secret",
     "ATLASSIAN_CLIENT_ID": "cid",
     "ATLASSIAN_CLIENT_SECRET": "secret",
-    "TOKEN_ENCRYPTION_KEY": "Q2Ab0Sx4cX9u8pHkC3m1n0dJb3l6YVZ0b2dQb2tlcjE=",
+    "TOKEN_ENCRYPTION_KEY": Fernet.generate_key().decode(),  # a fresh key, never a real one
     "FORWARDED_ALLOW_IPS": "*",  # the test plays the proxy
 }
 

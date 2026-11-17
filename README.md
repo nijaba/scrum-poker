@@ -48,11 +48,22 @@ cases), then the E2E tests again in Firefox and WebKit. A change that touches on
 documentation (`docs/`, Markdown files, the project page) runs just the tests that read it
 (guide pictures, links, the project page build); the other checks report as skipped. `scripts/ci_changes.sh` decides which.
 
+Every change also gets a **Secret scan**: [gitleaks](https://github.com/gitleaks/gitleaks)
+reads the whole git history, and the job is required. Known false positives go in
+`.gitleaksignore`, with a comment.
+
 The Dependency audit workflow (`.github/workflows/audit.yml`) runs `pip-audit` and
-`npm audit` when the dependencies change, every Monday, and by hand. It fails on a known
-vulnerability (moderate or worse for npm) but is not a required check. Run the same locally
-with `pip-audit --skip-editable` and `(cd frontend && npm audit)`. The Sandbox and Manual cases of the
-test plan stay outside CI and run before each release.
+`npm audit`, and scans the production image with [Trivy](https://trivy.dev) (Debian
+packages and the Dockerfile), when the dependencies or the Dockerfile change, every Monday,
+and by hand. It fails on a known vulnerability (moderate or worse for npm; high or critical
+with a fix for the image) but is not a required check. GitHub's CodeQL code scanning,
+Dependabot alerts and security updates, and secret scanning with push protection are on in
+the repository settings; `.github/dependabot.yml` keeps the pinned actions current.
+
+Run the same locally with `gitleaks git .`, `pip-audit --skip-editable`,
+`(cd frontend && npm audit)` and, after `docker build -t scrum-poker .`,
+`trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed scrum-poker`. The
+Sandbox and Manual cases of the test plan stay outside CI and run before each release.
 
 ## Deploying
 
