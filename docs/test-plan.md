@@ -391,3 +391,6 @@ The always-on-top window is checked by hand. Its content is automated through th
 | PK-04 | Restart during a live session | Votes and session counters are gone; points confirmed earlier are still in Jira | Integration |
 | PK-05 | Inspect the SQLite file after a session | It holds no votes, results or session counters | Integration |
 | PK-06 | Two rooms run sessions at once | Neither room sees the other's players or votes | Integration |
+| VR-01 | Ask `/healthz` | It reports the version in `pyproject.toml` | Integration |
+| VR-02 | Open any page | The footer shows that version, linking to its release notes | E2E |
+| VR-03 | `scripts/release.sh` with a version that is not in `pyproject.toml`, off `main`, or with uncommitted changes | It refuses before tagging anything | Unit |

@@ -38,7 +38,8 @@ pytest tests/e2e                             # Playwright E2E tests; they skip i
 pytest -k ph07                               # every screen at common phone sizes, about 10 s
 docker build -t scrum-poker .                # the production image; pytest's image tests skip without Docker
 (cd deploy && docker compose --env-file ../.env up -d --build)  # dedicated host: Caddy in front, see README "Deploying"
-(cd deploy/nginx && docker compose --env-file ../../.env up -d --build)  # production: behind the host's nginx
+(cd deploy/nginx && docker compose --env-file ../../.env up -d --build)  # production: behind the host's nginx, from a release tag
+scripts/release.sh 1.2.0                     # tag and publish a release, once a PR has set that version in pyproject.toml
 ```
 
 With the fakes, open `/`, sign in as Olive Owner, create a room, then in its settings Connect Jira, accept, and pick SHOP board.
@@ -112,6 +113,7 @@ Runtime
 ## Decided
 
 - Hostname: `poker.example.com`, behind the host's existing nginx (`deploy/nginx/`, app on `127.0.0.1:8100`). `deploy/` with Caddy stays for a dedicated host. The mock-ups show `[YOUR DOMAIN]`.
+- Versions: semantic versioning from 1.0.0, `pyproject.toml` the one source, releases tagged `vX.Y.Z` by `scripts/release.sh`, production deployed from a release tag (design.md, "Versions and releases").
 
 ## Assumptions already in the design
 

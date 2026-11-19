@@ -155,7 +155,7 @@ def test_room_pages_serve_the_single_page_app(settings, tmp_path):
         assert "Scrum poker" in response.text
     assert client.get("/assets/app.js").text == "console.log(1)"
     assert client.get("/r/Not_A_Slug").status_code == 404
-    assert client.get("/healthz").json() == {"status": "ok"}
+    assert client.get("/healthz").json()["status"] == "ok"  # not swallowed by the page routes
 
 
 @pytest.mark.parametrize(

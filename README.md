@@ -125,6 +125,13 @@ out; changing the second disconnects every room from Jira until its owner reconn
 
 ### 3. Start it
 
+Run a release rather than whatever `main` holds today. Releases are listed on
+[GitHub](https://github.com/nijaba/scrum-poker/releases); check out the latest one:
+
+```bash
+git fetch --tags && git checkout "$(git tag --sort=-v:refname | head -1)"
+```
+
 ```bash
 cd deploy
 docker compose --env-file ../.env up -d --build
@@ -213,12 +220,32 @@ players in the same room would land in different processes and not see each othe
 A restart or upgrade ends the live sessions: votes and session counters are gone, and
 players' pages reconnect by themselves. Rooms, delegates, settings and Jira connections are
 kept, and points already confirmed are in Jira, so the queue picks up where it left off.
-Upgrade between sessions:
+Upgrade between sessions, to a release (here 1.2.0; the
+[release notes](https://github.com/nijaba/scrum-poker/releases) say what changed, and a new
+major version says what you must do):
+
+```bash
+git fetch --tags && git checkout v1.2.0
+```
 
 ```bash
 cd deploy
 docker compose --env-file ../.env up -d --build
 ```
+
+To go back, check out the previous release and run the same command. `/healthz` and the
+footer of every page show the version running.
+
+## Versions and releases
+
+Scrum poker follows [semantic versioning](https://semver.org): a new **major** version
+means something you must act on when you upgrade (a setting renamed or removed, a change to
+the deploy files, a rooms-file migration that cannot be undone), a **minor** one adds
+features, and a **patch** fixes bugs. `version` in `pyproject.toml` is the one source.
+
+To make a release, merge a pull request that sets the new version in `pyproject.toml`, then
+on an up-to-date `main` run `scripts/release.sh X.Y.Z`: it tags `vX.Y.Z` and publishes the
+GitHub Release, with notes generated from the merged pull requests.
 
 ### Backups
 

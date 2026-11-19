@@ -1,4 +1,4 @@
-"""The home page in a real browser: cases HP-01 to HP-03 (design.md, "Rooms")."""
+"""The home page in a real browser: cases HP-01 to HP-03 (design.md, "Rooms"), and VR-02."""
 
 from playwright.sync_api import expect
 
@@ -59,3 +59,16 @@ def test_hp03_the_home_page_fits_a_phone(browser, server):
     expect(page.get_by_role("region", name="Your rooms")).to_be_visible()
     no_sideways_scroll(page)
     context.close()
+
+
+def test_vr02_the_footer_shows_the_version_and_links_to_its_notes(browser, server, table):
+    from tests.test_health import VERSION
+
+    page = browser.new_page()
+    for url in (server, table.url):
+        page.goto(url)
+        link = page.get_by_role("contentinfo").get_by_role("link", name=f"Version {VERSION}")
+        expect(link).to_have_attribute(
+            "href", f"https://github.com/nijaba/scrum-poker/releases/tag/v{VERSION}"
+        )
+    page.close()

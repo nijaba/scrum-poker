@@ -38,6 +38,7 @@ from app.room.ports import BacklogSource, Clock, PointsWriter, SystemClock
 from app.room.ws import router as room_router
 from app.rooms_api import router as rooms_router
 from app.store.rooms import RoomStore
+from app.version import VERSION
 
 log = logging.getLogger(__name__)
 
@@ -114,7 +115,7 @@ def create_app(
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
-        return {"status": "ok"}
+        return {"status": "ok", "version": VERSION}
 
     if not settings.is_local:
         add_https(app, settings.base_url, settings.forwarded_allow_ips)

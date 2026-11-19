@@ -4,6 +4,8 @@
   const SOURCE = "https://github.com/nijaba/scrum-poker";
   const HELP = `${SOURCE}/blob/main/docs/user-guide.md`;
   const WHY = `${SOURCE}/blob/main/docs/why-scrum-poker.md`;
+  const VERSION = __APP_VERSION__;
+  const NOTES = `${SOURCE}/releases/tag/v${VERSION}`;
 </script>
 
 <footer>
@@ -17,6 +19,9 @@
   <span aria-hidden="true">·</span>
   <span>Scrum poker is open source.</span>
   <a href={SOURCE} target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+  <a href={NOTES} target="_blank" rel="noopener noreferrer" aria-label="Version {VERSION}"
+    >v{VERSION}</a
+  >
   <span aria-hidden="true">·</span>
   <label class="theme">
     Theme
