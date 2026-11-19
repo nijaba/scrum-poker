@@ -185,6 +185,7 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | JC-12 | The room's Jira connection is missing or lapsed when a facilitator confirms | Facilitators see that the owner must connect Jira; the room stays on the ticket | Integration |
 | JC-13 | Inspect the SQLite file | Refresh tokens are stored encrypted | Integration |
 | JC-14 | Ticket card | Shows key and link, type, priority, epic, labels and description; a long description is collapsed | E2E |
+| JC-20 | A player expands a long description, then others vote and the cards are revealed | It stays expanded until that player collapses it or the room moves to another ticket, which starts collapsed (issue #43) | E2E |
 | JC-15 | Backlog holds epics, with and without an estimate | Epics are left out of the queue and the backlog counters; a type at Jira's epic level counts as an epic whatever its name | Integration |
 | JC-16 | Backlog holds sub-tasks, with and without an estimate | Sub-tasks are left out of the queue and the backlog counters; a type at Jira's sub-task level, or flagged as a sub-task, counts as one whatever its name | Integration |
 | JC-17 | Backlog holds tickets in progress, in review and done, and To Do tickets whose status has another name | Only tickets in Jira's To Do status category enter the queue and the backlog counters | Integration |

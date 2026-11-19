@@ -110,6 +110,29 @@ def test_rq12_rewind_and_skip_sit_side_by_side_with_icons(table):
     expect(fay.page.get_by_text("Ticket 1 of 8")).to_be_visible()
 
 
+def test_jc20_an_expanded_description_stays_open_while_the_room_changes(table):
+    fay, ana, ben = seat_three(table)
+    card = ana.page.get_by_role("region", name="Current ticket")
+    card.get_by_role("button", name="Show more").click()
+    less = card.get_by_role("button", name="Show less")
+    expect(less).to_have_attribute("aria-expanded", "true")
+
+    # Others voting, then the reveal, send Ana new room updates.
+    fay.vote("5")
+    ben.vote("8")
+    expect(ana.page.get_by_text("2 of 3 voted")).to_be_visible()
+    expect(less).to_have_attribute("aria-expanded", "true")
+    ana.vote("3")
+    fay.press("Reveal cards")
+    expect(ana.page.get_by_label("Fay played 5")).to_be_visible()
+    expect(less).to_have_attribute("aria-expanded", "true")
+
+    # A new ticket starts collapsed.
+    fay.press("Skip")
+    expect(fay.page.get_by_text("Ticket 2 of 8")).to_be_visible()
+    expect(card.get_by_role("button", name="Show less")).to_have_count(0)
+
+
 def test_rc04_player_joining_mid_countdown_sees_the_same_time(table):
     fay = table.join("Fay", facilitator=True)
     fay.press("Start")
