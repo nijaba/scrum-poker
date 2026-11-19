@@ -8,9 +8,11 @@
   let overflowing = $state(false);
   let description = $state<HTMLDivElement | null>(null);
 
-  // A new ticket starts collapsed. Measure whether its description needs "Show more".
+  // A new ticket starts collapsed. Every room update brings a fresh ticket object, so react to
+  // its key, not the object: otherwise any vote collapses the description again (issue #43).
+  const key = $derived(ticket.key);
   $effect(() => {
-    void ticket.key;
+    void key;
     expanded = false;
     queueMicrotask(measure);
   });

@@ -55,7 +55,7 @@ Design: "Auth, rooms and delegates", "What is stored where".
 - [x] Menu behind your name in the room header: Your rooms, Room settings (owner), Log out
 - [x] Refuse a name already at the table
 
-Cases: AR-01, AR-02, AR-04 to AR-13, AR-17 to AR-19 (AR-19 in the browser), UM-01 to UM-07, PK-03, PK-05, PK-06, HS-04, HS-05 (Google and GitHub). Manual: AR-03.
+Cases: AR-01, AR-02, AR-04 to AR-13, AR-17 to AR-19 (AR-19 in the browser), UM-01 to UM-07, PK-03, PK-05, PK-06, HS-04, HS-05 (Google and GitHub). Manual: AR-03, run by the owner and recorded as passed on 2026-11-19.
 
 ## Step 4: Jira Cloud
 
@@ -69,7 +69,7 @@ Design: "Jira Cloud".
 - [x] Use the room's Jira connection; tell facilitators the owner must connect or reconnect when it is missing
 - [x] Fake Jira for tests
 
-Cases: JC-03, JC-04, JC-15 to JC-19, JC-07 to JC-10, JC-12, JC-13, HS-05 (Atlassian). Sandbox: JC-01, JC-02, JC-05, JC-06, JC-11.
+Cases: JC-03, JC-04, JC-15 to JC-20, JC-07 to JC-10, JC-12, JC-13, HS-05 (Atlassian). Sandbox: JC-01, JC-02, JC-05, JC-06, JC-11, run by the owner and recorded as passed on 2026-11-19.
 
 ## Step 5: mini window
 
@@ -79,7 +79,7 @@ Design: "Mini mode". Mock-up: `docs/mockups/mini-window.html`.
 - [x] Document Picture-in-Picture window where the browser supports it
 - [x] Popup fallback with the same view
 
-Cases: MM-02, MM-03, MM-04. Manual: MM-01, MM-05, MM-06, MM-07.
+Cases: MM-02, MM-03, MM-04. Manual: MM-01, MM-05, MM-06, MM-07, run by the owner and recorded as passed on 2026-11-19.
 
 ## Step 6: Dockerfile and deployment notes
 

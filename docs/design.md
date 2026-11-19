@@ -172,7 +172,7 @@ On confirm the adapter writes through the board's estimation endpoint. The estim
 
 ### Ticket card
 
-The card shows key and link, type, priority, epic, labels, and the Jira-rendered description, collapsed after a few lines. The rendered HTML is sanitized on the server with nh3 to an allowlist of formatting tags and http, https and mailto links before any browser sees it.
+The card shows key and link, type, priority, epic, labels, and the Jira-rendered description, collapsed after a few lines. Show more and Show less are each reader's own: the description stays as they left it while others vote and the round moves on, and only a new ticket starts collapsed again. The rendered HTML is sanitized on the server with nh3 to an allowlist of formatting tags and http, https and mailto links before any browser sees it.
 
 ## Auth, rooms and delegates
 
