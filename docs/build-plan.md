@@ -207,3 +207,13 @@ Design: "Sharing your screen". Decided by the owner on 2026-11-17: a switch on t
 - [x] Hide my card on the hand, kept in the browser; the hand and mini mode stop marking the chosen card
 
 Cases: SS-01 to SS-03.
+
+## After step 6: versions and releases
+
+Design: "Versions and releases". Decided by the owner on 2026-11-19: semantic versioning from 1.0.0, releases on GitHub, production deployed from a release tag.
+
+- [x] `pyproject.toml` the one source; `/healthz` and the footer show the version
+- [x] `scripts/release.sh` tags and publishes a release after its checks
+- [x] Guides deploy and roll back by release tag
+
+Cases: VR-01 to VR-03.

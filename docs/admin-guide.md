@@ -192,15 +192,21 @@ The container reports its health to Docker through `/healthz`. `docker compose p
 
 ### Upgrading
 
-Upgrade between sessions: a restart ends every live session.
+Upgrade between sessions: a restart ends every live session. Upgrade to a release, not to
+whatever `main` holds: the [release notes](https://github.com/nijaba/scrum-poker/releases)
+say what changed, and a new major version lists anything you must do first. For example,
+for 1.2.0:
 
 ```bash
-git pull
+git fetch --tags && git checkout v1.2.0
 ```
 
 ```bash
 cd deploy && docker compose --env-file ../.env up -d --build
 ```
+
+To roll back, check out the previous release and run the same command. `/healthz` reports
+the version running, and so does the footer of every page.
 
 Rooms, settings, delegates and Jira connections are kept. People in a room at the time see
 "Reconnecting…", and their page reconnects by itself once the app is back, but cards on the

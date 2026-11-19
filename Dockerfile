@@ -6,6 +6,8 @@ WORKDIR /build
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ ./
+# The version shown in the footer comes from here (vite.config.ts).
+COPY pyproject.toml /pyproject.toml
 RUN npm run build
 
 # 2. A slim Python image serves the page, the API and the room WebSockets.

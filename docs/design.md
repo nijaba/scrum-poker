@@ -339,6 +339,18 @@ Mini mode depends on this too: the Document Picture-in-Picture API is only avail
 
 A multi-stage Docker build compiles the single-page app in a Node stage, then copies it into a slim Python image that serves both the page and the API. Configuration comes from environment variables, the SQLite file sits on one mounted volume, and the app runs as a single replica. The image runs one uvicorn worker as a non-root user, keeps the SQLite file at `/data/scrum-poker.sqlite3`, listens on `PORT` (default 8000) and has a health check on `/healthz`. The app reads the proxy's headers itself, so uvicorn's own proxy-header handling is off.
 
+## Versions and releases
+
+Decided by the owner on 2026-11-19. The app follows semantic versioning, from 1.0.0:
+
+- **Major** for anything a self-hoster must act on: a removed or renamed setting, a change to the deploy files, or a rooms-file migration that cannot be undone.
+- **Minor** for new features.
+- **Patch** for fixes.
+
+`version` in `pyproject.toml` is the one source. The server reads it from the installed package and reports it on `/healthz` (`{"status": "ok", "version": "1.0.0"}`). The front end gets it at build time, from the same file, and the footer of every page shows it as a link to that version's release notes on GitHub. `frontend/package.json` carries no version of its own.
+
+A release is a git tag `vX.Y.Z` on `main` and a GitHub Release whose notes GitHub generates from the merged pull requests. `scripts/release.sh X.Y.Z` makes both, after checking that `main` is clean and current and that `pyproject.toml` already says that version; the version itself changes in an ordinary pull request first. Production is deployed from a release tag, not from `main`, so it always runs a release, and rolling back is deploying the previous tag.
+
 ## Related open-source projects
 
 No existing project is a self-contained container with a Jira-driven queue, so the app is built rather than forked. These open-source projects gave ideas:
