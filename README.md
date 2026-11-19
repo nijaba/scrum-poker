@@ -12,7 +12,9 @@ private practice room with bot players and a made-up backlog. Nothing there reac
 
 How to use it: the [user guide](docs/user-guide.md). How to run it: the
 [admin guide](docs/admin-guide.md). An overview with screenshots: the
-[project page](https://nijaba.github.io/scrum-poker/).
+[project page](https://nijaba.github.io/scrum-poker/). What changed in each version: the
+[latest release](https://github.com/nijaba/scrum-poker/releases/latest) and
+[all releases](https://github.com/nijaba/scrum-poker/releases).
 
 ### The tour in 30 seconds
 
@@ -278,6 +280,7 @@ its development.
 
 ## Documents
 
+- [Releases](https://github.com/nijaba/scrum-poker/releases): each version and what changed
 - [docs/user-guide.md](docs/user-guide.md): for players, facilitators and room owners
 - [docs/why-scrum-poker.md](docs/why-scrum-poker.md): what estimating with scrum poker gives a team
 - [docs/admin-guide.md](docs/admin-guide.md): sign-in and Jira apps, settings, operations, troubleshooting
