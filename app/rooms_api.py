@@ -118,7 +118,10 @@ async def create_room(request: Request) -> dict[str, Any]:
 async def read_room(slug: str, request: Request) -> dict[str, Any]:
     demo = request.app.state.demo
     if demo is not None and demo.get(slug) is not None:
-        return {"slug": slug, "access": None, "demo": True}
+        from app.demo.rooms import settings_view
+
+        record = demo.record(slug)
+        return {"slug": slug, "access": None, "demo": True, "settings": settings_view(record)}
     record = await _record(request, slug)
     identity = _auth(request).identity(request.cookies)
     result = view(request, record, record.access(identity))

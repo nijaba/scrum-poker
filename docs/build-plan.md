@@ -217,3 +217,14 @@ Design: "Versions and releases". Decided by the owner on 2026-11-19: semantic ve
 - [x] Guides deploy and roll back by release tag
 
 Cases: VR-01 to VR-03.
+
+## After step 6: setting up a demo room
+
+Design: "Demo rooms". Decided by the owner on 2026-11-19: Set up this room in the demo banner opens the room's settings, for anyone with the link; a read-only sample delegate; one Try a demo button on the home page.
+
+- [x] Demo rooms keep a record in memory; their settings save and preview without sign-in
+- [x] The sample backlog follows the queue filter, with tickets for each choice and a small JQL subset
+- [x] The settings page's demo variant: pretend Jira, sample delegate, no rename or delete
+- [x] Reload backlog in demo rooms, at any time
+
+Cases: DR-18 to DR-21.

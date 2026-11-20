@@ -11,20 +11,24 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import dataclasses
 import random
 import secrets
 import string
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
 from app.config import DEFAULT_DEMO_IDLE_SECONDS, DEFAULT_DEMO_MAX_ROOMS
-from app.demo.backlog import SAMPLE_BACKLOG
+from app.demo.backlog import DemoBacklog
 from app.demo.bots import Bot, BotMind
-from app.jira.fake import FakeJira
+from app.room.errors import CommandError
 from app.room.live import LiveRoom
-from app.room.ports import Clock
+from app.room.ports import BacklogError, Clock
+from app.room.queue_filter import QueueFilter
 from app.room.room import Room
-from app.store.rooms import RoomRecord
+from app.room.scales import Scale, number
+from app.store.rooms import Delegate, JiraLink, RoomRecord
 from app.web import check_write
 
 PREFIX = "demo-"
@@ -50,9 +54,25 @@ class DemoFull(Exception):
     pass
 
 
+# What a demo room's settings show for what it cannot do for real (design.md, "Demo rooms").
+PRETEND_JIRA = JiraLink(
+    token="demo",
+    email="demo@example.com",
+    cloud_id="demo",
+    site_name="Demo Co",
+    site_url="https://demo-co.example.com",
+    board_id=1,
+    board_name="SHOP board",
+    connected_by="the demo",
+)
+SAMPLE_DELEGATE = Delegate("google", "dana@example.com")
+
+
 class _Demo:
-    def __init__(self, live: LiveRoom) -> None:
+    def __init__(self, live: LiveRoom, record: RoomRecord, backlog: DemoBacklog) -> None:
         self.live = live
+        self.record = record  # in memory only, like the room; changed by its settings page
+        self.backlog = backlog
         self.bots: dict[str, tuple[Bot, asyncio.Task]] = {}
         self.used: set[str] = set()
 
@@ -88,14 +108,22 @@ class DemoRooms:
         slug = PREFIX + "".join(secrets.choice(_ALPHABET) for _ in range(8))
         while slug in self._demos:
             slug = PREFIX + "".join(secrets.choice(_ALPHABET) for _ in range(8))
-        record = RoomRecord(slug, ("demo", slug), "Demo", sound=True)
-        backlog = FakeJira(SAMPLE_BACKLOG)
+        record = RoomRecord(
+            slug,
+            ("demo", slug),
+            "Demo",
+            sound=True,
+            jira=PRETEND_JIRA,
+            delegates=(SAMPLE_DELEGATE,),
+        )
+        holder: dict[str, _Demo] = {}
+        backlog = DemoBacklog(lambda: holder["demo"].record.queue_filter)
         room = Room([], clock=self.clock, scale=record.scale, sound=True)
         live = LiveRoom(
             record, room, backlog, self.clock, backlog, demo=True, idle_seconds=self.idle_seconds
         )
         live._on_idle = self._end
-        demo = self._demos[slug] = _Demo(live)
+        demo = self._demos[slug] = holder["demo"] = _Demo(live, record, backlog)
         live.start()
         for name, bias in TEAM:
             self._seat(demo, name, bias)
@@ -112,6 +140,20 @@ class DemoRooms:
                 self._seat(demo, name, bias)
                 return name
         return None
+
+    def record(self, slug: str) -> RoomRecord | None:
+        demo = self._demos.get(slug)
+        return demo.record if demo is not None else None
+
+    def save(self, slug: str, **changes: Any) -> RoomRecord:
+        """Change a demo room's settings, in memory, and pass them to its live room."""
+        demo = self._demos[slug]
+        demo.record = dataclasses.replace(demo.record, **changes)
+        demo.live.update(demo.record)
+        return demo.record
+
+    def preview(self, slug: str, chosen: QueueFilter) -> list[dict[str, Any]]:
+        return self._demos[slug].backlog.backlog(chosen)
 
     def _seat(self, demo: _Demo, name: str, bias: int) -> None:
         bot = Bot(demo.live, BotMind(name, bias, self.rng), self.delay)
@@ -170,3 +212,99 @@ async def add_bot(slug: str, request: Request) -> dict[str, str]:
     if name is None:
         raise HTTPException(409, f"A demo room has at most {MAX_BOTS} bots.")
     return {"name": name}
+
+
+# Setting up a demo room (design.md, "Demo rooms"): anyone with the link, like the controls.
+DEMO_SETTINGS = {"scale", "timer_seconds", "sound", "auto_reveal", "queue_filter"}
+
+
+def settings_view(record: RoomRecord) -> dict[str, Any]:
+    """A demo room's settings, in the shape a real room's settings page reads."""
+    jira = record.jira
+    return {
+        "owner": "the demo",
+        "offer": None,
+        "scale": record.scale.to_dict(),
+        "timer_seconds": number(record.timer_seconds),
+        "sound": record.sound,
+        "auto_reveal": record.auto_reveal,
+        "delegates": [d.to_dict() for d in record.delegates],
+        "queue_filter": record.queue_filter.to_dict(),
+        "jira": {
+            "available": True,
+            "connected": True,
+            "email": jira.email,
+            "connected_by": jira.connected_by,
+            "site": {"cloud_id": jira.cloud_id, "name": jira.site_name, "url": jira.site_url},
+            "board": {"id": jira.board_id, "name": jira.board_name},
+        },
+    }
+
+
+def _live_demo(request: Request, slug: str) -> RoomRecord:
+    record = _demos(request).record(slug)
+    if record is None:
+        raise HTTPException(404, "There is no demo room by that name.")
+    return record
+
+
+@router.patch("/api/demo/{slug}/settings")
+async def save_settings(slug: str, request: Request) -> dict[str, Any]:
+    # Imported here: app.rooms_api imports this module for the demo name prefix.
+    from app.rooms_api import _timer, json_body, queue_filter
+
+    check_write(request)
+    _live_demo(request, slug)
+    body = await json_body(request)
+    unknown = set(body) - DEMO_SETTINGS
+    if unknown:
+        raise HTTPException(
+            422, f"A demo room cannot change {', '.join(sorted(unknown))}: a real room can."
+        )
+    changes: dict[str, Any] = {}
+    try:
+        if "scale" in body:
+            changes["scale"] = Scale.from_dict(body["scale"])
+    except CommandError as err:
+        raise HTTPException(422, err.message) from None
+    if "timer_seconds" in body:
+        changes["timer_seconds"] = _timer(body["timer_seconds"])
+    for name in ("sound", "auto_reveal"):
+        if name in body:
+            if not isinstance(body[name], bool):
+                raise HTTPException(422, f"{name.replace('_', '-').capitalize()} is true or false.")
+            changes[name] = body[name]
+    if "queue_filter" in body:
+        changes["queue_filter"] = queue_filter(body["queue_filter"])
+    record = _demos(request).save(slug, **changes)
+    return {"slug": slug, "access": None, "demo": True, "settings": settings_view(record)}
+
+
+@router.post("/api/demo/{slug}/queue-preview")
+async def demo_queue_preview(slug: str, request: Request) -> dict[str, Any]:
+    from app.jira.routes import PREVIEW_LIMIT
+    from app.rooms_api import json_body, queue_filter
+
+    check_write(request)
+    _live_demo(request, slug)
+    chosen = queue_filter((await json_body(request)).get("queue_filter", {}))
+    try:
+        tickets = _demos(request).preview(slug, chosen)
+    except BacklogError as err:
+        raise HTTPException(422, err.message) from None
+    queue = [t for t in tickets if chosen.estimated or t.get("story_points") is None]
+    return {
+        "count": len(queue),
+        "total": len(tickets),
+        "tickets": [
+            {
+                "key": t["key"],
+                "summary": t["summary"],
+                "type": t["type"],
+                "status": t["status"],
+                "estimate": t["story_points"],
+                "url": t["url"],
+            }
+            for t in queue[:PREVIEW_LIMIT]
+        ],
+    }

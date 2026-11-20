@@ -381,7 +381,8 @@ class LiveRoom:
         elif kind == "reload_backlog":
             if self._backlog_state["state"] == "loading":
                 raise CommandError("backlog_loading", "The backlog is already loading.")
-            if self._backlog_state["state"] == "ready" and not room.can_reload():
+            # A demo room reloads at any time: its bots vote within seconds, and just vote again.
+            if self._backlog_state["state"] == "ready" and not room.can_reload() and not self.demo:
                 raise CommandError(
                     "round_in_progress",
                     "Reload the backlog between tickets, before anyone votes.",
