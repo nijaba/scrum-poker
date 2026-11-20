@@ -14,18 +14,36 @@ FIELDS_TEXT = "labels, type, priority, status and key"
 # The few JQL fields this subset understands, and the issue field each one reads.
 _JQL_FIELDS = {"labels": "labels", "type": "issuetype", "issuetype": "issuetype"}
 _JQL_FIELDS |= {"priority": "priority", "status": "status", "key": "key"}
-_CLAUSE = re.compile(r"^\s*(\w+)\s*(=|in)\s*(.+?)\s*$", re.IGNORECASE)
+_NAME = re.compile(r"\w+")
+
+
+def _clause(clause: str) -> tuple[str, str, str] | None:
+    """`field = value` or `field in (a, b)`, as (field, operator, value text). Plain string
+    handling, no backtracking pattern: the text comes from anyone with a demo room's link."""
+    if "=" in clause:
+        name, _, raw = clause.partition("=")
+        op = "="
+    else:
+        at = clause.lower().find(" in")
+        if at < 0:
+            return None
+        name, raw, op = clause[:at], clause[at + 3 :], "in"
+    name, raw = name.strip(), raw.strip()
+    if not raw or not _NAME.fullmatch(name):
+        return None
+    return name.lower(), op, raw
 
 
 def jql_matcher(jql: str) -> Callable[[dict[str, Any]], bool] | None:
     """A predicate for a tiny JQL subset: `field = value` and `field in (a, b)`, joined
     by AND, on labels, type, priority, status and key. None if the subset cannot read it."""
     tests = []
-    for clause in re.split(r"\s+AND\s+", jql.strip(), flags=re.IGNORECASE):
-        found = _CLAUSE.match(clause)
-        if not found or found.group(1).lower() not in _JQL_FIELDS:
+    single = " ".join(jql.split())  # one space between words, so splitting needs no pattern
+    for clause in re.split(" and ", single, flags=re.IGNORECASE):
+        found = _clause(clause)
+        if found is None or found[0] not in _JQL_FIELDS:
             return None
-        name, op, raw = found.group(1).lower(), found.group(2).lower(), found.group(3)
+        name, op, raw = found
         if op == "in":
             if not (raw.startswith("(") and raw.endswith(")")):
                 return None

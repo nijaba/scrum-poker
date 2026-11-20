@@ -96,6 +96,15 @@ def test_dr19_simple_jql_narrows_and_other_jql_is_refused():
         "SHOP-136",
         "SHOP-140",
     }
+    assert keys(load(QueueFilter(jql="labels in(payments)"))) == {
+        "SHOP-142",
+        "SHOP-143",
+        "SHOP-145",
+    }
+    assert keys(load(QueueFilter(jql="  PRIORITY=High   and  type = Bug "))) == {
+        "SHOP-136",
+        "SHOP-140",
+    }
     with pytest.raises(BacklogError) as refused:
         load(QueueFilter(jql="sprint in openSprints()"))
     assert refused.value.code == "jira_bad_filter"
@@ -115,3 +124,20 @@ def test_dr20_the_preview_follows_the_form_without_saving(demo):  # noqa: F811
 
     bad = demo.post(f"/api/demo/{slug}/queue-preview", json={"queue_filter": {"jql": "x ~ y"}})
     assert bad.status_code == 422
+
+
+def test_dr19_crafted_jql_is_read_at_once():
+    import time
+
+    for crafted in (
+        "a=" + " " * 497 + "!",
+        "a" + " " * 496 + "=a",
+        " AND" * 125,
+        "key=" + "a " * 248,
+    ):
+        started = time.perf_counter()
+        try:
+            load(QueueFilter.from_dict({"jql": crafted}))
+        except BacklogError:
+            pass
+        assert time.perf_counter() - started < 0.05, crafted[:20]
