@@ -347,7 +347,7 @@ Decided by the owner on 2026-11-19. The app follows semantic versioning, from 1.
 
 - **Major** for anything a self-hoster must act on: a removed or renamed setting, a change to the deploy files, or a rooms-file migration that cannot be undone.
 - **Minor** for new features.
-- **Patch** for fixes.
+- **Patch** for fixes, and for a change that only touches demo rooms (decided by the owner on 2026-11-20).
 
 `version` in `pyproject.toml` is the one source. The server reads it from the installed package and reports it on `/healthz` (`{"status": "ok", "version": "1.0.0"}`). The front end gets it at build time, from the same file, and the footer of every page shows it as a link to that version's release notes on GitHub. `frontend/package.json` carries no version of its own.
 
