@@ -2,7 +2,7 @@
 
 A multiplayer scrum poker web app that walks a team through the unestimated tickets of a Jira Cloud backlog, in rank order, and writes the agreed story points back to Jira.
 
-The app is built in the six steps of `docs/build-plan.md`; all six are done. Production runs at `https://poker.example.com`.
+The app was built in the six steps of `docs/build-plan.md`, all done, and has grown since in the plan's "After step 6" sections. Production runs the latest release at `https://poker.nijalabs.com`; guides and examples use `poker.example.com` for a self-hoster's own host.
 
 ## Firm constraints
 
@@ -47,7 +47,7 @@ With the fakes, open `/`, sign in as Olive Owner, create a room, then in its set
 ## Stack
 
 - FastAPI on uvicorn for HTTP and WebSockets
-- Authlib for OAuth (Google and GitHub now, Atlassian in step 4); its client uses httpx2
+- Authlib for OAuth (Google and GitHub sign-in, Atlassian for Jira); its client uses httpx2
 - httpx2 (a runtime dependency) for Jira calls, Authlib's client and the test client. The design says httpx; httpx2 is its successor, and the current Starlette test client asks for it
 - nh3 to sanitize Jira's rendered descriptions; cryptography (Fernet) to encrypt stored refresh tokens
 - Standard-library `sqlite3` for the room store
@@ -93,16 +93,16 @@ Room engine
 
 Jira
 
-- The queue is the board backlog's tickets in Jira's rank order, through the room's queue filter. By default only tickets with no estimate, of standard work types (no epics or sub-tasks), in Jira's To Do status category, with no resolution enter it or the counters; the owner can change that in the room settings (design.md, "Queue filter"). Epics, and tickets in an active or future sprint, never enter.
+- The queue is the board backlog's tickets in Jira's rank order, through the room's queue filter. By default only tickets with no estimate, of standard work types (no epics or sub-tasks), in Jira's To Do status category, with no resolution enter it or the counters; the owner or a co-owner can change that in the room settings (design.md, "Queue filter"). Epics, and tickets in an active or future sprint, never enter.
 - Write points through the board's estimation endpoint. The room advances only after Jira accepts the write.
-- Each room has one Jira connection, set up by its owner. The backlog loads and every write goes through it.
+- Each room has one Jira connection, set up by its owner or a co-owner. The backlog loads and every write goes through it, so Jira records writes under whoever connected it.
 - Refresh tokens rotate: store the new one after every refresh, encrypted.
 
 Auth and storage
 
 - Owners and delegates sign in with Google or GitHub. Players never sign in.
 - Match delegates on verified email or GitHub login, never on display name.
-- Only the owner changes room settings, delegates or deletes the room.
+- The owner and co-owners change room settings, delegates and the Jira connection. Only the owner deletes the room or hands it over (design.md, "Co-owners and handing a room over").
 - The SQLite file never holds votes, results or session counters.
 - Session and player cookies are marked Secure outside `localhost`.
 
@@ -112,7 +112,7 @@ Runtime
 
 ## Decided
 
-- Hostname: `poker.example.com`, behind the host's existing nginx (`deploy/nginx/`, app on `127.0.0.1:8100`). `deploy/` with Caddy stays for a dedicated host. The mock-ups show `[YOUR DOMAIN]`.
+- Hostname: `poker.nijalabs.com`, behind the host's existing nginx (`deploy/nginx/`, app on `127.0.0.1:8100`). `deploy/` with Caddy stays for a dedicated host. Guides use `poker.example.com`; the mock-ups show `[YOUR DOMAIN]`.
 - Versions: semantic versioning from 1.0.0, `pyproject.toml` the one source, releases tagged `vX.Y.Z` by `scripts/release.sh`, production deployed from a release tag (design.md, "Versions and releases").
 
 ## Assumptions already in the design
@@ -128,5 +128,5 @@ Change these only if the owner says so.
 
 - `docs/design.md`: architecture and behaviour
 - `docs/test-plan.md`: test cases with IDs, expected results and levels
-- `docs/build-plan.md`: the six steps and which cases gate each one
+- `docs/build-plan.md`: the six build steps, the work after them, and which cases gate each part
 - `docs/mockups/`: static HTML mock-ups of the four screens, with the colours and type they use

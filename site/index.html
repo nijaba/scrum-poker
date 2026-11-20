@@ -184,17 +184,31 @@
             </p>
           </li>
           <li>
-            <h3>Facilitators you choose</h3>
+            <h3>Facilitators and co-owners</h3>
             <p>
-              The owner names delegates who can run sessions, by Google email or GitHub login,
-              never by display name.
+              Name the people who run sessions, by Google email or GitHub login, never by display
+              name. A co-owner can also manage the room, and the owner can hand it over.
+            </p>
+          </li>
+          <li>
+            <h3>Set up in minutes</h3>
+            <p>
+              A new room's settings open with a checklist: connect Jira, choose the board, preview
+              the queue, share the link. Each step ticks itself off.
+            </p>
+          </li>
+          <li>
+            <h3>Safe to share your screen</h3>
+            <p>
+              Hide my card keeps your own pick off your screen until the reveal, so you can run
+              the session from a shared screen without giving your vote away.
             </p>
           </li>
           <li>
             <h3>A guided tour</h3>
             <p>
-              First-timers are offered a short tour of the room, shaped by their role. It is
-              always one click away in the menu.
+              First-timers are offered a short tour of the room, shaped by their role, with
+              Show me more for every control. The settings page has its own.
             </p>
           </li>
           <li>
@@ -277,10 +291,13 @@
         </div>
         <div class="run-box">
           <h3>Run your own</h3>
-          <pre><code>docker build -t scrum-poker .</code></pre>
+          <pre><code>git checkout "$(git tag --sort=-v:refname | head -1)"
+docker build -t scrum-poker .</code></pre>
           <p>
-            Then register a Google or GitHub sign-in and an Atlassian app, and set a few
-            environment variables. The admin guide walks through it, with Caddy or nginx in front.
+            The first line picks the latest
+            <a href="https://github.com/nijaba/scrum-poker/releases">release</a>. Then
+            register a Google or GitHub sign-in and an Atlassian app, and set a few environment
+            variables. The admin guide walks through it, with Caddy or nginx in front.
           </p>
           <div class="actions">
             <a class="btn btn-primary" href="https://github.com/nijaba/scrum-poker/blob/main/docs/admin-guide.md"
@@ -301,6 +318,7 @@
       >
       <span class="foot-links">
         <a href="https://github.com/nijaba/scrum-poker">Source on GitHub</a>
+        <a href="https://github.com/nijaba/scrum-poker/releases/latest">Latest release</a>
         <a href="https://poker.nijalabs.com/">Live demo</a>
       </span>
     </footer>

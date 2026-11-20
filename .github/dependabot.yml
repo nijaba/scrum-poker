@@ -1,10 +1,31 @@
-# Keeps the pinned GitHub Actions current: each workflow names an action by commit, with its
-# version in a comment, and Dependabot proposes the new commit when a release comes out.
-# Security fixes for the Python and npm dependencies come from Dependabot security updates,
-# which are switched on in the repository settings and need nothing here.
+# Version updates, monthly, alongside the security updates switched on in the repository
+# settings (which need nothing here).
+#
+# - github-actions: each workflow names an action by commit, with its version in a comment;
+#   Dependabot proposes the new commit when a release comes out.
+# - pip: the bounds in pyproject.toml. The image installs the newest release within them,
+#   so these PRs raise the floor and flag new major versions.
+# - npm: frontend/package.json and its lock file.
+#
+# Minor and patch updates come grouped in one PR per ecosystem; a new major version gets a
+# PR of its own, since it may need code changes.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      python-minor-and-patch:
+        update-types: [minor, patch]
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: monthly
+    groups:
+      frontend-minor-and-patch:
+        update-types: [minor, patch]
