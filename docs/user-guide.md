@@ -482,6 +482,12 @@ Some servers offer **Try a demo** on the home page, including the online demo at
   in to practise together.
 - **Add a bot** in the banner seats another bot, up to eight. Remove one like any player.
 - **Take the tour** in the banner walks you through the room, as often as you like.
-- There are no room settings: Fibonacci cards, a 30-second countdown, sound on.
+- **Set up this room** in the banner opens the room's settings, for anyone with the link. Try
+  them as an owner would: change the scale, the countdown, sound and auto-reveal, and the queue
+  filter, with **Preview queue** showing which of the made-up tickets it would take. Save, then
+  choose **Reload backlog** in the room to apply a new filter. Jira there is a pretend site, the
+  room keeps its name, and the one delegate is a read-only sample: real delegates need a real
+  room.
+- A demo room starts with Fibonacci cards, a 30-second countdown and sound on.
 - The room ends after a while with nobody in it (30 minutes by default; the banner at the top says how long). Start another one any time. If every demo room is taken, the home page asks you to come back in a few minutes.
 

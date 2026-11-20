@@ -85,9 +85,10 @@ def test_dr02_a_demo_room_is_private_in_memory_and_comes_with_bots(demo, demo_ap
     assert slug.startswith("demo-") and len(slug) == len("demo-") + 8
     assert demo_app.state.store.get(slug) is None  # never stored
     assert new_demo(demo) != slug
-    assert demo.get(f"/api/rooms/{slug}").json() == {"slug": slug, "access": None, "demo": True}
+    seen = demo.get(f"/api/rooms/{slug}").json()
+    assert (seen["slug"], seen["access"], seen["demo"]) == (slug, None, True)
     assert demo.get(f"/r/{slug}").status_code == 200
-    assert demo.get(f"/r/{slug}/settings").status_code == 404
+    assert demo.get(f"/r/{slug}/settings").status_code == 200  # DR-18: anyone may set it up
 
     ws, join = visit(demo, slug)
     with ws:

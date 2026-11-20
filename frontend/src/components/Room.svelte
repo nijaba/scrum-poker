@@ -361,6 +361,7 @@
             >Take the tour</button
           >
           <button class="btn" type="button" onclick={moreBots}>Add a bot</button>
+          <a class="btn demo-link" href="/r/{currentSlug}/settings">Set up this room</a>
         </span>
         {#if botError}<span class="bot-error" role="alert">{botError}</span>{/if}
       </p>
@@ -539,6 +540,13 @@
 {/if}
 
 <style>
+  .demo-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+  }
   .loading {
     padding: 48px 24px;
   }

@@ -16,8 +16,10 @@
     jiraBoards,
     jiraSites,
     offerOwnership,
+    previewDemoQueue,
     previewQueue,
     signInUrl,
+    updateDemoRoom,
     updateRoom,
   } from "../lib/api";
   import { ACCESS_NAMES, canManage } from "../lib/types";
@@ -45,8 +47,10 @@
   let info = $state<RoomInfo | null | undefined>(undefined); // undefined while loading
   let loadError = $state<string | null>(null);
 
+  // A demo room: anyone with the link may set it up, in memory (design.md, "Demo rooms").
+  const isDemo = $derived(!!info?.demo);
   // The tour of this page, for whoever manages the room (design.md, "Tour").
-  const isManager = $derived(!!me?.signed_in && canManage(info?.access));
+  const isManager = $derived(isDemo || (!!me?.signed_in && canManage(info?.access)));
   // Only the owner deletes the room or hands it over (design.md, "Co-owners and handing a room over").
   const isOwner = $derived(!!me?.signed_in && info?.access === "owner");
 
@@ -182,7 +186,8 @@
     previewing = true;
     previewError = null;
     try {
-      preview = await previewQueue(current, { ...filter, jql: filter.jql.trim() });
+      const chosen = { ...filter, jql: filter.jql.trim() };
+      preview = isDemo ? await previewDemoQueue(current, chosen) : await previewQueue(current, chosen);
       previewed = true;
     } catch (err) {
       preview = null;
@@ -196,6 +201,12 @@
     jira = settings;
     siteId = settings.site?.cloud_id ?? "";
     boardId = settings.board?.id ?? null;
+    if (info?.demo) {
+      // The pretend site and board: nothing to fetch.
+      sites = settings.site ? [settings.site] : [];
+      boards = settings.board ? [settings.board] : [];
+      return;
+    }
     if (!settings.available || !settings.connected) return;
     try {
       sites = await jiraSites(current);
@@ -328,8 +339,19 @@
       error = err instanceof Error ? err.message : "Check the form.";
       return;
     }
+    if (isDemo) {
+      // A demo room keeps its name and its sample delegate.
+      delete body.slug;
+      delete body.delegates;
+    }
     saving = true;
     try {
+      if (isDemo) {
+        const updated = await updateDemoRoom(current, body);
+        if (updated.settings) load(updated.settings);
+        saved = true;
+        return;
+      }
       let updated = await updateRoom(current, body);
       current = updated.slug;
       const savedBoard = updated.settings?.jira.board?.id ?? null;
@@ -379,7 +401,9 @@
   <span class="text-2">Room settings</span>
   <div class="right">
     <a class="back" href="/r/{current}">Back to room</a>
-    {#if me?.signed_in}
+    {#if isDemo}
+      <span class="chip">Demo room</span>
+    {:else if me?.signed_in}
       <div class="who">
         <span class="who-name">{me.name}</span>
         <span class="who-role"
@@ -401,7 +425,7 @@
     <p>Loading…</p>
   {:else if info === null}
     <p>There is no room called {slug}. <a href="/">Your rooms</a></p>
-  {:else if !me.signed_in}
+  {:else if !isDemo && !me.signed_in}
     <section class="section">
       <h2>Sign in to change this room</h2>
       <div class="row">
@@ -410,7 +434,7 @@
         {/each}
       </div>
     </section>
-  {:else if !canManage(info.access)}
+  {:else if !isDemo && !canManage(info.access)}
     <p>
       Only the room's owner or a co-owner can change its settings.
       <a href="/r/{current}">Back to the room</a>
@@ -448,12 +472,28 @@
       </section>
     {/if}
 
+    {#if isDemo}
+      <p class="demo-note" role="note">
+        <strong>Demo room.</strong> Try the settings here: the scale, the countdown, sound and
+        auto-reveal, and the queue filter with its preview. Saved changes reach this practice room
+        at once and end with it. Jira here is pretend, and nothing reaches a real one.
+      </p>
+    {/if}
+
     <section class="section" id="room-link" aria-label="Room link" data-tour="room-link">
       <h2>Room link</h2>
       <div class="row">
         <div class="field grow">
           <label for="slug">Short name</label>
-          <input id="slug" class="input" bind:value={shortName} maxlength="40" autocomplete="off" />
+          <input
+            id="slug"
+            class="input"
+            bind:value={shortName}
+            maxlength="40"
+            autocomplete="off"
+            readonly={isDemo}
+            aria-describedby={isDemo ? "slug-demo" : undefined}
+          />
         </div>
         <button class="btn" type="button" onclick={copyLink}>{copied ? "Copied" : "Copy link"}</button>
       </div>
@@ -461,12 +501,17 @@
         Players join at {link}. The link keeps working across restarts, and after a rename the old
         link redirects here.
       </span>
+      {#if isDemo}
+        <span id="slug-demo" class="text-2">A demo room keeps its name; a real room can be renamed here.</span>
+      {/if}
     </section>
 
     <section class="section" id="jira" aria-label="Jira" data-tour="jira">
       <div class="jira-head">
         <h2>Jira Cloud</h2>
-        {#if jira?.available && jira.connected}
+        {#if isDemo}
+          <span class="text-2">Connected to a pretend site, {jira?.site?.name}</span>
+        {:else if jira?.available && jira.connected}
           <div class="row tight">
             <span class="text-2">
               Connected as {jira.email ?? "an Atlassian account"}{#if jira.connected_by}, by
@@ -477,7 +522,12 @@
           </div>
         {/if}
       </div>
-      {#if jira?.available && jira.connected && jira.connected_by && jira.connected_by !== me.label}
+      {#if isDemo}
+        <p class="note" role="note">
+          A real room connects to your own Jira Cloud here, then you pick its site and board. Here
+          the board is already chosen: its backlog is the demo's made-up tickets.
+        </p>
+      {:else if jira?.available && jira.connected && jira.connected_by && jira.connected_by !== me.label}
         <p class="note" role="note">
           Jira records estimates under the account {jira.connected_by} connected. Reconnect to use your
           own.
@@ -501,7 +551,7 @@
         <div class="grid">
           <div class="field">
             <label for="site">Site</label>
-            <select id="site" class="input" bind:value={siteId} onchange={pickSite}>
+            <select id="site" class="input" bind:value={siteId} onchange={pickSite} disabled={isDemo}>
               <option value="" disabled>Choose a site</option>
               {#each sites as site (site.cloud_id)}
                 <option value={site.cloud_id}>{site.url.replace("https://", "")}</option>
@@ -510,7 +560,7 @@
           </div>
           <div class="field">
             <label for="board">Board</label>
-            <select id="board" class="input" bind:value={boardId} disabled={!siteId}>
+            <select id="board" class="input" bind:value={boardId} disabled={isDemo || !siteId}>
               <option value={null} disabled>Choose a board</option>
               {#each boards as board (board.id)}
                 <option value={board.id}>{board.name}</option>
@@ -668,10 +718,21 @@
 
     <section class="section" id="delegates" aria-label="Delegates" data-tour="delegates">
       <h2>Delegates</h2>
-      <span class="text-2">
-        Facilitators run sessions in this room. Co-owners can also change these settings and connect
-        Jira. Only the owner, {owner}, can delete the room or hand it over.
-      </span>
+      {#if isDemo}
+        <span class="text-2">
+          In a real room, delegates run sessions with the owner: facilitators run them, and
+          co-owners can also change these settings and connect Jira.
+        </span>
+        <p class="note" role="note">
+          This sample shows how delegates look. Nobody can sign in to a demo room, so adding real
+          ones needs a real room.
+        </p>
+      {:else}
+        <span class="text-2">
+          Facilitators run sessions in this room. Co-owners can also change these settings and
+          connect Jira. Only the owner, {owner}, can delete the room or hand it over.
+        </span>
+      {/if}
       {#if delegates.length}
         <ul class="delegates">
           {#each delegates as d (d.provider + d.identifier)}
@@ -683,6 +744,7 @@
                 class="input role"
                 aria-label="Role for {d.identifier}"
                 bind:value={d.role}
+                disabled={isDemo}
                 onchange={() => (saved = false)}
               >
                 {#each Object.entries(ROLE_NAMES) as [value, name] (value)}
@@ -693,8 +755,10 @@
                 <button class="remove" type="button" onclick={() => makeOwner(d)}
                   aria-label="Make {d.identifier} owner">Make owner…</button>
               {/if}
-              <button class="remove" type="button" onclick={() => removeDelegate(d)}
-                aria-label="Remove {d.identifier}">Remove</button>
+              {#if !isDemo}
+                <button class="remove" type="button" onclick={() => removeDelegate(d)}
+                  aria-label="Remove {d.identifier}">Remove</button>
+              {/if}
             </li>
           {/each}
         </ul>
@@ -710,6 +774,7 @@
         </div>
       {/if}
       {#if offerError}<p class="form-error" role="alert">{offerError}</p>{/if}
+      {#if !isDemo}
       <div class="row">
         <div class="field grow">
           <label for="delegate">Google email or GitHub username</label>
@@ -731,6 +796,7 @@
         </div>
         <button class="btn" type="button" onclick={addDelegate}>Add delegate</button>
       </div>
+      {/if}
     </section>
 
     {#if error}<p class="form-error" role="alert">{error}</p>{/if}
@@ -747,6 +813,13 @@
 </main>
 
 <style>
+  .demo-note {
+    margin: 0;
+    padding: 12px 16px;
+    border: 1px dashed var(--accent);
+    border-radius: 10px;
+    background: var(--surface);
+  }
   .checklist ol {
     list-style: none;
     margin: 0;

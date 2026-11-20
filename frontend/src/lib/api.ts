@@ -100,6 +100,16 @@ export function previewQueue(slug: string, queue_filter: QueueFilter): Promise<Q
   return call("POST", `/api/rooms/${encodeURIComponent(slug)}/queue-preview`, { queue_filter });
 }
 
+/** Save a demo room's settings, in memory (design.md, "Demo rooms"). No sign-in. */
+export function updateDemoRoom(slug: string, changes: Record<string, unknown>): Promise<RoomInfo> {
+  return call("PATCH", `/api/demo/${encodeURIComponent(slug)}/settings`, changes);
+}
+
+/** The queue a demo room's sample backlog would give with this filter, not yet saved. */
+export function previewDemoQueue(slug: string, queue_filter: QueueFilter): Promise<QueuePreview> {
+  return call("POST", `/api/demo/${encodeURIComponent(slug)}/queue-preview`, { queue_filter });
+}
+
 /** A new demo room, private to whoever asked for it, with bots and a made-up backlog. */
 export function createDemo(): Promise<{ slug: string }> {
   return call("POST", "/api/demo", {});

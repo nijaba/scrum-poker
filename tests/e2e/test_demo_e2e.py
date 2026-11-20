@@ -133,3 +133,44 @@ def test_dr17_the_video_button_follows_its_setting(browser, tmp_path):
         expect(page.get_by_role("button", name="Try a demo")).to_be_visible()
         expect(page.get_by_role("button", name="Watch the video")).to_have_count(0)
         page.close()
+
+
+def test_dr21_set_up_a_demo_room_and_run_it(browser, server):
+    context = browser.new_context()
+    page = context.new_page()
+    page.goto(server)
+    page.get_by_role("button", name="Try a demo").click()
+    page.wait_for_url(re.compile(r"/r/demo-[a-z0-9]{8}$"))
+    room_url = page.url
+    page.get_by_label("Your name").fill("Vic")
+    page.get_by_role("button", name="Join room").click()
+
+    page.get_by_role("note").get_by_role("link", name="Set up this room").click()
+    page.wait_for_url(room_url + "/settings")
+    expect(page.get_by_role("note").filter(has_text="Demo room.")).to_be_visible()
+    jira = page.get_by_role("region", name="Jira")
+    expect(jira).to_contain_text("Demo Co")
+    expect(jira.get_by_role("link", name="Connect Jira")).to_have_count(0)
+    delegates = page.get_by_role("region", name="Delegates")
+    expect(delegates).to_contain_text("dana@example.com")
+    expect(delegates.get_by_role("button", name="Add delegate")).to_have_count(0)
+    expect(page.get_by_role("button", name="Delete room")).to_have_count(0)
+
+    # The preview follows the form, before saving.
+    queue = page.get_by_role("region", name="Queue filter")
+    queue.get_by_label("Tickets in progress").check()
+    queue.get_by_role("button", name="Preview queue").click()
+    expect(queue.get_by_role("region", name="Queue preview")).to_contain_text("SHOP-153")
+
+    page.get_by_label("T-shirt").check()
+    page.get_by_role("button", name="Save changes").click()
+    expect(page.get_by_text("Saved.")).to_be_visible()
+
+    page.get_by_role("link", name="Back to room").click()
+    page.wait_for_url(room_url)
+    hand = page.get_by_role("region", name="Your card")
+    expect(hand.get_by_role("button", name="XS", exact=True)).to_be_visible()
+    # The saved filter applies through Reload backlog, which a demo room offers at any time.
+    page.get_by_role("button", name="Reload backlog").click()
+    expect(page.get_by_label("Backlog counter")).to_contain_text("of 13 tickets")
+    context.close()
