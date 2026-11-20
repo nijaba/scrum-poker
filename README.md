@@ -243,7 +243,7 @@ footer of every page show the version running.
 Scrum poker follows [semantic versioning](https://semver.org): a new **major** version
 means something you must act on when you upgrade (a setting renamed or removed, a change to
 the deploy files, a rooms-file migration that cannot be undone), a **minor** one adds
-features, and a **patch** fixes bugs. `version` in `pyproject.toml` is the one source.
+features, and a **patch** fixes bugs or changes only the demo rooms. `version` in `pyproject.toml` is the one source.
 
 To make a release, merge a pull request that sets the new version in `pyproject.toml`, then
 on an up-to-date `main` run `scripts/release.sh X.Y.Z`: it tags `vX.Y.Z` and publishes the
