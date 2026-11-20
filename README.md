@@ -60,7 +60,7 @@ packages and the Dockerfile), when the dependencies or the Dockerfile change, ev
 and by hand. It fails on a known vulnerability (moderate or worse for npm; high or critical
 with a fix for the image) but is not a required check. GitHub's CodeQL code scanning,
 Dependabot alerts and security updates, and secret scanning with push protection are on in
-the repository settings; `.github/dependabot.yml` keeps the pinned actions current.
+the repository settings; `.github/dependabot.yml` adds monthly version updates for the pinned actions, the Python dependencies and the front-end packages.
 
 Run the same locally with `gitleaks git .`, `pip-audit --skip-editable`,
 `(cd frontend && npm audit)` and, after `docker build -t scrum-poker .`,
