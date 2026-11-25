@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scrum-poker"
-version = "1.0.1"
+version = "1.1.0"
 description = "Scrum poker for Jira Cloud backlogs: one lightweight container, no session storage."
 readme = "README.md"
 license = "Apache-2.0"
