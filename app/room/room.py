@@ -104,6 +104,22 @@ class Room:
         self.removed.discard(player_id)
         return seat
 
+    def rename(self, player_id: str, name: str) -> None:
+        """Change a seat's name, keeping everything else: the vote, the place, a break or
+        sitting out. Same rule as joining: a name another seat holds is refused. A player
+        with no seat here has nothing to rename (design.md, "The menu behind your name")."""
+        player_id, name = _identity(player_id, name)
+        seat = self.seats.get(player_id)
+        if seat is None:
+            return
+        for other in self.seats.values():
+            if other.player_id != player_id and _same_name(other.name, name):
+                raise CommandError(
+                    "name_taken",
+                    f"Someone at the table is already called {other.name}. Choose another name.",
+                )
+        seat.name = name
+
     def set_connected(self, player_id: str, connected: bool) -> None:
         seat = self.seats.get(player_id)
         if seat is not None:

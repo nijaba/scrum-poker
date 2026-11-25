@@ -18,6 +18,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, Response
 
+from app.room.errors import CommandError
 from app.web import check_write
 
 COOKIE = "sp_player"
@@ -82,6 +83,11 @@ async def set_player(request: Request) -> JSONResponse:
 
     existing = decode_player(request.cookies.get(COOKIE))
     player = Player(existing.id if existing else secrets.token_urlsafe(16), name.strip())
+    return _with_cookie(request, player)
+
+
+def _with_cookie(request: Request, player: Player) -> JSONResponse:
+    """The player as JSON, with the cookie that remembers them for a year."""
     response = JSONResponse(player.to_dict())
     response.set_cookie(
         COOKIE,
@@ -108,15 +114,8 @@ async def forget_player(request: Request) -> Response:
 SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{0,39}$")
 
 
-@router.post("/api/rooms/{slug}/leave", status_code=204)
-async def leave_room(slug: str, request: Request) -> Response:
-    """Take this browser's player off the room's table, as Log out does.
-
-    A web request, not a socket message, so it works when the room's socket has dropped
-    (a phone waking up, a network blip). Nothing to do without a player cookie or a
-    running session; a session is never started just to leave it.
-    """
-    check_write(request)
+async def _live_room(request: Request, slug: str):
+    """The room's live session, None when it has none running; 404 for no such room."""
     app = request.app
     demo = app.state.demo
     live = demo.get(slug) if demo is not None else None
@@ -126,6 +125,44 @@ async def leave_room(slug: str, request: Request) -> Response:
         if current is None:
             raise HTTPException(404, "There is no room with that name.")
         live = app.state.rooms.running(current)
+    return live
+
+
+@router.post("/api/rooms/{slug}/rename")
+async def rename_in_room(slug: str, request: Request) -> JSONResponse:
+    """Change this browser's player name, keeping the seat (design.md, "The menu behind your
+    name"). Like leaving, a web request, so it works whatever state the socket is in."""
+    check_write(request)
+    try:
+        body: Any = await request.json()
+    except ValueError:
+        body = None
+    name = body.get("name") if isinstance(body, dict) else None
+    if not isinstance(name, str) or not 0 < len(name.strip()) <= MAX_NAME:
+        raise HTTPException(422, f"A name is 1 to {MAX_NAME} characters.")
+    player = decode_player(request.cookies.get(COOKIE))
+    if player is None:
+        raise HTTPException(401, "Join a room first.")
+    live = await _live_room(request, slug)
+    if live is not None:
+        try:
+            await live.rename(player.id, name)
+        except CommandError as err:
+            status = 409 if err.code == "name_taken" else 422
+            raise HTTPException(status, err.message) from None
+    return _with_cookie(request, Player(player.id, name.strip()))
+
+
+@router.post("/api/rooms/{slug}/leave", status_code=204)
+async def leave_room(slug: str, request: Request) -> Response:
+    """Take this browser's player off the room's table, as Log out does.
+
+    A web request, not a socket message, so it works when the room's socket has dropped
+    (a phone waking up, a network blip). Nothing to do without a player cookie or a
+    running session; a session is never started just to leave it.
+    """
+    check_write(request)
+    live = await _live_room(request, slug)
     player = decode_player(request.cookies.get(COOKIE))
     if live is not None and player is not None:
         live.leave(player.id)

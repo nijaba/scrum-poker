@@ -228,3 +228,12 @@ Design: "Demo rooms". Decided by the owner on 2026-11-19: Set up this room in th
 - [x] Reload backlog in demo rooms, at any time
 
 Cases: DR-18 to DR-21.
+
+## After step 6: changing your name
+
+Design: "The menu behind your name". Decided by the owner on 2026-11-25: Change name in the menu, keeping the seat.
+
+- [x] Rename in the room engine and the room's task, by a web request that updates the player cookie
+- [x] Change name in the menu behind your name
+
+Cases: UM-09 to UM-11.

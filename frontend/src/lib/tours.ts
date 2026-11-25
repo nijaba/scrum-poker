@@ -80,7 +80,7 @@ function firstPart(who: Who): TourStep[] {
     target: "menu",
     title: "Your menu",
     text:
-      `Your menu holds ${extras.length ? extras.join(", ") + " and " : ""}the light or dark theme.` +
+      `Your menu holds ${extras.length ? extras.join(", ") + ", " : ""}the light or dark theme and Change name, to rename yourself without leaving the table.` +
       (who.owner ? " You also find Room settings here: Jira, the queue filter, the scale and delegates." : "") +
       " Tour, here or in the footer, starts this tour again. Show me more explains the rest of the room.",
   });

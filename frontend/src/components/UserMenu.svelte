@@ -1,8 +1,8 @@
 <script lang="ts">
   /**
    * Your name and role in the room header, as a button that opens a small menu:
-   * Your rooms and Log out for anyone signed in, Room settings too for the owner,
-   * and Log out alone for a player.
+   * Your rooms and Log out for anyone signed in, Room settings too for the owner and
+   * co-owners, Change name for anyone seated, and Log out for everyone.
    */
   import { tick } from "svelte";
   import { THEMES, setTheme, theme } from "../lib/theme.svelte";
@@ -19,6 +19,7 @@
     remote = null,
     onremote,
     ontour,
+    onrename,
   }: {
     name: string;
     role: string;
@@ -35,6 +36,8 @@
     onremote?: () => void;
     /** Start the room's tour. */
     ontour?: () => void;
+    /** For anyone seated: open the Change name form. */
+    onrename?: () => void;
   } = $props();
 
   let open = $state(false);
@@ -168,6 +171,17 @@
           >
         {/each}
       </div>
+      {#if onrename}
+        <button
+          class="item"
+          role="menuitem"
+          type="button"
+          onclick={() => {
+            hide(false);
+            onrename();
+          }}>Change name</button
+        >
+      {/if}
       {#if ontour}
         <button
           class="item"

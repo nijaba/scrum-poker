@@ -8,6 +8,7 @@
     getPlayer,
     getRoom,
     leaveRoom,
+    renameInRoom,
     signOut,
   } from "../lib/api";
   import { duration, plural, points, remainingAt } from "../lib/format";
@@ -128,6 +129,30 @@
 
   function connect() {
     room = new RoomConnection(slug);
+  }
+
+  // Change name (design.md, "The menu behind your name"): rename the seat, keep everything else.
+  let renameDialog = $state<HTMLDialogElement | null>(null);
+  let newName = $state("");
+  let renameError = $state<string | null>(null);
+  let renaming = $state(false);
+  function openRename() {
+    newName = snap?.you.name ?? player?.name ?? "";
+    renameError = null;
+    renameDialog?.showModal();
+  }
+  async function saveName(event: SubmitEvent) {
+    event.preventDefault();
+    renaming = true;
+    renameError = null;
+    try {
+      player = await renameInRoom(currentSlug, newName);
+      renameDialog?.close();
+    } catch (err) {
+      renameError = err instanceof Error ? err.message : "Could not change the name.";
+    } finally {
+      renaming = false;
+    }
   }
 
   /** Leave the table, then sign out and go home, or forget the player's name. */
@@ -273,6 +298,30 @@
 {:else}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="room" onpointerdown={unlockAudio} onkeydown={unlockAudio}>
+    <dialog class="rename" bind:this={renameDialog} aria-labelledby="rename-title">
+      <form onsubmit={saveName}>
+        <h2 id="rename-title">Change name</h2>
+        <div class="field">
+          <label for="new-name">Name at the table</label>
+          <input
+            id="new-name"
+            class="input"
+            bind:value={newName}
+            maxlength="40"
+            autocomplete="off"
+            required
+          />
+        </div>
+        <p class="rename-note">You keep your seat and your vote. Your browser remembers the new name.</p>
+        {#if renameError}<p class="form-error" role="alert">{renameError}</p>{/if}
+        <div class="rename-actions">
+          <button class="btn" type="button" onclick={() => renameDialog?.close()}>Cancel</button>
+          <button class="btn btn-primary" type="submit" disabled={renaming || !newName.trim()}
+            >{renaming ? "Saving…" : "Save"}</button
+          >
+        </div>
+      </form>
+    </dialog>
     <header>
       <div class="title">
         <a class="slug" href="/" title="Scrum poker home">{currentSlug}</a>
@@ -307,6 +356,7 @@
             remote={isFacilitator ? null : remote.on}
             onremote={() => setRemote(!remote.on)}
             ontour={() => startTour()}
+            onrename={snap.you.seated ? openRename : undefined}
           />
         </div>
       {:else if snap}
@@ -344,6 +394,7 @@
             {settingsHref}
             onlogout={logOut}
             ontour={() => startTour()}
+            onrename={snap.you.seated ? openRename : undefined}
           />
         </div>
       {/if}
@@ -540,6 +591,43 @@
 {/if}
 
 <style>
+  .rename {
+    width: min(380px, calc(100vw - 32px));
+    box-sizing: border-box;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .rename::backdrop {
+    background: rgb(8 12 10 / 55%);
+  }
+  .rename form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .rename h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 19px;
+  }
+  .rename-note {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-3);
+  }
+  .rename-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  .rename-actions .btn-primary {
+    min-height: 44px;
+    padding: 0 20px;
+    font-size: 15px;
+  }
   .demo-link {
     display: inline-flex;
     align-items: center;

@@ -1,6 +1,6 @@
 """Session tools over the WebSocket and the settings API, at Integration level.
 
-Cases RV-01, RV-04, RV-05, RV-07, RP-01, RP-03, SM-01, SM-02, UM-02, AR-18.
+Cases RV-01, RV-04, RV-05, RV-07, RP-01, RP-03, SM-01, SM-02, UM-02, UM-09, AR-18.
 The facilitator is the room's owner, signed in.
 """
 
@@ -284,3 +284,68 @@ def test_ar18_a_taken_name_is_refused_over_the_socket(client):
             snap = until(returning, state())
             assert snap["you"]["seated"] is False
             assert [p["name"] for p in snap["players"]] == ["Ana"]
+
+
+def rename(client, name, player=("p1", "Ana"), slug="team-a", **extra):
+    return client.post(
+        f"/api/rooms/{slug}/rename",
+        json={"name": name},
+        headers={**headers(client.app, player=player), **extra},
+    )
+
+
+def test_um09_renaming_keeps_the_seat_vote_and_role(client):
+    from app.players import COOKIE, decode_player
+
+    with (
+        open_ws(client, ROOM, OWNER, ("f1", "Fay")) as fay,
+        open_ws(client, ROOM, player=("p1", "Ana")) as ana,
+    ):
+        until(fay, seated(2))
+        until(ana, state(lambda s: s["you"]["seated"]))
+        ana.send_json({"type": "vote", "card": "5"})
+        until(fay, state(lambda s: any(p["voted"] for p in s["players"])))
+
+        response = rename(client, "Annabel")
+        assert response.status_code == 200, response.text
+        cookie = decode_player(response.cookies.get(COOKIE))
+        assert (cookie.id, cookie.name) == ("p1", "Annabel")
+
+        snap = until(fay, state(lambda s: "Annabel" in [p["name"] for p in s["players"]]))
+        assert sorted(p["name"] for p in snap["players"]) == ["Annabel", "Fay"]
+        assert all(p["voted"] for p in snap["players"] if p["name"] == "Annabel")
+        mine = until(ana, state(lambda s: s["you"]["name"] == "Annabel"))
+        assert mine["you"]["seated"] and mine["you"]["role"] == "player"
+
+        # A facilitator renames too, and stays the facilitator.
+        assert rename(client, "Fayette", player=("f1", "Fay")).status_code == 200
+        boss = until(fay, state(lambda s: s["you"]["name"] == "Fayette"))
+        assert boss["you"]["role"] == "facilitator"
+
+        # A name another seat holds, in any case or spacing, is refused and changes nothing.
+        taken = rename(client, "  annabel ", player=("f1", "Fayette"))
+        assert taken.status_code == 409
+        assert "Annabel" in taken.json()["detail"]
+        assert COOKIE not in taken.cookies
+
+
+def test_um09_bad_requests_are_refused(client):
+    with open_ws(client, ROOM, player=("p1", "Ana")) as ana:
+        until(ana, state(lambda s: s["you"]["seated"]))
+        assert rename(client, "").status_code == 422
+        assert rename(client, "x" * 41).status_code == 422
+        no_cookie = client.post(
+            "/api/rooms/team-a/rename", json={"name": "Zed"}, headers=headers(client.app)
+        )
+        assert no_cookie.status_code == 401
+        assert rename(client, "Zed", slug="no-such-room").status_code == 404
+        assert rename(client, "Zed", origin="https://evil.example.org").status_code == 403
+
+
+def test_um09_renaming_with_no_live_room_just_updates_the_cookie(client):
+    from app.players import COOKIE, decode_player
+
+    response = rename(client, "Zed", player=("p9", "Zoe"))
+    assert response.status_code == 200
+    assert decode_player(response.cookies.get(COOKIE)).name == "Zed"
+    assert client.app.state.rooms.running("team-a") is None  # nothing started for it

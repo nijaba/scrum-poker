@@ -52,6 +52,12 @@ export function leaveRoom(slug: string): Promise<void> {
   return call("POST", `/api/rooms/${encodeURIComponent(slug)}/leave`, {});
 }
 
+/** Change this browser's name at the table, keeping the seat (design.md, "The menu behind
+ * your name"). The server renames the seat, then updates the player cookie. */
+export function renameInRoom(slug: string, name: string): Promise<Player> {
+  return call("POST", `/api/rooms/${encodeURIComponent(slug)}/rename`, { name });
+}
+
 export function forgetPlayer(): Promise<void> {
   return call("DELETE", "/api/player");
 }

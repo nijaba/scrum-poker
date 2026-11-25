@@ -271,6 +271,9 @@ The cases below assume these fixtures. The fake backlog gives known counters: 4 
 | UM-05 | Someone signed in who is not the owner logs out from the menu | The menu offers Your rooms and Log out; they leave the table, are signed out and land on the home page | E2E |
 | UM-06 | Player logs out from the menu | The menu offers Log out alone; they leave the table and the name form shows, empty, even after a reload | E2E |
 | UM-07 | A player who is not signed in clicks the room name in the header | The home page opens, with the sign-in buttons | E2E |
+| UM-09 | A seated player renames themselves by `POST /api/rooms/<slug>/rename`, before and after voting, as a player and as a facilitator | Every screen shows the new name on the same seat, with the vote, role and place kept; the player cookie carries the new name and the same ID; a name another seat holds, in any case or spacing, is refused (409) and nothing changes; a bad name is refused (422); no cookie (401) or no such room (404); other sites are refused | Integration |
+| UM-10 | Rename a seat in the room engine | Only the seat's name changes; a taken name raises `name_taken`; a player with no seat is not an error | Unit |
+| UM-11 | A facilitator chooses Change name in the menu | The form shows the current name; saving a new one shows it on the table and keeps their vote; a taken name shows why and keeps the form open | E2E |
 | UM-08 | A player logs out while the room's connection is down, then `POST /api/rooms/<slug>/leave` with no cookie, for a room with no live session, and from another site | The seat leaves every screen anyway; the others do nothing (204), an unknown room is 404, another site is refused (403) | Integration, E2E |
 
 ## Demo rooms

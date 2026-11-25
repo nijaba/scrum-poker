@@ -1,4 +1,4 @@
-"""The menu behind your name in the room header, in a real browser: cases UM-04 to UM-08."""
+"""The menu behind your name in the room header, in a real browser: cases UM-04 to UM-08, UM-11."""
 
 from playwright.sync_api import expect
 
@@ -22,7 +22,9 @@ def test_um04_owner_menu_offers_rooms_settings_and_log_out(table):
     fay, ana, ben = seat_three(table)
 
     menu = open_menu(fay)
-    expect(items(menu)).to_have_text(["Your rooms", "Room settings", "Tour", "Log out"])
+    expect(items(menu)).to_have_text(
+        ["Your rooms", "Room settings", "Change name", "Tour", "Log out"]
+    )
 
     # Escape closes it and gives focus back to the name.
     fay.page.keyboard.press("Escape")
@@ -48,7 +50,7 @@ def test_um05_signed_in_person_gets_rooms_and_log_out_and_leaves_for_home(table)
 
     cole = type(fay)("Cole Colleague", context, page)
     menu = open_menu(cole)
-    expect(items(menu)).to_have_text(["Your rooms", "Tour", "Log out"])
+    expect(items(menu)).to_have_text(["Your rooms", "Change name", "Tour", "Log out"])
 
     menu.get_by_role("menuitem", name="Log out").click()
 
@@ -68,7 +70,7 @@ def test_um06_player_logs_out_and_the_name_is_forgotten(table):
     expect(fay.page.get_by_text("1 of 3 voted")).to_be_visible()
 
     menu = open_menu(ben)
-    expect(items(menu)).to_have_text(["Tour", "Log out"])
+    expect(items(menu)).to_have_text(["Change name", "Tour", "Log out"])
     menu.get_by_role("menuitem", name="Log out").click()
 
     expect(ben.page.get_by_label("Your name")).to_have_value("")
@@ -139,3 +141,32 @@ def test_um08_logging_out_with_the_connection_down_still_leaves_the_table(table)
     expect(ana_page.get_by_label("Your name")).to_have_value("")
     expect(players(fay.page)).to_have_count(1)
     expect(fay.page.locator('[data-player="Ana"]')).to_have_count(0)
+
+
+def test_um11_change_name_keeps_the_seat_and_the_vote(table):
+    fay, ana, ben = seat_three(table)
+    fay.vote("5")
+    expect(ana.page.get_by_label("Fay has voted")).to_be_visible()
+
+    open_menu(fay).get_by_role("menuitem", name="Change name").click()
+    form = fay.page.get_by_role("dialog", name="Change name")
+    field = form.get_by_label("Name at the table")
+    expect(field).to_have_value("Fay")
+
+    # A name another seat holds is refused, and the form stays open to fix it.
+    field.fill("ana")
+    form.get_by_role("button", name="Save").click()
+    expect(form.get_by_role("alert")).to_contain_text("already called Ana")
+    expect(form).to_be_visible()
+
+    field.fill("Fiona")
+    form.get_by_role("button", name="Save").click()
+    expect(form).to_be_hidden()
+    expect(fay.page.get_by_role("banner").get_by_role("button", name="Fiona")).to_be_visible()
+    expect(ana.page.get_by_label("Fiona has voted")).to_be_visible()  # same seat, vote kept
+    expect(players(ana.page)).to_have_count(3)
+    expect(fay.page.get_by_text("Facilitator controls")).to_be_visible()
+
+    # The browser remembers the new name.
+    fay.page.reload()
+    expect(fay.page.get_by_role("banner").get_by_role("button", name="Fiona")).to_be_visible()
