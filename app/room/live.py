@@ -92,6 +92,15 @@ class _Leave:
 
 
 @dataclass
+class _Rename:
+    """A player changes their name by a web request; `done` carries the outcome back."""
+
+    player_id: str
+    name: str
+    done: asyncio.Future
+
+
+@dataclass
 class _Message:
     conn: Connection
     data: dict[str, Any]
@@ -202,6 +211,13 @@ class LiveRoom:
         name"). It needs no open socket, so a dropped connection cannot leave the seat behind."""
         self._inbox.put_nowait(_Leave(player_id))
 
+    async def rename(self, player_id: str, name: str) -> None:
+        """Rename a player's seat, as Change name does. Raises CommandError (name_taken,
+        invalid_name) when the room refuses it; a player with no seat here is not an error."""
+        done = asyncio.get_running_loop().create_future()
+        self._inbox.put_nowait(_Rename(player_id, name, done))
+        await done
+
     def update(self, record: RoomRecord, moved_from: str | None = None) -> None:
         self.slug = record.slug
         self._inbox.put_nowait(_Update(record, moved_from))
@@ -269,6 +285,22 @@ class LiveRoom:
                     return True
             conn.send(self._snapshot(conn))
             return False
+        if isinstance(command, _Rename):
+            try:
+                room.rename(command.player_id, command.name)
+            except CommandError as err:
+                if not command.done.done():
+                    command.done.set_exception(err)
+                return False
+            seated = room.is_seated(command.player_id)
+            if seated:
+                renamed = room.seats[command.player_id].name
+                for conn in self._conns:  # their sockets check in under the new name
+                    if conn.player_id == command.player_id:
+                        conn.name = renamed
+            if not command.done.done():
+                command.done.set_result(None)
+            return seated
         if isinstance(command, _Leave):
             seated = room.is_seated(command.player_id)
             room.leave(command.player_id)

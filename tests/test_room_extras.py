@@ -491,3 +491,26 @@ def test_summary_has_no_names(room):
     text = repr(room.summary())
     for name in ("Ana", "Ben", "Cy", "p1", "p2", "p3"):
         assert name not in text
+
+
+# Changing your name
+
+
+def test_um10_renaming_changes_only_the_name(room):
+    room.vote("p2", "8")
+    room.sit_out("p3")
+    room.rename("p2", "Benjamin")
+    room.rename("p3", " Cyril ")
+
+    assert table(room) == ["Ana", "Benjamin"]
+    assert watchers(room) == ["Cyril"]
+    assert room.round.votes["p2"].label == "8"
+    with pytest.raises(CommandError) as taken:
+        room.rename("p2", "ana")
+    assert taken.value.code == "name_taken"
+    with pytest.raises(CommandError):
+        room.rename("p2", "")
+    room.rename("p2", "BENJAMIN")  # their own name, in another case: allowed
+    assert table(room) == ["Ana", "BENJAMIN"]
+    room.rename("nobody", "Zed")  # no seat in this room: nothing to rename
+    assert table(room) == ["Ana", "BENJAMIN"]

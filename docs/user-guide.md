@@ -45,8 +45,11 @@ There is no account and no password. Your browser remembers your name for a year
 time you go straight in. If you close the tab or lose your connection, you get your seat back
 when you return, with your card still chosen.
 
-To leave for good, or to use another name, click your name at the top right and choose
-**Log out**. You leave the table and the browser forgets your name; the room then asks for a
+To change the name you show at the table, click your name at the top right and choose
+**Change name**: you keep your seat and your vote, and your browser remembers the new name. If
+someone at the table already has that name, the form says so.
+
+To leave for good, click your name at the top right and choose **Log out**. You leave the table and the browser forgets your name; the room then asks for a
 name again. On a shared computer, log out when you're done.
 
 ### The tour
